@@ -232,7 +232,10 @@ class TokenController {
     try {
       const { 
         address, 
-        network = 'testnet' 
+        network = 'testnet',
+        adminPublicKey,
+        website,
+        description
       } = req.body;
       
       if (!address) {
@@ -242,9 +245,19 @@ class TokenController {
         });
       }
 
+      if (!adminPublicKey) {
+        return res.status(400).json({
+          success: false,
+          message: 'adminPublicKey é obrigatório'
+        });
+      }
+
       const tokenData = {
         address,
-        network
+        network,
+        adminPublicKey,
+        website,
+        description
       };
 
       const result = await tokenService.registerToken(tokenData);
@@ -256,6 +269,81 @@ class TokenController {
       res.status(400).json({
         success: false,
         message: 'Erro ao registrar token',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Lista todos os tokens registrados
+   */
+  async listTokens(req, res) {
+    try {
+      const { page, limit, network, contractType, isActive } = req.query;
+      const options = {
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 10,
+        network,
+        contractType,
+        isActive: isActive !== undefined ? isActive === 'true' : undefined
+      };
+      
+      const result = await tokenService.listTokens(options);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao listar tokens',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Desativa um token
+   */
+  async deactivateToken(req, res) {
+    try {
+      const { contractAddress } = req.params;
+      
+      if (!contractAddress) {
+        return res.status(400).json({
+          success: false,
+          message: 'Endereço do contrato é obrigatório'
+        });
+      }
+
+      const result = await tokenService.deactivateToken(contractAddress);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao desativar token',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Ativa um token
+   */
+  async activateToken(req, res) {
+    try {
+      const { contractAddress } = req.params;
+      
+      if (!contractAddress) {
+        return res.status(400).json({
+          success: false,
+          message: 'Endereço do contrato é obrigatório'
+        });
+      }
+
+      const result = await tokenService.activateToken(contractAddress);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao ativar token',
         error: error.message
       });
     }
@@ -282,6 +370,32 @@ class TokenController {
       res.status(400).json({
         success: false,
         message: 'Erro ao obter informações do token',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Atualiza informações do token
+   */
+  async updateTokenInfo(req, res) {
+    try {
+      const { contractAddress } = req.params;
+      const metadata = req.body;
+      
+      if (!contractAddress) {
+        return res.status(400).json({
+          success: false,
+          message: 'Endereço do contrato é obrigatório'
+        });
+      }
+
+      const result = await tokenService.updateTokenInfo(contractAddress, metadata);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao atualizar informações do token',
         error: error.message
       });
     }

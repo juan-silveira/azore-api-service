@@ -2,14 +2,19 @@ const { ethers } = require('ethers');
 const axios = require('axios');
 const blockchainService = require('./blockchain.service');
 const contractService = require('./contract.service');
+const databaseConfig = require('../config/database');
 
 class TokenService {
   constructor() {
-    // Remover inicialização automática do construtor
+    this.SmartContract = null;
+    this.sequelize = null;
   }
 
   async initialize() {
     try {
+      this.sequelize = await databaseConfig.initialize();
+      const SmartContractModel = require('../models/SmartContract');
+      this.SmartContract = SmartContractModel(this.sequelize);
       await contractService.initialize();
       console.log('✅ Serviço de tokens inicializado com sucesso');
     } catch (error) {
@@ -305,109 +310,168 @@ class TokenService {
 
   /**
    * Registra um contrato de token no sistema
-   * @param {Object} tokenData - Dados do token (apenas address é obrigatório)
-   * @returns {Promise<Object>} Resultado do registro
    */
   async registerToken(tokenData) {
     try {
-      // Validar endereço
-      if (!tokenData.address) {
-        throw new Error('Endereço do contrato é obrigatório');
-      }
+      const { address, network = 'testnet', adminPublicKey, website, description } = tokenData;
 
-      if (!ethers.isAddress(tokenData.address)) {
+      // Validar endereço
+      if (!ethers.isAddress(address)) {
         throw new Error('Endereço do contrato inválido');
       }
 
-      const network = tokenData.network || 'testnet';
-      const contractAddress = tokenData.address.toLowerCase();
-
-      // Carregar ABI do token do .env
-      const tokenABI = JSON.parse(process.env.TOKEN_ABI);
-
-      // Obter provider
-      const provider = blockchainService.config.getProvider(network);
-      
-      // Criar instância do contrato
-      const contractInstance = new ethers.Contract(
-        contractAddress,
-        tokenABI,
-        provider
-      );
-
-      // Consultar dados reais do token na blockchain (4 consultas)
-      const [name, symbol, decimals, totalSupplyWei] = await Promise.all([
-        contractInstance.name(),
-        contractInstance.symbol(),
-        contractInstance.decimals(),
-        contractInstance.totalSupply()
-      ]);
-
-      // Converter totalSupply para ETH (unidades inteiras)
-      const totalSupplyEth = ethers.formatUnits(totalSupplyWei, decimals);
-
-      // Verificar se o token já existe no banco (opcional)
-      let existingContract;
-      let isUpdate = false;
-      try {
-        existingContract = await contractService.getContractByAddress(contractAddress);
-        isUpdate = existingContract.success;
-      } catch (error) {
-        // Contrato não encontrado, será registrado como novo
-        isUpdate = false;
+      // Validar adminPublicKey
+      if (!ethers.isAddress(adminPublicKey)) {
+        throw new Error('adminPublicKey inválido');
       }
 
-      // Gerar adminPublicKey a partir do ADMIN_PRIVATE_KEY
-      const adminWallet = new ethers.Wallet(process.env.ADMIN_PRIVATE_KEY);
-      const adminPublicKey = adminWallet.address;
-
-      // Preparar dados do contrato
+      // Usar o serviço de contratos para registrar
       const contractData = {
-        name: `${name} Token`,
-        address: contractAddress,
-        abi: tokenABI,
-        network: network,
-        contractType: 'ERC20',
-        adminPublicKey: adminPublicKey,
+        address,
+        network,
+        adminPublicKey: adminPublicKey.toLowerCase(),
+        contractType: 'ERC20', // Assumindo que todos os tokens registrados são ERC20
         metadata: {
-          tokenName: name,
-          tokenSymbol: symbol,
-          decimals: Number(decimals),
-          totalSupplyWei: totalSupplyWei.toString(),
-          totalSupplyEth: totalSupplyEth,
-          lastUpdated: new Date().toISOString()
+          website,
+          description,
+          explorer: network === 'mainnet' ? 'https://azorescan.com' : 'https://floripa.azorescan.com'
         }
       };
 
-      let result;
-      if (isUpdate) {
-        // Atualizar contrato existente
-        result = await contractService.updateContractMetadata(contractAddress, contractData.metadata);
-        result.message = 'Token atualizado com sucesso';
-      } else {
-        // Registrar novo contrato
-        result = await contractService.registerContract(contractData);
-        result.message = 'Token registrado com sucesso';
-      }
+      const result = await contractService.registerContract(contractData);
       
       return {
         success: true,
-        message: result.message,
+        message: 'Token registrado com sucesso',
         data: {
           ...result.data,
           tokenInfo: {
-            name: name,
-            symbol: symbol,
-            decimals: Number(decimals),
-            totalSupplyWei: totalSupplyWei.toString(),
-            totalSupplyEth: totalSupplyEth,
-            network: network,
-            isUpdate: isUpdate
+            isUpdate: false, // Será atualizado pelo contractService
+            address: address.toLowerCase(),
+            network,
+            adminPublicKey: adminPublicKey.toLowerCase()
           }
         }
       };
     } catch (error) {
       throw new Error(`Erro ao registrar token: ${error.message}`);
+    }
+  }
+
+  /**
+   * Lista todos os tokens registrados
+   */
+  async listTokens(options = {}) {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        network,
+        contractType,
+        isActive = true
+      } = options;
+
+      const offset = (page - 1) * limit;
+      const where = { isActive };
+
+      if (network) where.network = network;
+      if (contractType) where.contractType = contractType;
+
+      // Buscar tokens diretamente no banco
+      const { count, rows } = await this.SmartContract.findAndCountAll({
+        where,
+        limit,
+        offset,
+        order: [['createdAt', 'DESC']]
+      });
+
+      const totalPages = Math.ceil(count / limit);
+
+      return {
+        success: true,
+        message: 'Tokens listados com sucesso',
+        data: {
+          tokens: rows,
+          pagination: {
+            page,
+            limit,
+            total: count,
+            totalPages,
+            hasNext: page < totalPages,
+            hasPrev: page > 1
+          }
+        }
+      };
+    } catch (error) {
+      throw new Error(`Erro ao listar tokens: ${error.message}`);
+    }
+  }
+
+  /**
+   * Desativa um token
+   */
+  async deactivateToken(contractAddress) {
+    try {
+      // Validar endereço
+      if (!ethers.isAddress(contractAddress)) {
+        throw new Error('Endereço do contrato inválido');
+      }
+
+      // Buscar e atualizar o contrato diretamente
+      const contract = await this.SmartContract.findByAddress(contractAddress);
+      
+      if (!contract) {
+        throw new Error('Token não encontrado');
+      }
+
+      await contract.update({ isActive: false });
+      
+      return {
+        success: true,
+        message: 'Token desativado com sucesso',
+        data: {
+          address: contractAddress.toLowerCase(),
+          isActive: false
+        }
+      };
+    } catch (error) {
+      throw new Error(`Erro ao desativar token: ${error.message}`);
+    }
+  }
+
+  /**
+   * Ativa um token
+   */
+  async activateToken(contractAddress) {
+    try {
+      // Validar endereço
+      if (!ethers.isAddress(contractAddress)) {
+        throw new Error('Endereço do contrato inválido');
+      }
+
+      // Buscar e atualizar o contrato diretamente (incluindo inativos)
+      const contract = await this.SmartContract.findOne({
+        where: {
+          address: contractAddress.toLowerCase()
+        }
+      });
+      
+      if (!contract) {
+        throw new Error('Token não encontrado');
+      }
+
+      await contract.update({ isActive: true });
+      
+      return {
+        success: true,
+        message: 'Token ativado com sucesso',
+        data: {
+          address: contractAddress.toLowerCase(),
+          isActive: true
+        }
+      };
+    } catch (error) {
+      throw new Error(`Erro ao ativar token: ${error.message}`);
     }
   }
 
@@ -424,53 +488,79 @@ class TokenService {
         throw new Error('Endereço do contrato inválido');
       }
 
-      // Carregar ABI do token do .env
-      const tokenABI = JSON.parse(process.env.TOKEN_ABI);
-
-      // Obter provider
-      const provider = blockchainService.config.getProvider(network);
+      // Buscar informações do contrato no banco
+      const contract = await this.SmartContract.findByAddress(contractAddress);
       
-      // Criar instância do contrato
-      const contractInstance = new ethers.Contract(
-        contractAddress,
-        tokenABI,
-        provider
-      );
+      if (!contract) {
+        throw new Error('Token não encontrado');
+      }
 
-      // Obter informações básicas diretamente da blockchain
+      // Obter informações da blockchain
+      const provider = blockchainService.config.getProvider(network);
+      const contractInstance = new ethers.Contract(contractAddress, contract.abi, provider);
+      
       const [name, symbol, decimals, totalSupply] = await Promise.all([
         contractInstance.name(),
         contractInstance.symbol(),
         contractInstance.decimals(),
         contractInstance.totalSupply()
       ]);
-
-      // Verificar se o token existe no banco (opcional)
-      let metadata = null;
-      try {
-        const contract = await contractService.getContractByAddress(contractAddress);
-        metadata = contract.success ? contract.data.metadata : null;
-      } catch (error) {
-        // Contrato não encontrado no banco, mas continuamos com os dados da blockchain
-        metadata = null;
-      }
-
+      
       return {
         success: true,
         message: 'Informações do token obtidas com sucesso',
         data: {
-          contractAddress: contractAddress.toLowerCase(),
-          name: name,
-          symbol: symbol,
-          decimals: Number(decimals),
-          totalSupplyWei: totalSupply.toString(),
-          totalSupplyEth: ethers.formatUnits(totalSupply, decimals),
+          address: contractAddress.toLowerCase(),
+          name,
+          symbol,
+          decimals: decimals.toString(),
+          totalSupply: totalSupply.toString(),
           network: network,
-          metadata: metadata
+          contractType: contract.contractType,
+          isActive: contract.isActive,
+          metadata: contract.metadata
         }
       };
     } catch (error) {
       throw new Error(`Erro ao obter informações do token: ${error.message}`);
+    }
+  }
+
+  /**
+   * Atualiza informações do token
+   */
+  async updateTokenInfo(contractAddress, metadata) {
+    try {
+      // Validar endereço
+      if (!ethers.isAddress(contractAddress)) {
+        throw new Error('Endereço do contrato inválido');
+      }
+
+      // Buscar e atualizar o contrato diretamente
+      const contract = await this.SmartContract.findByAddress(contractAddress);
+      
+      if (!contract) {
+        throw new Error('Token não encontrado');
+      }
+
+      // Atualizar metadados
+      const updatedMetadata = {
+        ...contract.metadata,
+        ...metadata
+      };
+
+      await contract.update({ metadata: updatedMetadata });
+      
+      return {
+        success: true,
+        message: 'Informações do token atualizadas com sucesso',
+        data: {
+          address: contractAddress.toLowerCase(),
+          metadata: updatedMetadata
+        }
+      };
+    } catch (error) {
+      throw new Error(`Erro ao atualizar informações do token: ${error.message}`);
     }
   }
 

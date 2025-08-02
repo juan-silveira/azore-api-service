@@ -127,6 +127,7 @@ const tokenController = require('../controllers/token.controller');
  *       type: object
  *       required:
  *         - address
+ *         - adminPublicKey
  *       properties:
  *         address:
  *           type: string
@@ -137,6 +138,16 @@ const tokenController = require('../controllers/token.controller');
  *           enum: [mainnet, testnet]
  *           default: testnet
  *           description: Rede do token
+ *         adminPublicKey:
+ *           type: string
+ *           pattern: '^0x[a-fA-F0-9]{40}$'
+ *           description: PublicKey do admin do token
+ *         website:
+ *           type: string
+ *           description: Website do token
+ *         description:
+ *           type: string
+ *           description: Descrição do token
  */
 
 /**
@@ -529,6 +540,67 @@ router.get('/:contractAddress/info', tokenController.getTokenInfo);
 
 /**
  * @swagger
+ * /api/tokens/{contractAddress}/update-info:
+ *   put:
+ *     summary: Atualiza informações do token
+ *     description: Atualiza metadados do token como description, website e explorer
+ *     tags: [Tokens]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: contractAddress
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: '^0x[a-fA-F0-9]{40}$'
+ *         description: Endereço do contrato
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               description:
+ *                 type: string
+ *                 description: Nova descrição do token
+ *               website:
+ *                 type: string
+ *                 description: Novo website do token
+ *               explorer:
+ *                 type: string
+ *                 description: Novo explorer do token
+ *     responses:
+ *       200:
+ *         description: Informações atualizadas com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     address:
+ *                       type: string
+ *                     updatedFields:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *                     metadata:
+ *                       type: object
+ *       400:
+ *         description: Token não encontrado ou dados inválidos
+ *       401:
+ *         description: Não autorizado
+ */
+router.put('/:contractAddress/update-info', tokenController.updateTokenInfo);
+
+/**
+ * @swagger
  * /api/tokens/test/service:
  *   get:
  *     summary: Testa o serviço de tokens
@@ -560,5 +632,181 @@ router.get('/:contractAddress/info', tokenController.getTokenInfo);
  *         description: Erro no teste
  */
 router.get('/test/service', tokenController.testService);
+
+/**
+ * @swagger
+ * /api/tokens:
+ *   get:
+ *     summary: Lista todos os tokens registrados (NATIVE e ERC20)
+ *     tags: [Tokens]
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Número da página
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Limite de itens por página
+ *       - in: query
+ *         name: network
+ *         schema:
+ *           type: string
+ *           enum: [mainnet, testnet]
+ *         description: Filtrar por rede
+ *       - in: query
+ *         name: contractType
+ *         schema:
+ *           type: string
+ *           enum: [NATIVE, ERC20]
+ *         description: Filtrar por tipo de contrato
+ *       - in: query
+ *         name: isActive
+ *         schema:
+ *           type: boolean
+ *         description: Filtrar por status ativo
+ *     responses:
+ *       200:
+ *         description: Lista de tokens obtida com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     tokens:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           name:
+ *                             type: string
+ *                           address:
+ *                             type: string
+ *                           network:
+ *                             type: string
+ *                           contractType:
+ *                             type: string
+ *                           isActive:
+ *                             type: boolean
+ *                           metadata:
+ *                             type: object
+ *                           adminPublicKey:
+ *                             type: string
+ *                           createdAt:
+ *                             type: string
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                         limit:
+ *                           type: integer
+ *                         total:
+ *                           type: integer
+ *                         pages:
+ *                           type: integer
+ *       400:
+ *         description: Parâmetros inválidos
+ */
+router.get('/', tokenController.listTokens);
+
+/**
+ * @swagger
+ * /api/tokens/{contractAddress}/deactivate:
+ *   post:
+ *     summary: Desativa um token
+ *     description: Muda o status is_active para false
+ *     tags: [Tokens]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: contractAddress
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: '^0x[a-fA-F0-9]{40}$'
+ *         description: Endereço do contrato
+ *     responses:
+ *       200:
+ *         description: Token desativado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     address:
+ *                       type: string
+ *                     isActive:
+ *                       type: boolean
+ *       400:
+ *         description: Token não encontrado
+ *       401:
+ *         description: Não autorizado
+ */
+router.post('/:contractAddress/deactivate', tokenController.deactivateToken);
+
+/**
+ * @swagger
+ * /api/tokens/{contractAddress}/activate:
+ *   post:
+ *     summary: Ativa um token
+ *     description: Muda o status is_active para true
+ *     tags: [Tokens]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: contractAddress
+ *         required: true
+ *         schema:
+ *           type: string
+ *           pattern: '^0x[a-fA-F0-9]{40}$'
+ *         description: Endereço do contrato
+ *     responses:
+ *       200:
+ *         description: Token ativado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     address:
+ *                       type: string
+ *                     isActive:
+ *                       type: boolean
+ *       400:
+ *         description: Token não encontrado
+ *       401:
+ *         description: Não autorizado
+ */
+router.post('/:contractAddress/activate', tokenController.activateToken);
 
 module.exports = router; 

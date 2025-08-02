@@ -1,6 +1,5 @@
 const { ethers } = require('ethers');
 const blockchainService = require('./blockchain.service');
-const userService = require('./user.service');
 const databaseConfig = require('../config/database');
 
 class ContractService {
@@ -13,7 +12,9 @@ class ContractService {
     try {
       this.sequelize = await databaseConfig.initialize();
       const SmartContractModel = require('../models/SmartContract');
+      const WalletModel = require('../models/Wallet');
       this.SmartContract = SmartContractModel(this.sequelize);
+      this.Wallet = WalletModel(this.sequelize);
       // Não sincronizar - usar apenas o arquivo de inicialização SQL
       console.log('✅ Serviço de contratos inicializado com sucesso');
     } catch (error) {
@@ -22,107 +23,9 @@ class ContractService {
     }
   }
 
-  /**
-   * Registra um novo contrato inteligente
-   */
-  async registerContract(contractData) {
-    try {
-      // Validar ABI
-      this.SmartContract.validateABI(contractData.abi);
 
-      // Normalizar endereço
-      contractData.address = contractData.address.toLowerCase();
 
-      // Verificar se o contrato já existe
-      const existingContract = await this.SmartContract.findByAddress(contractData.address);
-      if (existingContract) {
-        throw new Error('Contrato já registrado com este endereço');
-      }
 
-      // Verificar se adminPublicKey foi fornecido
-      if (!contractData.adminPublicKey) {
-        throw new Error('adminPublicKey é obrigatório para registrar um token');
-      }
-
-      // Nota: A verificação de role será feita quando necessário, não no registro
-      // O adminPublicKey é armazenado como referência para operações futuras
-
-      // Criar contrato
-      const contract = await this.SmartContract.create(contractData);
-      
-      return {
-        success: true,
-        message: 'Contrato registrado com sucesso',
-        data: contract
-      };
-    } catch (error) {
-      throw new Error(`Erro ao registrar contrato: ${error.message}`);
-    }
-  }
-
-  /**
-   * Obtém um contrato por endereço
-   */
-  async getContractByAddress(address) {
-    try {
-      const contract = await this.SmartContract.findByAddress(address);
-      if (!contract) {
-        throw new Error('Contrato não encontrado');
-      }
-
-      return {
-        success: true,
-        message: 'Contrato encontrado com sucesso',
-        data: contract
-      };
-    } catch (error) {
-      throw new Error(`Erro ao obter contrato: ${error.message}`);
-    }
-  }
-
-  /**
-   * Lista contratos com paginação
-   */
-  async listContracts(options = {}) {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        network,
-        contractType,
-        isActive = true
-      } = options;
-
-      const offset = (page - 1) * limit;
-      const where = { isActive };
-
-      if (network) where.network = network;
-      if (contractType) where.contractType = contractType;
-
-      const { count, rows } = await this.SmartContract.findAndCountAll({
-        where,
-        limit: parseInt(limit),
-        offset: parseInt(offset),
-        order: [['createdAt', 'DESC']]
-      });
-
-      return {
-        success: true,
-        message: 'Contratos listados com sucesso',
-        data: {
-          contracts: rows,
-          pagination: {
-            page: parseInt(page),
-            limit: parseInt(limit),
-            total: count,
-            pages: Math.ceil(count / limit)
-          }
-        }
-      };
-    } catch (error) {
-      throw new Error(`Erro ao listar contratos: ${error.message}`);
-    }
-  }
 
   /**
    * Executa uma operação de leitura no contrato
@@ -198,15 +101,19 @@ class ContractService {
         throw new Error(`Função '${functionName}' não é uma função de escrita`);
       }
 
-      // Obter usuário pela publicKey para pegar a privateKey
-      const user = await userService.getUserByPublicKey(walletAddress, true);
-      if (!user.success) {
-        throw new Error('Usuário não encontrado');
+      // Obter carteira pela publicKey para pegar a privateKey
+      const wallet = await this.Wallet.findByAddress(walletAddress);
+      if (!wallet) {
+        throw new Error('Carteira não encontrada');
       }
+
+      // Decriptar chave privada
+      const encryptionService = require('./encryption.service');
+      const privateKey = await encryptionService.decrypt(wallet.encryptedPrivateKey);
 
       // Obter provider e signer
       const provider = blockchainService.config.getProvider(contract.network);
-      const signer = new ethers.Wallet(user.data.privateKey, provider);
+      const signer = new ethers.Wallet(privateKey, provider);
 
       // Criar instância do contrato com signer
       const contractInstance = new ethers.Contract(
@@ -227,10 +134,8 @@ class ContractService {
       // Aguardar confirmação
       const receipt = await tx.wait();
 
-      // Atualizar lastActivityAt do usuário
-      await userService.updateUser(user.data.id, {
-        lastActivityAt: new Date()
-      });
+      // Atualizar lastUsedAt da carteira
+      await wallet.updateLastUsed();
 
       return {
         success: true,
@@ -267,15 +172,19 @@ class ContractService {
         throw new Error('Bytecode é obrigatório para implantação');
       }
 
-      // Obter usuário pela publicKey para pegar a privateKey
-      const user = await userService.getUserByPublicKey(walletAddress, true);
-      if (!user.success) {
-        throw new Error('Usuário não encontrado');
+      // Obter carteira pela publicKey para pegar a privateKey
+      const wallet = await this.Wallet.findByAddress(walletAddress);
+      if (!wallet) {
+        throw new Error('Carteira não encontrada');
       }
+
+      // Decriptar chave privada
+      const encryptionService = require('./encryption.service');
+      const privateKey = await encryptionService.decrypt(wallet.encryptedPrivateKey);
 
       // Obter provider e signer
       const provider = blockchainService.config.getProvider(contractData.network || 'testnet');
-      const signer = new ethers.Wallet(user.data.privateKey, provider);
+      const signer = new ethers.Wallet(privateKey, provider);
 
       // Criar factory do contrato
       const contractFactory = new ethers.ContractFactory(
@@ -302,14 +211,12 @@ class ContractService {
       const contractRecord = await this.registerContract({
         ...contractData,
         address: contractAddress,
-        deployedBy: wallet.data.id,
+        deployedBy: wallet.id,
         deployedAt: new Date()
       });
 
-      // Atualizar lastActivityAt do usuário
-      await userService.updateUser(user.data.id, {
-        lastActivityAt: new Date()
-      });
+      // Atualizar lastUsedAt da carteira
+      await wallet.updateLastUsed();
 
       return {
         success: true,
@@ -384,68 +291,7 @@ class ContractService {
     }
   }
 
-  /**
-   * Atualiza metadados do contrato
-   */
-  async updateContractMetadata(address, metadata) {
-    try {
-      const [updated] = await this.SmartContract.updateContract(address, { metadata });
-      
-      if (updated === 0) {
-        throw new Error('Contrato não encontrado');
-      }
 
-      const contract = await this.SmartContract.findByAddress(address);
-      
-      return {
-        success: true,
-        message: 'Metadados do contrato atualizados com sucesso',
-        data: contract
-      };
-    } catch (error) {
-      throw new Error(`Erro ao atualizar metadados: ${error.message}`);
-    }
-  }
-
-  /**
-   * Desativa um contrato
-   */
-  async deactivateContract(address) {
-    try {
-      const [updated] = await this.SmartContract.deactivateContract(address);
-      
-      if (updated === 0) {
-        throw new Error('Contrato não encontrado');
-      }
-
-      return {
-        success: true,
-        message: 'Contrato desativado com sucesso'
-      };
-    } catch (error) {
-      throw new Error(`Erro ao desativar contrato: ${error.message}`);
-    }
-  }
-
-  /**
-   * Reativa um contrato
-   */
-  async activateContract(address) {
-    try {
-      const [updated] = await this.SmartContract.activateContract(address);
-      
-      if (updated === 0) {
-        throw new Error('Contrato não encontrado');
-      }
-
-      return {
-        success: true,
-        message: 'Contrato reativado com sucesso'
-      };
-    } catch (error) {
-      throw new Error(`Erro ao reativar contrato: ${error.message}`);
-    }
-  }
 
   /**
    * Verifica se um usuário tem a role DEFAULT_ADMIN_ROLE em um token
@@ -660,29 +506,7 @@ class ContractService {
     }
   }
 
-  /**
-   * Concede a role MINTER_ROLE a um usuário
-   * FUNCIONALIDADE REMOVIDA - Gerenciamento de carteiras foi descontinuado
-   */
-  async grantMinterRole(contractAddress, newMinterPublicKey, currentAdminPublicKey) {
-    throw new Error('Funcionalidade de concessão de roles foi removida. O gerenciamento de carteiras foi descontinuado.');
-  }
 
-  /**
-   * Concede a role BURNER_ROLE a um usuário
-   * FUNCIONALIDADE REMOVIDA - Gerenciamento de carteiras foi descontinuado
-   */
-  async grantBurnerRole(contractAddress, newBurnerPublicKey, currentAdminPublicKey) {
-    throw new Error('Funcionalidade de concessão de roles foi removida. O gerenciamento de carteiras foi descontinuado.');
-  }
-
-  /**
-   * Concede a role TRANSFER_ROLE a um usuário
-   * FUNCIONALIDADE REMOVIDA - Gerenciamento de carteiras foi descontinuado
-   */
-  async grantTransferRole(contractAddress, newTransferPublicKey, currentAdminPublicKey) {
-    throw new Error('Funcionalidade de concessão de roles foi removida. O gerenciamento de carteiras foi descontinuado.');
-  }
 
   /**
    * Atualiza metadados do token (description, website, explorer)
@@ -846,8 +670,92 @@ class ContractService {
    * Concede uma role a um endereço
    * FUNCIONALIDADE REMOVIDA - Gerenciamento de carteiras foi descontinuado
    */
-  async grantRole(contractAddress, role, targetAddress, walletAddress) {
-    throw new Error('Funcionalidade de concessão de roles foi removida. O gerenciamento de carteiras foi descontinuado.');
+  async grantRole(contractAddress, role, targetAddress) {
+    try {
+      const contract = await this.SmartContract.findByAddress(contractAddress);
+      if (!contract) {
+        throw new Error('Token não encontrado');
+      }
+
+      // Verificar se o targetAddress existe no banco de dados (Wallet)
+      const wallet = await this.Wallet.findByAddress(targetAddress);
+      if (!wallet) {
+        throw new Error('Carteira não encontrada');
+      }
+
+      // Verificar se o contrato tem adminPublicKey
+      if (!contract.adminPublicKey) {
+        throw new Error('Token não possui admin configurado');
+      }
+
+      // Verificar se o contrato é ERC20 ou STAKE
+      const isERC20 = contract.contractType === 'ERC20';
+      const isSTAKE = contract.contractType === 'STAKE';
+
+      // Para STAKE, só pode conceder admin role
+      if (isSTAKE && role !== 'admin') {
+        throw new Error('Contratos STAKE só podem ter role admin');
+      }
+
+      // Para ERC20, pode conceder os 4 tipos de role
+      if (!isERC20 && !isSTAKE) {
+        throw new Error('Tipo de contrato não suportado para concessão de roles');
+      }
+
+      // Obter provider
+      const provider = blockchainService.config.getProvider(contract.network);
+      
+      // Criar instância do contrato
+      const contractInstance = new ethers.Contract(
+        contractAddress,
+        contract.abi,
+        provider
+      );
+
+      // Obter hash da role
+      const roleHash = this.getRoleHash(role);
+
+      // Verificar se o adminPublicKey tem a role de admin
+      const adminRoleHash = this.getRoleHash('admin');
+      const isAdmin = await contractInstance.hasRole(adminRoleHash, contract.adminPublicKey);
+      
+      if (!isAdmin) {
+        throw new Error('AdminPublicKey não possui role de admin no contrato');
+      }
+
+      // Conceder role usando o adminPublicKey como signer
+      const adminWallet = await this.Wallet.findByAddress(contract.adminPublicKey);
+      if (!adminWallet) {
+        throw new Error('Carteira do admin não encontrada');
+      }
+
+      // Decriptar chave privada do admin
+      const encryptionService = require('./encryption.service');
+      const adminPrivateKey = await encryptionService.decrypt(adminWallet.encryptedPrivateKey);
+      
+      // Criar signer
+      const signer = new ethers.Wallet(adminPrivateKey, provider);
+      const contractWithSigner = contractInstance.connect(signer);
+
+      // Executar transação
+      const tx = await contractWithSigner.grantRole(roleHash, targetAddress);
+      await tx.wait();
+
+      return {
+        success: true,
+        message: `Role ${role} concedida com sucesso`,
+        data: {
+          contractAddress,
+          targetAddress,
+          role,
+          roleHash,
+          transactionHash: tx.hash,
+          timestamp: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      throw new Error(`Erro ao conceder role ${role}: ${error.message}`);
+    }
   }
 
   /**
@@ -895,10 +803,87 @@ class ContractService {
 
   /**
    * Revoga uma role de um endereço
-   * FUNCIONALIDADE REMOVIDA - Gerenciamento de carteiras foi descontinuado
    */
-  async revokeRole(contractAddress, role, targetAddress, walletAddress) {
-    throw new Error('Funcionalidade de revogação de roles foi removida. O gerenciamento de carteiras foi descontinuado.');
+  async revokeRole(contractAddress, role, targetAddress) {
+    try {
+      const contract = await this.SmartContract.findByAddress(contractAddress);
+      if (!contract) {
+        throw new Error('Token não encontrado');
+      }
+
+      // Verificar se o contrato tem adminPublicKey
+      if (!contract.adminPublicKey) {
+        throw new Error('Token não possui admin configurado');
+      }
+
+      // Verificar se o contrato é ERC20 ou STAKE
+      const isERC20 = contract.contractType === 'ERC20';
+      const isSTAKE = contract.contractType === 'STAKE';
+
+      // Para STAKE, só pode revogar admin role
+      if (isSTAKE && role !== 'admin') {
+        throw new Error('Contratos STAKE só podem revogar role admin');
+      }
+
+      // Para ERC20, pode revogar qualquer role
+      if (!isERC20 && !isSTAKE) {
+        throw new Error('Tipo de contrato não suportado para revogação de roles');
+      }
+
+      // Obter provider
+      const provider = blockchainService.config.getProvider(contract.network);
+      
+      // Criar instância do contrato
+      const contractInstance = new ethers.Contract(
+        contractAddress,
+        contract.abi,
+        provider
+      );
+
+      // Obter hash da role
+      const roleHash = this.getRoleHash(role);
+
+      // Verificar se o adminPublicKey tem a role de admin
+      const adminRoleHash = this.getRoleHash('admin');
+      const isAdmin = await contractInstance.hasRole(adminRoleHash, contract.adminPublicKey);
+      
+      if (!isAdmin) {
+        throw new Error('AdminPublicKey não possui role de admin no contrato');
+      }
+
+      // Revogar role usando o adminPublicKey como signer
+      const adminWallet = await this.Wallet.findByAddress(contract.adminPublicKey);
+      if (!adminWallet) {
+        throw new Error('Carteira do admin não encontrada');
+      }
+
+      // Decriptar chave privada do admin
+      const encryptionService = require('./encryption.service');
+      const adminPrivateKey = await encryptionService.decrypt(adminWallet.encryptedPrivateKey);
+      
+      // Criar signer
+      const signer = new ethers.Wallet(adminPrivateKey, provider);
+      const contractWithSigner = contractInstance.connect(signer);
+
+      // Executar transação
+      const tx = await contractWithSigner.revokeRole(roleHash, targetAddress);
+      await tx.wait();
+
+      return {
+        success: true,
+        message: `Role ${role} revogada com sucesso`,
+        data: {
+          contractAddress,
+          targetAddress,
+          role,
+          roleHash,
+          transactionHash: tx.hash,
+          timestamp: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      throw new Error(`Erro ao revogar role ${role}: ${error.message}`);
+    }
   }
 
   /**

@@ -86,16 +86,7 @@ module.exports = (sequelize) => {
       defaultValue: true,
       allowNull: false
     },
-    deployedBy: {
-      type: DataTypes.UUID,
-      allowNull: true,
-      comment: 'ID da carteira que implantou o contrato'
-    },
-    deployedAt: {
-      type: DataTypes.DATE,
-      allowNull: true,
-      comment: 'Data de implantação do contrato'
-    },
+
     adminPublicKey: {
       type: DataTypes.STRING(42),
       allowNull: true,
@@ -132,10 +123,7 @@ module.exports = (sequelize) => {
         name: 'idx_smart_contracts_active',
         fields: ['is_active']
       },
-      {
-        name: 'idx_smart_contracts_deployed_by',
-        fields: ['deployed_by']
-      }
+
     ],
     hooks: {
       beforeCreate: (contract) => {

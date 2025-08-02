@@ -20,6 +20,7 @@ const logService = require('./services/log.service');
 const adminService = require('./services/admin.service');
 const passwordResetService = require('./services/passwordReset.service');
 const tokenInitializerService = require('./services/tokenInitializer.service');
+const tokenService = require('./services/token.service');
 
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -89,6 +90,7 @@ const startServer = () => {
     await userService.init();
     await logService.initialize();
     await passwordResetService.initialize();
+    await tokenService.initialize();
     console.log('✅ Serviços inicializados com sucesso');
     
     // Inicializar client admin padrão (após os serviços)

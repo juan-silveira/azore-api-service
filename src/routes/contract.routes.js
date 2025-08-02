@@ -47,14 +47,7 @@ const contractController = require('../controllers/contract.controller');
  *         isActive:
  *           type: boolean
  *           description: Se o contrato está ativo
- *         deployedBy:
- *           type: string
- *           format: uuid
- *           description: ID da carteira que implantou
- *         deployedAt:
- *           type: string
- *           format: date-time
- *           description: Data de implantação
+
  *         adminPublicKey:
  *           type: string
  *           pattern: '^0x[a-fA-F0-9]{40}$'
@@ -92,63 +85,7 @@ const contractController = require('../controllers/contract.controller');
  *           description: Opções de implantação
  */
 
-/**
- * @swagger
- * /api/contracts:
- *   post:
- *     summary: Registra um novo contrato inteligente
- *     tags: [Contracts]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/SmartContract'
- *     responses:
- *       201:
- *         description: Contrato registrado com sucesso
- *       400:
- *         description: Dados inválidos
- */
-router.post('/', contractController.registerContract);
 
-/**
- * @swagger
- * /api/contracts:
- *   get:
- *     summary: Lista contratos com paginação
- *     tags: [Contracts]
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           default: 1
- *         description: Número da página
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           default: 10
- *         description: Limite de itens por página
- *       - in: query
- *         name: network
- *         schema:
- *           type: string
- *           enum: [mainnet, testnet]
- *         description: Filtrar por rede
- *       - in: query
- *         name: contractType
- *         schema:
- *           type: string
- *         description: Filtrar por tipo de contrato
- *     responses:
- *       200:
- *         description: Lista de contratos
- *       400:
- *         description: Parâmetros inválidos
- */
-router.get('/', contractController.listContracts);
 
 /**
  * @swagger
@@ -196,71 +133,9 @@ router.post('/validate-abi', contractController.validateABI);
  */
 router.post('/deploy', contractController.deployContract);
 
-/**
- * @swagger
- * /api/contracts/default-tokens:
- *   get:
- *     summary: Lista os tokens padrão configurados
- *     description: Retorna a lista de tokens que são criados automaticamente
- *     tags: [Contracts]
- *     responses:
- *       200:
- *         description: Lista de tokens padrão
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     total:
- *                       type: integer
- *                       description: Total de tokens padrão
- *                     tokens:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           name:
- *                             type: string
- *                           symbol:
- *                             type: string
- *                           network:
- *                             type: string
- *                           contractType:
- *                             type: string
- *                           address:
- *                             type: string
- *                           isNative:
- *                             type: boolean
- *       500:
- *         description: Erro interno do servidor
- */
-router.get('/default-tokens', contractController.listDefaultTokens);
 
-/**
- * @swagger
- * /api/contracts/{address}:
- *   get:
- *     summary: Obtém um contrato por endereço
- *     tags: [Contracts]
- *     parameters:
- *       - in: path
- *         name: address
- *         required: true
- *         schema:
- *           type: string
- *         description: Endereço do contrato
- *     responses:
- *       200:
- *         description: Contrato encontrado
- *       404:
- *         description: Contrato não encontrado
- */
-router.get('/:address', contractController.getContractByAddress);
+
+
 
 /**
  * @swagger
@@ -380,390 +255,21 @@ router.post('/:address/write', contractController.writeContract);
  */
 router.post('/:address/events/query', contractController.getContractEvents);
 
-/**
- * @swagger
- * /api/contracts/{address}/metadata:
- *   put:
- *     summary: Atualiza metadados do contrato
- *     tags: [Contracts]
- *     parameters:
- *       - in: path
- *         name: address
- *         required: true
- *         schema:
- *           type: string
- *         description: Endereço do contrato
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - metadata
- *             properties:
- *               metadata:
- *                 type: object
- *                 description: Novos metadados
- *     responses:
- *       200:
- *         description: Metadados atualizados com sucesso
- *       400:
- *         description: Dados inválidos
- */
-router.put('/:address/metadata', contractController.updateContractMetadata);
-
-/**
- * @swagger
- * /api/contracts/{address}/deactivate:
- *   post:
- *     summary: Desativa um contrato
- *     tags: [Contracts]
- *     parameters:
- *       - in: path
- *         name: address
- *         required: true
- *         schema:
- *           type: string
- *         description: Endereço do contrato
- *     responses:
- *       200:
- *         description: Contrato desativado com sucesso
- *       400:
- *         description: Erro ao desativar
- */
-router.post('/:address/deactivate', contractController.deactivateContract);
-
-/**
- * @swagger
- * /api/contracts/{address}/activate:
- *   post:
- *     summary: Reativa um contrato
- *     tags: [Contracts]
- *     parameters:
- *       - in: path
- *         name: address
- *         required: true
- *         schema:
- *           type: string
- *         description: Endereço do contrato
- *     responses:
- *       200:
- *         description: Contrato reativado com sucesso
- *       400:
- *         description: Erro ao reativar
- */
-router.post('/:address/activate', contractController.activateContract);
 
 
 
-/**
- * @swagger
- * /api/contracts/{address}/update-admin:
- *   put:
- *     summary: Atualiza o admin de um token
- *     tags: [Contracts]
- *     parameters:
- *       - in: path
- *         name: address
- *         required: true
- *         schema:
- *           type: string
- *         description: Endereço do contrato
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - newAdminPublicKey
- *               - currentAdminPublicKey
- *             properties:
- *               newAdminPublicKey:
- *                 type: string
- *                 description: PublicKey do novo admin
- *               currentAdminPublicKey:
- *                 type: string
- *                 description: PublicKey do admin atual
- *     responses:
- *       200:
- *         description: Admin atualizado com sucesso
- *       400:
- *         description: Dados inválidos
- */
-router.put('/:address/update-admin', contractController.updateTokenAdmin);
-
-/**
- * @swagger
- * /api/contracts/{address}/verify-admin:
- *   post:
- *     summary: Verifica se um usuário tem a role DEFAULT_ADMIN_ROLE em um token
- *     tags: [Contracts]
- *     parameters:
- *       - in: path
- *         name: address
- *         required: true
- *         schema:
- *           type: string
- *         description: Endereço do contrato
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - adminPublicKey
- *             properties:
- *               adminPublicKey:
- *                 type: string
- *                 description: PublicKey do usuário a ser verificado
- *     responses:
- *       200:
- *         description: Verificação realizada com sucesso
- *       400:
- *         description: Dados inválidos
- */
-router.post('/:address/verify-admin', contractController.verifyTokenAdmin);
-
-/**
- * @swagger
- * /api/contracts/{address}/grant-minter-role:
- *   post:
- *     summary: Concede MINTER_ROLE a um endereço
- *     description: Concede a role MINTER_ROLE a um endereço específico (apenas para admin do contrato)
- *     tags: [Contract Roles]
- *     security:
- *       - ApiKeyAuth: []
- *     parameters:
- *       - in: path
- *         name: address
- *         required: true
- *         schema:
- *           type: string
- *           pattern: '^0x[a-fA-F0-9]{40}$'
- *         description: Endereço do contrato
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/RoleGrantRequest'
- *     responses:
- *       200:
- *         description: Role concedida com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/RoleGrantResponse'
- *       400:
- *         description: Dados inválidos
- *       401:
- *         description: Não autorizado
- *       403:
- *         description: Acesso negado - requer ser admin do contrato
- *       404:
- *         description: Contrato não encontrado
- */
-
-/**
- * @swagger
- * /api/contracts/{address}/grant-burner-role:
- *   post:
- *     summary: Concede BURNER_ROLE a um endereço
- *     description: Concede a role BURNER_ROLE a um endereço específico (apenas para admin do contrato)
- *     tags: [Contract Roles]
- *     security:
- *       - ApiKeyAuth: []
- *     parameters:
- *       - in: path
- *         name: address
- *         required: true
- *         schema:
- *           type: string
- *           pattern: '^0x[a-fA-F0-9]{40}$'
- *         description: Endereço do contrato
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/RoleGrantRequest'
- *     responses:
- *       200:
- *         description: Role concedida com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/RoleGrantResponse'
- *       400:
- *         description: Dados inválidos
- *       401:
- *         description: Não autorizado
- *       403:
- *         description: Acesso negado - requer ser admin do contrato
- *       404:
- *         description: Contrato não encontrado
- */
-
-/**
- * @swagger
- * /api/contracts/{address}/grant-transfer-role:
- *   post:
- *     summary: Concede TRANSFER_ROLE a um endereço
- *     description: Concede a role TRANSFER_ROLE a um endereço específico (apenas para admin do contrato)
- *     tags: [Contract Roles]
- *     security:
- *       - ApiKeyAuth: []
- *     parameters:
- *       - in: path
- *         name: address
- *         required: true
- *         schema:
- *           type: string
- *           pattern: '^0x[a-fA-F0-9]{40}$'
- *         description: Endereço do contrato
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/RoleGrantRequest'
- *     responses:
- *       200:
- *         description: Role concedida com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/RoleGrantResponse'
- *       400:
- *         description: Dados inválidos
- *       401:
- *         description: Não autorizado
- *       403:
- *         description: Acesso negado - requer ser admin do contrato
- *       404:
- *         description: Contrato não encontrado
- */
 
 
 
-/**
- * @swagger
- * /api/contracts/{address}/token-info:
- *   get:
- *     summary: Obtém informações do token da blockchain
- *     description: Busca name, symbol, decimals e totalSupply diretamente do contrato
- *     tags: [Token Management]
- *     security:
- *       - ApiKeyAuth: []
- *     parameters:
- *       - in: path
- *         name: address
- *         required: true
- *         schema:
- *           type: string
- *           pattern: '^0x[a-fA-F0-9]{40}$'
- *         description: Endereço do contrato
- *     responses:
- *       200:
- *         description: Informações do token obtidas com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     address:
- *                       type: string
- *                     name:
- *                       type: string
- *                     symbol:
- *                       type: string
- *                     decimals:
- *                       type: string
- *                     totalSupply:
- *                       type: string
- *                     network:
- *                       type: string
- *                     contractType:
- *                       type: string
- *                     metadata:
- *                       type: object
- *                     adminPublicKey:
- *                       type: string
- *       400:
- *         description: Token não encontrado ou erro na consulta
- *       401:
- *         description: Não autorizado
- */
-router.get('/:address/token-info', contractController.getTokenInfo);
 
-/**
- * @swagger
- * /api/contracts/{address}/update-metadata:
- *   put:
- *     summary: Atualiza metadados do token
- *     description: Atualiza description, website e explorer do token
- *     tags: [Token Management]
- *     security:
- *       - ApiKeyAuth: []
- *     parameters:
- *       - in: path
- *         name: address
- *         required: true
- *         schema:
- *           type: string
- *           pattern: '^0x[a-fA-F0-9]{40}$'
- *         description: Endereço do contrato
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               description:
- *                 type: string
- *                 description: Nova descrição do token
- *               website:
- *                 type: string
- *                 description: Novo website do token
- *               explorer:
- *                 type: string
- *                 description: Novo explorer do token
- *     responses:
- *       200:
- *         description: Metadados atualizados com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                 data:
- *                   type: object
- *                   properties:
- *                     address:
- *                       type: string
- *                     updatedFields:
- *                       type: array
- *                       items:
- *                         type: string
- *                     metadata:
- *                       type: object
- *       400:
- *         description: Token não encontrado ou dados inválidos
- *       401:
- *         description: Não autorizado
- */
-router.put('/:address/update-metadata', contractController.updateTokenMetadata);
+
+
+
+
+
+
+
+
 
 
 
@@ -795,7 +301,6 @@ router.put('/:address/update-metadata', contractController.updateTokenMetadata);
  *             required:
  *               - role
  *               - targetAddress
- *               - walletAddress
  *             properties:
  *               role:
  *                 type: string
@@ -810,10 +315,6 @@ router.put('/:address/update-metadata', contractController.updateTokenMetadata);
  *                 type: string
  *                 pattern: '^0x[a-fA-F0-9]{40}$'
  *                 description: Endereço que receberá a role
- *               walletAddress:
- *                 type: string
- *                 pattern: '^0x[a-fA-F0-9]{40}$'
- *                 description: Endereço da carteira para assinatura da transação
  *     responses:
  *       200:
  *         description: Role concedida com sucesso
@@ -950,7 +451,6 @@ router.post('/:address/has-role', contractController.hasRole);
  *             required:
  *               - role
  *               - targetAddress
- *               - walletAddress
  *             properties:
  *               role:
  *                 type: string
@@ -965,10 +465,6 @@ router.post('/:address/has-role', contractController.hasRole);
  *                 type: string
  *                 pattern: '^0x[a-fA-F0-9]{40}$'
  *                 description: Endereço que terá a role revogada
- *               walletAddress:
- *                 type: string
- *                 pattern: '^0x[a-fA-F0-9]{40}$'
- *                 description: Endereço da carteira para assinatura da transação
  *     responses:
  *       200:
  *         description: Role revogada com sucesso
