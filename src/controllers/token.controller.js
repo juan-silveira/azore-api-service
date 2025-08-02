@@ -84,7 +84,11 @@ class TokenController {
         amount, 
         gasPayer, 
         network, 
-        options
+        {
+          ...options,
+          clientId: req.client?.id,
+          userId: req.user?.id
+        }
       );
       res.status(200).json(result);
     } catch (error) {
@@ -144,7 +148,11 @@ class TokenController {
         amount, 
         gasPayer, 
         network, 
-        options
+        {
+          ...options,
+          clientId: req.client?.id,
+          userId: req.user?.id
+        }
       );
       res.status(200).json(result);
     } catch (error) {
@@ -213,7 +221,11 @@ class TokenController {
         amount, 
         gasPayer, 
         network, 
-        options
+        {
+          ...options,
+          clientId: req.client?.id,
+          userId: req.user?.id
+        }
       );
       res.status(200).json(result);
     } catch (error) {

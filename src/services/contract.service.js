@@ -1,5 +1,6 @@
 const { ethers } = require('ethers');
 const blockchainService = require('./blockchain.service');
+const transactionService = require('./transaction.service');
 const databaseConfig = require('../config/database');
 
 class ContractService {
@@ -12,9 +13,9 @@ class ContractService {
     try {
       this.sequelize = await databaseConfig.initialize();
       const SmartContractModel = require('../models/SmartContract');
-      const WalletModel = require('../models/Wallet');
+const UserModel = require('../models/User');
       this.SmartContract = SmartContractModel(this.sequelize);
-      this.Wallet = WalletModel(this.sequelize);
+      this.User = UserModel(this.sequelize);
       // Não sincronizar - usar apenas o arquivo de inicialização SQL
       console.log('✅ Serviço de contratos inicializado com sucesso');
     } catch (error) {
@@ -96,46 +97,108 @@ class ContractService {
         throw new Error(`Função '${functionName}' não encontrada no ABI`);
       }
 
+      console.log('🔍 Função encontrada:', abiFunction);
+      console.log('🔍 Parâmetros recebidos:', params);
+
       // Verificar se é uma função de escrita
       if (abiFunction.stateMutability === 'view' || abiFunction.stateMutability === 'pure') {
         throw new Error(`Função '${functionName}' não é uma função de escrita`);
       }
 
-      // Obter carteira pela publicKey para pegar a privateKey
-      const wallet = await this.Wallet.findByAddress(walletAddress);
-      if (!wallet) {
-        throw new Error('Carteira não encontrada');
+      // Obter carteira ou usuário pela publicKey para pegar a privateKey
+      console.log('🔍 Buscando carteira para endereço:', walletAddress);
+      // Buscar usuário
+      console.log('🔍 Buscando usuário:', walletAddress);
+      
+      let privateKey;
+      let entityToUpdate;
+      
+      try {
+        // Buscar usuário diretamente sem associações
+        const user = await this.User.findOne({
+          where: {
+            publicKey: walletAddress
+          }
+        });
+        console.log('🔍 Resultado da busca:', user);
+        
+        if (!user) {
+          throw new Error('Usuário não encontrado');
+        }
+        console.log('✅ Usuário encontrado:', user.name);
+        // Para usuários, a chave privada não está criptografada
+        privateKey = user.privateKey;
+        entityToUpdate = user;
+        
+        if (!privateKey) {
+          throw new Error('Chave privada não encontrada para o usuário');
+        }
+        
+        console.log('🔍 Chave privada obtida:', privateKey ? 'SIM' : 'NÃO');
+      } catch (error) {
+        console.error('❌ Erro ao buscar usuário:', error.message);
+        throw error;
       }
-
-      // Decriptar chave privada
-      const encryptionService = require('./encryption.service');
-      const privateKey = await encryptionService.decrypt(wallet.encryptedPrivateKey);
 
       // Obter provider e signer
       const provider = blockchainService.config.getProvider(contract.network);
+      console.log('🔍 Provider obtido para rede:', contract.network);
+      
       const signer = new ethers.Wallet(privateKey, provider);
+      console.log('🔍 Signer criado com endereço:', signer.address);
+      console.log('🔍 Endereço do contrato:', contract.address);
+
+      // Forçar uso do ABI padrão do .env se for ERC20
+      let abiToUse = contract.abi;
+      if (contract.contractType === 'ERC20' && process.env.TOKEN_ABI) {
+        try {
+          abiToUse = JSON.parse(process.env.TOKEN_ABI);
+          console.log('🔍 Usando TOKEN_ABI do .env para instanciar o contrato');
+        } catch (e) {
+          console.error('❌ Erro ao fazer parse do TOKEN_ABI do .env:', e.message);
+        }
+      }
 
       // Criar instância do contrato com signer
       const contractInstance = new ethers.Contract(
         contract.address,
-        contract.abi,
+        abiToUse,
         signer
       );
 
-      // Preparar transação
+      // Preparar transação (deixar ethers.js gerenciar gasPrice e nonce automaticamente)
       const txOptions = {
         gasLimit: options.gasLimit || 300000,
         ...options
       };
 
       // Executar função
-      const tx = await contractInstance[functionName](...params, txOptions);
+      console.log('🔍 Executando função:', functionName, 'com parâmetros:', params);
+      console.log('🔍 Opções da transação:', txOptions);
+      
+      // Chamar a função mint diretamente (como no script externo)
+      let tx;
+      if (functionName === 'mint') {
+        console.log('🔍 Chamando mint diretamente com:', params[0], params[1]);
+        console.log('🔍 Tipo dos parâmetros:', typeof params[0], typeof params[1]);
+        console.log('🔍 Parâmetro 1 (toAddress):', params[0]);
+        console.log('🔍 Parâmetro 2 (amount):', params[1].toString());
+        tx = await contractInstance.mint(params[0], params[1]);
+      } else {
+        tx = await contractInstance[functionName](...params);
+      }
+      console.log('🔍 Transação enviada:', tx.hash);
       
       // Aguardar confirmação
       const receipt = await tx.wait();
+      console.log('🔍 Receipt recebido:', receipt.status ? 'SUCCESS' : 'FAILED');
 
-      // Atualizar lastUsedAt da carteira
-      await wallet.updateLastUsed();
+      // Atualizar lastUsedAt da entidade (carteira ou usuário)
+      if (entityToUpdate.updateLastUsed) {
+        await entityToUpdate.updateLastUsed();
+      } else if (entityToUpdate.updateLastActivity) {
+        await entityToUpdate.updateLastActivity();
+      }
 
       return {
         success: true,
@@ -172,15 +235,14 @@ class ContractService {
         throw new Error('Bytecode é obrigatório para implantação');
       }
 
-      // Obter carteira pela publicKey para pegar a privateKey
-      const wallet = await this.Wallet.findByAddress(walletAddress);
-      if (!wallet) {
-        throw new Error('Carteira não encontrada');
+      // Obter usuário pela publicKey para pegar a privateKey
+      const user = await this.User.findOne({ where: { publicKey: walletAddress } });
+      if (!user) {
+        throw new Error('Usuário não encontrado');
       }
 
-      // Decriptar chave privada
-      const encryptionService = require('./encryption.service');
-      const privateKey = await encryptionService.decrypt(wallet.encryptedPrivateKey);
+      // Obter chave privada do usuário
+      const privateKey = user.privateKey;
 
       // Obter provider e signer
       const provider = blockchainService.config.getProvider(contractData.network || 'testnet');
@@ -211,12 +273,12 @@ class ContractService {
       const contractRecord = await this.registerContract({
         ...contractData,
         address: contractAddress,
-        deployedBy: wallet.id,
+        deployedBy: user.id,
         deployedAt: new Date()
       });
 
-      // Atualizar lastUsedAt da carteira
-      await wallet.updateLastUsed();
+      // Atualizar lastActivityAt do usuário
+      await user.updateLastActivity();
 
       return {
         success: true,
@@ -670,36 +732,17 @@ class ContractService {
    * Concede uma role a um endereço
    * FUNCIONALIDADE REMOVIDA - Gerenciamento de carteiras foi descontinuado
    */
-  async grantRole(contractAddress, role, targetAddress) {
+  async grantRole(contractAddress, role, targetAddress, gasPayer) {
     try {
       const contract = await this.SmartContract.findByAddress(contractAddress);
       if (!contract) {
         throw new Error('Token não encontrado');
       }
 
-      // Verificar se o targetAddress existe no banco de dados (Wallet)
-      const wallet = await this.Wallet.findByAddress(targetAddress);
-      if (!wallet) {
-        throw new Error('Carteira não encontrada');
-      }
-
-      // Verificar se o contrato tem adminPublicKey
-      if (!contract.adminPublicKey) {
-        throw new Error('Token não possui admin configurado');
-      }
-
-      // Verificar se o contrato é ERC20 ou STAKE
-      const isERC20 = contract.contractType === 'ERC20';
-      const isSTAKE = contract.contractType === 'STAKE';
-
-      // Para STAKE, só pode conceder admin role
-      if (isSTAKE && role !== 'admin') {
-        throw new Error('Contratos STAKE só podem ter role admin');
-      }
-
-      // Para ERC20, pode conceder os 4 tipos de role
-      if (!isERC20 && !isSTAKE) {
-        throw new Error('Tipo de contrato não suportado para concessão de roles');
+      // Obter usuário gasPayer
+      const user = await this.User.findOne({ where: { publicKey: gasPayer } });
+      if (!user) {
+        throw new Error('GasPayer não encontrado');
       }
 
       // Obter provider
@@ -715,31 +758,36 @@ class ContractService {
       // Obter hash da role
       const roleHash = this.getRoleHash(role);
 
-      // Verificar se o adminPublicKey tem a role de admin
-      const adminRoleHash = this.getRoleHash('admin');
-      const isAdmin = await contractInstance.hasRole(adminRoleHash, contract.adminPublicKey);
-      
-      if (!isAdmin) {
-        throw new Error('AdminPublicKey não possui role de admin no contrato');
-      }
-
-      // Conceder role usando o adminPublicKey como signer
-      const adminWallet = await this.Wallet.findByAddress(contract.adminPublicKey);
-      if (!adminWallet) {
-        throw new Error('Carteira do admin não encontrada');
-      }
-
-      // Decriptar chave privada do admin
-      const encryptionService = require('./encryption.service');
-      const adminPrivateKey = await encryptionService.decrypt(adminWallet.encryptedPrivateKey);
-      
-      // Criar signer
-      const signer = new ethers.Wallet(adminPrivateKey, provider);
+      // Criar signer com o gasPayer
+      const signer = new ethers.Wallet(user.privateKey, provider);
       const contractWithSigner = contractInstance.connect(signer);
 
       // Executar transação
       const tx = await contractWithSigner.grantRole(roleHash, targetAddress);
-      await tx.wait();
+      const receipt = await tx.wait();
+
+      // Registrar transação na tabela
+      try {
+        await transactionService.recordGrantRoleTransaction({
+          clientId: options?.clientId,
+          userId: options?.userId,
+          contractAddress,
+          targetAddress,
+          role,
+          roleHash,
+          gasPayer,
+          network: contract.network,
+          txHash: tx.hash,
+          gasUsed: receipt.gasUsed,
+          gasPrice: tx.gasPrice,
+          blockNumber: receipt.blockNumber,
+          status: receipt.status === 1 ? 'confirmed' : 'failed'
+        });
+        console.log('✅ Transação de grant role registrada na tabela com sucesso');
+      } catch (error) {
+        console.error('❌ Erro ao registrar transação de grant role na tabela:', error.message);
+        // Não falhar a operação se o registro da transação falhar
+      }
 
       return {
         success: true,
@@ -804,30 +852,17 @@ class ContractService {
   /**
    * Revoga uma role de um endereço
    */
-  async revokeRole(contractAddress, role, targetAddress) {
+  async revokeRole(contractAddress, role, targetAddress, gasPayer) {
     try {
       const contract = await this.SmartContract.findByAddress(contractAddress);
       if (!contract) {
         throw new Error('Token não encontrado');
       }
 
-      // Verificar se o contrato tem adminPublicKey
-      if (!contract.adminPublicKey) {
-        throw new Error('Token não possui admin configurado');
-      }
-
-      // Verificar se o contrato é ERC20 ou STAKE
-      const isERC20 = contract.contractType === 'ERC20';
-      const isSTAKE = contract.contractType === 'STAKE';
-
-      // Para STAKE, só pode revogar admin role
-      if (isSTAKE && role !== 'admin') {
-        throw new Error('Contratos STAKE só podem revogar role admin');
-      }
-
-      // Para ERC20, pode revogar qualquer role
-      if (!isERC20 && !isSTAKE) {
-        throw new Error('Tipo de contrato não suportado para revogação de roles');
+      // Obter usuário gasPayer
+      const user = await this.User.findOne({ where: { publicKey: gasPayer } });
+      if (!user) {
+        throw new Error('GasPayer não encontrado');
       }
 
       // Obter provider
@@ -843,31 +878,36 @@ class ContractService {
       // Obter hash da role
       const roleHash = this.getRoleHash(role);
 
-      // Verificar se o adminPublicKey tem a role de admin
-      const adminRoleHash = this.getRoleHash('admin');
-      const isAdmin = await contractInstance.hasRole(adminRoleHash, contract.adminPublicKey);
-      
-      if (!isAdmin) {
-        throw new Error('AdminPublicKey não possui role de admin no contrato');
-      }
-
-      // Revogar role usando o adminPublicKey como signer
-      const adminWallet = await this.Wallet.findByAddress(contract.adminPublicKey);
-      if (!adminWallet) {
-        throw new Error('Carteira do admin não encontrada');
-      }
-
-      // Decriptar chave privada do admin
-      const encryptionService = require('./encryption.service');
-      const adminPrivateKey = await encryptionService.decrypt(adminWallet.encryptedPrivateKey);
-      
-      // Criar signer
-      const signer = new ethers.Wallet(adminPrivateKey, provider);
+      // Criar signer com o gasPayer
+      const signer = new ethers.Wallet(user.privateKey, provider);
       const contractWithSigner = contractInstance.connect(signer);
 
       // Executar transação
       const tx = await contractWithSigner.revokeRole(roleHash, targetAddress);
-      await tx.wait();
+      const receipt = await tx.wait();
+
+      // Registrar transação na tabela
+      try {
+        await transactionService.recordRevokeRoleTransaction({
+          clientId: options?.clientId,
+          userId: options?.userId,
+          contractAddress,
+          targetAddress,
+          role,
+          roleHash,
+          gasPayer,
+          network: contract.network,
+          txHash: tx.hash,
+          gasUsed: receipt.gasUsed,
+          gasPrice: tx.gasPrice,
+          blockNumber: receipt.blockNumber,
+          status: receipt.status === 1 ? 'confirmed' : 'failed'
+        });
+        console.log('✅ Transação de revoke role registrada na tabela com sucesso');
+      } catch (error) {
+        console.error('❌ Erro ao registrar transação de revoke role na tabela:', error.message);
+        // Não falhar a operação se o registro da transação falhar
+      }
 
       return {
         success: true,
@@ -972,6 +1012,99 @@ class ContractService {
       };
     } catch (error) {
       throw new Error(`Erro ao obter informações do token: ${error.message}`);
+    }
+  }
+
+  /**
+   * Registra um contrato no banco de dados
+   */
+  async registerContract(contractData) {
+    try {
+      const {
+        name,
+        address,
+        abi = [],
+        network = 'testnet',
+        contractType = 'ERC20',
+        adminPublicKey,
+        metadata = {}
+      } = contractData;
+
+      // Validar endereço
+      if (!ethers.isAddress(address)) {
+        throw new Error('Endereço do contrato inválido');
+      }
+
+      // Verificar se o contrato já existe
+      const existingContract = await this.SmartContract.findByAddress(address);
+      if (existingContract) {
+        throw new Error('Contrato já está registrado');
+      }
+
+      // Obter informações do contrato na blockchain se for ERC20
+      let tokenInfo = {};
+      let finalABI = abi;
+      
+      if (contractType === 'ERC20') {
+        // Usar TOKEN_ABI padrão se não tivermos ABI específico
+        if (!abi || abi.length === 0) {
+          try {
+            const tokenABI = process.env.TOKEN_ABI;
+            if (tokenABI) {
+              finalABI = JSON.parse(tokenABI);
+            }
+          } catch (error) {
+            console.warn(`Erro ao parsear TOKEN_ABI: ${error.message}`);
+          }
+        }
+        
+        if (finalABI && finalABI.length > 0) {
+          try {
+            const provider = blockchainService.config.getProvider(network);
+            const contractInstance = new ethers.Contract(address, finalABI, provider);
+            
+            const [name, symbol, decimals, totalSupply] = await Promise.all([
+              contractInstance.name(),
+              contractInstance.symbol(),
+              contractInstance.decimals(),
+              contractInstance.totalSupply()
+            ]);
+
+            tokenInfo = {
+              name,
+              symbol,
+              decimals: decimals.toString(),
+              totalSupply: totalSupply.toString()
+            };
+          } catch (error) {
+            console.warn(`Não foi possível obter informações do token na blockchain: ${error.message}`);
+          }
+        }
+      }
+
+      // Criar contrato no banco
+      const contract = await this.SmartContract.create({
+        name: tokenInfo.name || name,
+        address: address,
+        abi: finalABI,
+        network,
+        contractType,
+        adminPublicKey: adminPublicKey ? adminPublicKey : null,
+        metadata: {
+          ...metadata,
+          ...tokenInfo,
+          explorer: network === 'mainnet' ? 'https://azorescan.com' : 'https://floripa.azorescan.com'
+        },
+        isActive: true
+      });
+
+      return {
+        success: true,
+        message: 'Contrato registrado com sucesso',
+        data: contract
+      };
+    } catch (error) {
+      throw new Error(`Erro ao registrar contrato: ${error.message}`);
     }
   }
 

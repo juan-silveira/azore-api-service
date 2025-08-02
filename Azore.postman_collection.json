@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "azore-blockchain-api-final",
 		"name": "Azore_API",
-		"description": "Coleção completa para testar a API Azore Blockchain Service\n\nInclui todos os endpoints:\n- Health Check e Informações\n- Testes da Blockchain\n- 🔐 Autenticação e Sessões (com múltiplas API Keys)\n- Gerenciamento de Usuários\n- Rotas Admin (API_ADMIN)\n- 📄 Gerenciamento de Contratos (roles apenas)\n- 🪙 Gerenciamento de Tokens (completo)\n- 📊 Sistema de Logs Completo\n\nATUALIZAÇÕES RECENTES:\n- ✅ Refatoração do Gerenciamento de Contratos: Removidas 13 rotas obsoletas\n- ✅ Gerenciamento de Tokens expandido: 6 novas rotas adicionadas\n- ✅ Roles simplificadas: Apenas grant-role e revoke-role\n- ✅ Campo adminPublicKey obrigatório no registro de tokens\n- ✅ Metadados de tokens: website, description, explorer automático\n- ✅ Listagem de tokens com paginação e filtros\n- ✅ Ativação/desativação de tokens\n- ✅ Atualização de metadados de tokens\n- ✅ Banco de dados atualizado: Removidas colunas deployed_by/deployed_at\n\nROTAS REMOVIDAS DO CONTRATOS:\n- Criar Contrato, Listar Contratos, Obter Contrato por ID\n- Atualizar Contrato, Deletar Contrato\n- Conceder Role MINTER/BURNER/TRANSFER/Admin\n- Listar Tokens Padrão, Obter Informações do Token\n- Atualizar Metadados do Token, Verificar Role\n\nNOVAS ROTAS DE TOKENS:\n- Listar Tokens: Lista todos os tokens com filtros\n- Desativar Token: Muda status para inativo\n- Ativar Token: Muda status para ativo\n- Atualizar Informações: Atualiza metadados\n\nROLES DISPONÍVEIS:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nVALIDAÇÕES DE ROLES:\n- ERC20: pode conceder/revogar 4 tipos de role\n- STAKE: só pode conceder/revogar role admin\n- AdminPublicKey sempre paga pelas transações\n- Concessão: apenas endereços existentes no banco\n- Revogação: endereços do banco ou externos\n\nPara usar:\n1. Importe esta coleção no Postman\n2. Configure a variável de ambiente 'base_url' como 'http://localhost:8800'\n3. Para rotas que requerem session token, faça login primeiro\n4. Use as rotas de API Keys para gerenciar suas chaves de acesso\n5. Use diferentes API Keys para testar diferentes níveis de acesso\n6. Configure as variáveis user_id, tx_hash e admin_public_key para testar rotas específicas",
+		"description": "Coleção completa para testar a API Azore Blockchain Service\n\nInclui todos os endpoints:\n- Health Check e Informações\n- Testes da Blockchain\n- 🔐 Autenticação e Sessões (com múltiplas API Keys)\n- Gerenciamento de Usuários\n- Rotas Admin (API_ADMIN)\n- 📄 Gerenciamento de Contratos (3 rotas de roles)\n- 🪙 Gerenciamento de Tokens (completo)\n- 📊 Sistema de Logs Completo\n\nATUALIZAÇÕES RECENTES:\n- ✅ Refatoração do Gerenciamento de Contratos: Removidas 13 rotas obsoletas\n- ✅ Gerenciamento de Tokens expandido: 6 novas rotas adicionadas\n- ✅ Roles simplificadas: grant-role, revoke-role e has-role\n- ✅ Campo adminPublicKey obrigatório em grant-role e revoke-role\n- ✅ Campo adminPublicKey obrigatório no registro de tokens\n- ✅ Metadados de tokens: website, description, explorer automático\n- ✅ Listagem de tokens com paginação e filtros\n- ✅ Ativação/desativação de tokens\n- ✅ Atualização de metadados de tokens\n- ✅ Banco de dados atualizado: Removidas colunas deployed_by/deployed_at\n- ✅ Removidas todas as referências ao Wallet (usa apenas User.publicKey)\n\nROTAS DE ROLES DISPONÍVEIS:\n- POST /api/contracts/{address}/grant-role: Concede roles (role, targetAddress, adminPublicKey)\n- POST /api/contracts/{address}/revoke-role: Revoga roles (role, targetAddress, adminPublicKey)\n- POST /api/contracts/{address}/has-role: Verifica roles (role, targetAddress)\n\nROTAS REMOVIDAS DO CONTRATOS:\n- Criar Contrato, Listar Contratos, Obter Contrato por ID\n- Atualizar Contrato, Deletar Contrato\n- Conceder Role MINTER/BURNER/TRANSFER/Admin\n- Listar Tokens Padrão, Obter Informações do Token\n- Atualizar Metadados do Token\n\nNOVAS ROTAS DE TOKENS:\n- Listar Tokens: Lista todos os tokens com filtros\n- Desativar Token: Muda status para inativo\n- Ativar Token: Muda status para ativo\n- Atualizar Informações: Atualiza metadados\n\nROLES DISPONÍVEIS:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nIMPLEMENTAÇÃO SIMPLIFICADA:\n- Baseada na lib externa: contract.grantRole(roleHash, targetAddress)\n- Baseada na lib externa: contract.revokeRole(roleHash, targetAddress)\n- Baseada na lib externa: contract.hasRole(roleHash, targetAddress)\n- AdminPublicKey sempre paga pelas transações\n- Removidas validações complexas de admin\n\nPara usar:\n1. Importe esta coleção no Postman\n2. Configure a variável de ambiente 'base_url' como 'http://localhost:8800'\n3. Para rotas que requerem session token, faça login primeiro\n4. Use as rotas de API Keys para gerenciar suas chaves de acesso\n5. Use diferentes API Keys para testar diferentes níveis de acesso\n6. Configure as variáveis user_id, tx_hash e admin_public_key para testar rotas específicas",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -1112,14 +1112,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\"\n}"
+							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\",\n  \"adminPublicKey\": \"{{admin_public_key}}\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/contracts/{{contract_address}}/grant-role",
 							"host": ["{{base_url}}"],
 							"path": ["api", "contracts", "{{contract_address}}", "grant-role"]
 						},
-						"description": "Concede uma role a um endereço existente no banco de dados.\n\nValidações:\n- Só concede roles para endereços existentes no banco\n- ERC20: pode conceder 4 tipos de role (admin, minter, burner, transfer)\n- STAKE: só pode conceder role admin\n- AdminPublicKey sempre paga pela transação\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)"
+						"description": "Concede uma role a um endereço usando contract.grantRole(roleHash, targetAddress).\n\nParâmetros obrigatórios:\n- role: tipo de role (admin, minter, burner, transfer)\n- targetAddress: endereço que receberá a role\n- adminPublicKey: endereço que pagará pela transação (deve existir no banco)\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nImplementação simplificada baseada na lib externa."
 					},
 					"response": []
 				},
@@ -1141,19 +1141,48 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\"\n}"
+							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\",\n  \"adminPublicKey\": \"{{admin_public_key}}\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/contracts/{{contract_address}}/revoke-role",
 							"host": ["{{base_url}}"],
 							"path": ["api", "contracts", "{{contract_address}}", "revoke-role"]
 						},
-						"description": "Revoga uma role de um endereço (pode ser endereço do banco ou externo).\n\nValidações:\n- Pode revogar roles de endereços do banco ou externos\n- ERC20: pode revogar qualquer role\n- STAKE: só pode revogar role admin\n- AdminPublicKey sempre paga pela transação\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)"
+						"description": "Revoga uma role de um endereço usando contract.revokeRole(roleHash, targetAddress).\n\nParâmetros obrigatórios:\n- role: tipo de role (admin, minter, burner, transfer)\n- targetAddress: endereço que terá a role revogada\n- adminPublicKey: endereço que pagará pela transação (deve existir no banco)\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nImplementação simplificada baseada na lib externa."
+					},
+					"response": []
+				},
+				{
+					"name": "Verificar Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_address}}/has-role",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_address}}", "has-role"]
+						},
+						"description": "Verifica se um endereço tem determinada role usando contract.hasRole(roleHash, targetAddress).\n\nParâmetros obrigatórios:\n- role: tipo de role (admin, minter, burner, transfer)\n- targetAddress: endereço que será verificado\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nApenas leitura do blockchain - não requer transação."
 					},
 					"response": []
 				}
 			],
-			"description": "Endpoints para gerenciamento de roles em contratos inteligentes\n\nROTAS DISPONÍVEIS:\n- Conceder Role: Concede roles apenas para endereços existentes no banco\n- Revogar Role: Revoga roles de endereços do banco ou externos\n\nVALIDAÇÕES:\n- ERC20: pode conceder/revogar 4 tipos de role\n- STAKE: só pode conceder/revogar role admin\n- AdminPublicKey sempre paga pelas transações\n\nROTAS REMOVIDAS:\n- Criar Contrato, Listar Contratos, Obter Contrato por ID\n- Atualizar Contrato, Deletar Contrato\n- Conceder Role MINTER/BURNER/TRANSFER/Admin\n- Listar Tokens Padrão, Obter Informações do Token\n- Atualizar Metadados do Token, Verificar Role\n\nEssas funcionalidades foram movidas para o módulo de Tokens."
+			"description": "Endpoints para gerenciamento de roles em contratos inteligentes\n\nROTAS DISPONÍVEIS:\n- Conceder Role: Concede roles usando contract.grantRole(roleHash, targetAddress)\n- Revogar Role: Revoga roles usando contract.revokeRole(roleHash, targetAddress)\n- Verificar Role: Verifica roles usando contract.hasRole(roleHash, targetAddress)\n\nPARÂMETROS OBRIGATÓRIOS:\n- grant-role e revoke-role: role, targetAddress, adminPublicKey\n- has-role: role, targetAddress (apenas leitura)\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nImplementação simplificada baseada na lib externa.\n\nROTAS REMOVIDAS:\n- Criar Contrato, Listar Contratos, Obter Contrato por ID\n- Atualizar Contrato, Deletar Contrato\n- Conceder Role MINTER/BURNER/TRANSFER/Admin\n- Listar Tokens Padrão, Obter Informações do Token\n- Atualizar Metadados do Token\n\nEssas funcionalidades foram movidas para o módulo de Tokens."
 		},
 		{
 			"name": "🪙 Gerenciamento de Tokens",

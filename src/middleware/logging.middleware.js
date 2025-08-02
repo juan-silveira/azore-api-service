@@ -106,8 +106,6 @@ const transactionLogger = async (req, res, next) => {
   const originalSend = res.send;
   
   res.send = function(data) {
-
-    
     // Verificar se é uma operação de contrato
     if (req.path.includes('/contracts') && req.method === 'POST') {
       let transactionType = 'contract_call';
@@ -120,20 +118,94 @@ const transactionLogger = async (req, res, next) => {
       
       createTransactionLog({
         clientId: req.client ? req.client.id : null,
+        userId: req.user ? req.user.id : null,
         requestLogId: null,
         contractId: req.params.address || null,
-        network: req.body.network || req.query.network,
+        network: req.body.network || req.query.network || 'testnet',
         transactionType,
         status: 'pending',
-        fromAddress: req.body.fromAddress || null,
+        fromAddress: req.body.fromAddress || req.body.gasPayer || null,
         toAddress: req.params.address || req.body.contractAddress || null,
         functionName: req.body.functionName || null,
         functionParams: req.body.params || null,
         metadata: {
           contractAddress: req.params.address || req.body.contractAddress,
           functionName: req.body.functionName,
-          params: req.body.params
+          params: req.body.params,
+          gasPayer: req.body.gasPayer,
+          amount: req.body.amount,
+          toAddress: req.body.toAddress,
+          fromAddress: req.body.fromAddress
         }
+      }).catch(err => {
+        console.error('Erro ao criar log de transação:', err.message);
+      });
+    }
+    
+    // Verificar se é uma operação de token
+    if (req.path.includes('/tokens') && req.method === 'POST') {
+      let transactionType = 'contract_call';
+      let functionName = null;
+      let functionParams = null;
+      let fromAddress = null;
+      let toAddress = null;
+      let metadata = {
+        contractAddress: req.body.contractAddress,
+        gasPayer: req.body.gasPayer,
+        network: req.body.network || 'testnet'
+      };
+      
+      // Determinar tipo de operação baseado na rota
+      if (req.path.includes('/mint')) {
+        functionName = 'mint';
+        toAddress = req.body.toAddress;
+        functionParams = [req.body.toAddress, req.body.amount];
+        metadata = {
+          ...metadata,
+          operation: 'mint',
+          toAddress: req.body.toAddress,
+          amount: req.body.amount,
+          amountWei: null // Será preenchido pelo serviço
+        };
+      } else if (req.path.includes('/burn')) {
+        functionName = 'burnFrom';
+        fromAddress = req.body.fromAddress;
+        functionParams = [req.body.fromAddress, req.body.amount];
+        metadata = {
+          ...metadata,
+          operation: 'burn',
+          fromAddress: req.body.fromAddress,
+          amount: req.body.amount,
+          amountWei: null // Será preenchido pelo serviço
+        };
+      } else if (req.path.includes('/transfer')) {
+        functionName = 'transferFromGasless';
+        fromAddress = req.body.fromAddress;
+        toAddress = req.body.toAddress;
+        functionParams = [req.body.fromAddress, req.body.toAddress, req.body.amount];
+        metadata = {
+          ...metadata,
+          operation: 'transfer',
+          fromAddress: req.body.fromAddress,
+          toAddress: req.body.toAddress,
+          amount: req.body.amount,
+          amountWei: null // Será preenchido pelo serviço
+        };
+      }
+      
+      createTransactionLog({
+        clientId: req.client ? req.client.id : null,
+        userId: req.user ? req.user.id : null,
+        requestLogId: null,
+        contractId: null, // Será preenchido se necessário
+        network: req.body.network || 'testnet',
+        transactionType,
+        status: 'pending',
+        fromAddress: fromAddress || req.body.gasPayer,
+        toAddress: toAddress || req.body.contractAddress,
+        functionName,
+        functionParams,
+        metadata
       }).catch(err => {
         console.error('Erro ao criar log de transação:', err.message);
       });

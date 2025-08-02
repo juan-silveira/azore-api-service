@@ -420,16 +420,16 @@ class ContractController {
   async grantRole(req, res) {
     try {
       const { address } = req.params;
-      const { role, targetAddress } = req.body;
+      const { role, targetAddress, adminPublicKey } = req.body;
       
-      if (!role || !targetAddress) {
+      if (!role || !targetAddress || !adminPublicKey) {
         return res.status(400).json({
           success: false,
-          message: 'role e targetAddress são obrigatórios'
+          message: 'role, targetAddress e adminPublicKey são obrigatórios'
         });
       }
 
-      const result = await contractService.grantRole(address, role, targetAddress);
+      const result = await contractService.grantRole(address, role, targetAddress, adminPublicKey);
       res.status(200).json(result);
     } catch (error) {
       res.status(400).json({
@@ -472,16 +472,16 @@ class ContractController {
   async revokeRole(req, res) {
     try {
       const { address } = req.params;
-      const { role, targetAddress } = req.body;
+      const { role, targetAddress, adminPublicKey } = req.body;
       
-      if (!role || !targetAddress) {
+      if (!role || !targetAddress || !adminPublicKey) {
         return res.status(400).json({
           success: false,
-          message: 'role e targetAddress são obrigatórios'
+          message: 'role, targetAddress e adminPublicKey são obrigatórios'
         });
       }
 
-      const result = await contractService.revokeRole(address, role, targetAddress);
+      const result = await contractService.revokeRole(address, role, targetAddress, adminPublicKey);
       res.status(200).json(result);
     } catch (error) {
       res.status(400).json({

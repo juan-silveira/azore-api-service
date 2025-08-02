@@ -19,6 +19,7 @@ const userRoutes = require('./routes/user.routes');
 const adminRoutes = require('./routes/admin.routes');
 const authRoutes = require('./routes/auth.routes');
 const passwordResetRoutes = require('./routes/passwordReset.routes');
+const transactionRoutes = require('./routes/transaction.routes');
 
 // Importar serviços
 const contractService = require('./services/contract.service');
@@ -132,9 +133,12 @@ app.use('/api/password-reset', passwordResetRoutes);
 app.use('/api/users', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, userRoutes);
 
 // Middleware de autenticação para rotas protegidas
-app.use('/api/contracts', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, contractRoutes);
+app.use('/api/contracts', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, contractRoutes);
 // Middleware de autenticação para rotas protegidas
-app.use('/api/tokens', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, tokenRoutes);
+app.use('/api/tokens', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, tokenRoutes);
+
+// Rotas de transações (com autenticação)
+app.use('/api/transactions', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, transactionRoutes);
 
 // Rotas de logs (com autenticação)
 app.use('/api/logs', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, logRoutes);

@@ -2,6 +2,7 @@ const { ethers } = require('ethers');
 const axios = require('axios');
 const blockchainService = require('./blockchain.service');
 const contractService = require('./contract.service');
+const transactionService = require('./transaction.service');
 const databaseConfig = require('../config/database');
 
 class TokenService {
@@ -115,6 +116,24 @@ class TokenService {
       // Converter quantidade para wei
       const amountWei = ethers.parseEther(amount.toString());
 
+            // Verificar se o gasPayer tem MINTER_ROLE, se não tiver, conceder
+      try {
+        console.log('🔍 Verificando se gasPayer tem MINTER_ROLE...');
+        const hasMinterRoleResult = await contractService.hasRole(contractAddress, 'minter', clientWalletAddress);
+        console.log('🔍 Resultado da verificação MINTER_ROLE:', JSON.stringify(hasMinterRoleResult));
+
+        if (!hasMinterRoleResult.data.hasRole) {
+          console.log('🔍 GasPayer não tem MINTER_ROLE, concedendo...');
+          await contractService.grantRole(contractAddress, 'minter', clientWalletAddress);
+          console.log('✅ MINTER_ROLE concedida com sucesso');
+        } else {
+          console.log('✅ GasPayer já tem MINTER_ROLE');
+        }
+      } catch (error) {
+        console.error('❌ Erro ao verificar/conceder MINTER_ROLE:', error.message);
+        // Continuar mesmo com erro na verificação de role
+      }
+
       // Executar função mint através do serviço de contratos
       const result = await contractService.writeContract(
         contractAddress,
@@ -127,6 +146,29 @@ class TokenService {
           ...options
         }
       );
+
+      // Registrar transação na tabela
+      try {
+        await transactionService.recordMintTransaction({
+          clientId: options.clientId,
+          userId: options.userId,
+          contractAddress,
+          toAddress,
+          amount,
+          amountWei: amountWei.toString(),
+          gasPayer: clientWalletAddress,
+          network,
+          txHash: result.data.transactionHash,
+          gasUsed: result.data.gasUsed,
+          gasPrice: result.data.gasPrice,
+          blockNumber: result.data.receipt.blockNumber,
+          status: result.data.receipt.status === 1 ? 'confirmed' : 'failed'
+        });
+        console.log('✅ Transação registrada na tabela com sucesso');
+      } catch (error) {
+        console.error('❌ Erro ao registrar transação na tabela:', error.message);
+        // Não falhar a operação se o registro da transação falhar
+      }
 
       return {
         success: true,
@@ -167,6 +209,7 @@ class TokenService {
    */
   async burnFromToken(contractAddress, fromAddress, amount, gasPayer, network = 'testnet', options = {}) {
     try {
+      console.log('🚀 INICIANDO burnFromToken...');
       // Validar endereços
       if (!ethers.isAddress(contractAddress)) {
         throw new Error('Endereço do contrato inválido');
@@ -189,6 +232,29 @@ class TokenService {
       // Converter quantidade para wei
       const amountWei = ethers.parseEther(amount.toString());
 
+      // Verificar se o gasPayer tem BURNER_ROLE, se não tiver, conceder
+      console.log('🔍 INICIANDO VERIFICAÇÃO DE BURNER_ROLE...');
+      try {
+        console.log('🔍 Verificando se gasPayer tem BURNER_ROLE...');
+        console.log('🔍 contractService disponível:', !!contractService);
+        console.log('🔍 contractService.hasRole disponível:', !!contractService.hasRole);
+        const hasBurnerRoleResult = await contractService.hasRole(contractAddress, 'burner', clientWalletAddress);
+        console.log('🔍 Resultado da verificação BURNER_ROLE:', JSON.stringify(hasBurnerRoleResult));
+        
+        if (!hasBurnerRoleResult.data.hasRole) {
+          console.log('🔍 GasPayer não tem BURNER_ROLE, concedendo...');
+          await contractService.grantRole(contractAddress, 'burner', clientWalletAddress);
+          console.log('✅ BURNER_ROLE concedida com sucesso');
+        } else {
+          console.log('✅ GasPayer já tem BURNER_ROLE');
+        }
+      } catch (error) {
+        console.error('❌ Erro ao verificar/conceder BURNER_ROLE:', error.message);
+        console.error('❌ Stack trace:', error.stack);
+        // Continuar mesmo com erro na verificação de role
+      }
+      console.log('🔍 FINALIZANDO VERIFICAÇÃO DE BURNER_ROLE...');
+
       // Executar função burnFrom através do serviço de contratos
       const result = await contractService.writeContract(
         contractAddress,
@@ -201,6 +267,29 @@ class TokenService {
           ...options
         }
       );
+
+      // Registrar transação na tabela
+      try {
+        await transactionService.recordBurnTransaction({
+          clientId: options.clientId,
+          userId: options.userId,
+          contractAddress,
+          fromAddress,
+          amount,
+          amountWei: amountWei.toString(),
+          gasPayer: clientWalletAddress,
+          network,
+          txHash: result.data.transactionHash,
+          gasUsed: result.data.gasUsed,
+          gasPrice: result.data.gasPrice,
+          blockNumber: result.data.receipt.blockNumber,
+          status: result.data.receipt.status === 1 ? 'confirmed' : 'failed'
+        });
+        console.log('✅ Transação registrada na tabela com sucesso');
+      } catch (error) {
+        console.error('❌ Erro ao registrar transação na tabela:', error.message);
+        // Não falhar a operação se o registro da transação falhar
+      }
 
       return {
         success: true,
@@ -267,6 +356,24 @@ class TokenService {
       // Converter quantidade para wei
       const amountWei = ethers.parseEther(amount.toString());
 
+      // Verificar se o gasPayer tem TRANSFER_ROLE, se não tiver, conceder
+      try {
+        console.log('🔍 Verificando se gasPayer tem TRANSFER_ROLE...');
+        const hasTransferRoleResult = await contractService.hasRole(contractAddress, 'transfer', clientWalletAddress);
+        console.log('🔍 Resultado da verificação TRANSFER_ROLE:', JSON.stringify(hasTransferRoleResult));
+        
+        if (!hasTransferRoleResult.data.hasRole) {
+          console.log('🔍 GasPayer não tem TRANSFER_ROLE, concedendo...');
+          await contractService.grantRole(contractAddress, 'transfer', clientWalletAddress);
+          console.log('✅ TRANSFER_ROLE concedida com sucesso');
+        } else {
+          console.log('✅ GasPayer já tem TRANSFER_ROLE');
+        }
+      } catch (error) {
+        console.error('❌ Erro ao verificar/conceder TRANSFER_ROLE:', error.message);
+        // Continuar mesmo com erro na verificação de role
+      }
+
       // Executar função transferFromGasless através do serviço de contratos
       const result = await contractService.writeContract(
         contractAddress,
@@ -279,6 +386,30 @@ class TokenService {
           ...options
         }
       );
+
+      // Registrar transação na tabela
+      try {
+        await transactionService.recordTransferTransaction({
+          clientId: options.clientId,
+          userId: options.userId,
+          contractAddress,
+          fromAddress,
+          toAddress,
+          amount,
+          amountWei: amountWei.toString(),
+          gasPayer: clientWalletAddress,
+          network,
+          txHash: result.data.transactionHash,
+          gasUsed: result.data.gasUsed,
+          gasPrice: result.data.gasPrice,
+          blockNumber: result.data.receipt.blockNumber,
+          status: result.data.receipt.status === 1 ? 'confirmed' : 'failed'
+        });
+        console.log('✅ Transação registrada na tabela com sucesso');
+      } catch (error) {
+        console.error('❌ Erro ao registrar transação na tabela:', error.message);
+        // Não falhar a operação se o registro da transação falhar
+      }
 
       return {
         success: true,
@@ -368,12 +499,13 @@ class TokenService {
         limit = 10,
         network,
         contractType,
-        isActive = true
+        isActive
       } = options;
 
       const offset = (page - 1) * limit;
-      const where = { isActive };
+      const where = {};
 
+      if (isActive !== undefined) where.isActive = isActive;
       if (network) where.network = network;
       if (contractType) where.contractType = contractType;
 
@@ -488,8 +620,8 @@ class TokenService {
         throw new Error('Endereço do contrato inválido');
       }
 
-      // Buscar informações do contrato no banco
-      const contract = await this.SmartContract.findByAddress(contractAddress);
+      // Buscar informações do contrato no banco (incluindo inativos)
+      const contract = await this.SmartContract.findByAddressIncludeInactive(contractAddress);
       
       if (!contract) {
         throw new Error('Token não encontrado');
@@ -536,8 +668,8 @@ class TokenService {
         throw new Error('Endereço do contrato inválido');
       }
 
-      // Buscar e atualizar o contrato diretamente
-      const contract = await this.SmartContract.findByAddress(contractAddress);
+      // Buscar e atualizar o contrato diretamente (incluindo inativos)
+      const contract = await this.SmartContract.findByAddressIncludeInactive(contractAddress);
       
       if (!contract) {
         throw new Error('Token não encontrado');

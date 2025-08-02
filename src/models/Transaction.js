@@ -238,12 +238,16 @@ module.exports = (sequelize) => {
     ],
     hooks: {
       beforeCreate: (transaction) => {
-        // Normalizar endereços para lowercase
+        // Validar endereços sem alterar case
         if (transaction.fromAddress) {
-          transaction.fromAddress = transaction.fromAddress.toLowerCase();
+          if (!/^0x[a-fA-F0-9]{40}$/.test(transaction.fromAddress)) {
+            throw new Error('Endereço de origem inválido');
+          }
         }
         if (transaction.toAddress) {
-          transaction.toAddress = transaction.toAddress.toLowerCase();
+          if (!/^0x[a-fA-F0-9]{40}$/.test(transaction.toAddress)) {
+            throw new Error('Endereço de destino inválido');
+          }
         }
         
         // Definir submittedAt se não fornecido
@@ -252,12 +256,16 @@ module.exports = (sequelize) => {
         }
       },
       beforeUpdate: (transaction) => {
-        // Normalizar endereços para lowercase
+        // Validar endereços sem alterar case
         if (transaction.changed('fromAddress') && transaction.fromAddress) {
-          transaction.fromAddress = transaction.fromAddress.toLowerCase();
+          if (!/^0x[a-fA-F0-9]{40}$/.test(transaction.fromAddress)) {
+            throw new Error('Endereço de origem inválido');
+          }
         }
         if (transaction.changed('toAddress') && transaction.toAddress) {
-          transaction.toAddress = transaction.toAddress.toLowerCase();
+          if (!/^0x[a-fA-F0-9]{40}$/.test(transaction.toAddress)) {
+            throw new Error('Endereço de destino inválido');
+          }
         }
         
         // Atualizar timestamps baseado no status
@@ -282,7 +290,7 @@ module.exports = (sequelize) => {
   Transaction.findByTxHash = function(txHash) {
     return this.findOne({
       where: {
-        txHash: txHash.toLowerCase()
+        txHash: txHash
       }
     });
   };

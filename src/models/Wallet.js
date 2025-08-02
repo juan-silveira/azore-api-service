@@ -73,15 +73,19 @@ module.exports = (sequelize) => {
     ],
     hooks: {
       beforeCreate: (wallet) => {
-        // Garantir que o endereço está em lowercase
+        // Validar endereço sem alterar case
         if (wallet.publicAddress) {
-          wallet.publicAddress = wallet.publicAddress.toLowerCase();
+          if (!/^0x[a-fA-F0-9]{40}$/.test(wallet.publicAddress)) {
+            throw new Error('Endereço público inválido');
+          }
         }
       },
       beforeUpdate: (wallet) => {
-        // Garantir que o endereço está em lowercase
-        if (wallet.publicAddress) {
-          wallet.publicAddress = wallet.publicAddress.toLowerCase();
+        // Validar endereço sem alterar case
+        if (wallet.publicAddress && wallet.changed('publicAddress')) {
+          if (!/^0x[a-fA-F0-9]{40}$/.test(wallet.publicAddress)) {
+            throw new Error('Endereço público inválido');
+          }
         }
       }
     }
@@ -101,7 +105,7 @@ module.exports = (sequelize) => {
   Wallet.findByAddress = function(address) {
     return this.findOne({
       where: {
-        publicAddress: address.toLowerCase(),
+        publicAddress: address,
         isActive: true
       }
     });
@@ -136,7 +140,7 @@ module.exports = (sequelize) => {
       { lastUsedAt: new Date() },
       { 
         where: { 
-          publicAddress: address.toLowerCase(),
+          publicAddress: address,
           isActive: true
         }
       }
@@ -148,7 +152,7 @@ module.exports = (sequelize) => {
       { isActive: false },
       { 
         where: { 
-          publicAddress: address.toLowerCase()
+          publicAddress: address
         }
       }
     );
@@ -159,7 +163,7 @@ module.exports = (sequelize) => {
       { isActive: true },
       { 
         where: { 
-          publicAddress: address.toLowerCase()
+          publicAddress: address
         }
       }
     );

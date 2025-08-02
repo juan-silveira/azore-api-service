@@ -127,15 +127,19 @@ module.exports = (sequelize) => {
     ],
     hooks: {
       beforeCreate: (contract) => {
-        // Normalizar endereço para lowercase
+        // Validar endereço sem alterar case
         if (contract.address) {
-          contract.address = contract.address.toLowerCase();
+          if (!/^0x[a-fA-F0-9]{40}$/.test(contract.address)) {
+            throw new Error('Endereço do contrato inválido');
+          }
         }
       },
       beforeUpdate: (contract) => {
-        // Normalizar endereço para lowercase
-        if (contract.address) {
-          contract.address = contract.address.toLowerCase();
+        // Validar endereço sem alterar case
+        if (contract.address && contract.changed('address')) {
+          if (!/^0x[a-fA-F0-9]{40}$/.test(contract.address)) {
+            throw new Error('Endereço do contrato inválido');
+          }
         }
       }
     }
@@ -153,8 +157,16 @@ module.exports = (sequelize) => {
   SmartContract.findByAddress = function(address) {
     return this.findOne({
       where: {
-        address: address.toLowerCase(),
+        address: address,
         isActive: true
+      }
+    });
+  };
+
+  SmartContract.findByAddressIncludeInactive = function(address) {
+    return this.findOne({
+      where: {
+        address: address
       }
     });
   };
@@ -186,7 +198,7 @@ module.exports = (sequelize) => {
   SmartContract.updateContract = function(address, updateData) {
     return this.update(updateData, {
       where: {
-        address: address.toLowerCase(),
+        address: address,
         isActive: true
       }
     });
@@ -197,7 +209,7 @@ module.exports = (sequelize) => {
       { isActive: false },
       {
         where: {
-          address: address.toLowerCase(),
+          address: address,
           isActive: true
         }
       }
@@ -209,7 +221,7 @@ module.exports = (sequelize) => {
       { isActive: true },
       {
         where: {
-          address: address.toLowerCase()
+          address: address
         }
       }
     );
