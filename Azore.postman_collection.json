@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "azore-blockchain-api-final",
 		"name": "Azore_API",
-		"description": "Coleção completa para testar a API Azore Blockchain Service\n\nInclui todos os endpoints:\n- Health Check e Informações\n- Testes da Blockchain\n- 🔐 Autenticação e Sessões (com múltiplas API Keys)\n- Gerenciamento de Usuários\n- Rotas Admin (API_ADMIN)\n- Gerenciamento de Carteiras\n- Gerenciamento de Contratos e Tokens (com roles)\n- 🪙 Gerenciamento de Tokens\n- Sistema de Logs\n\nNOVAS FUNCIONALIDADES:\n- Sistema de múltiplas API Keys por usuário\n- Gerenciamento completo de API Keys (gerar, listar, editar, revogar)\n- Sistema de RBAC (API_ADMIN e CLIENT_ADMIN)\n- Rotas unificadas de roles (grant-role, has-role, revoke-role)\n- Gerenciamento de Tokens (atualizar metadados, conceder admin, verificar/revogar roles)\n- Tokens padrão automáticos (AZE, AZE-t, cBRL)\n- Obtenção de informações de tokens da blockchain\n- Mapeamento automático de roles para hashes\n- Lógica especial para admin role (atualiza adminPublicKey e revoga role anterior)\n\nROLES DISPONÍVEIS:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nPara usar:\n1. Importe esta coleção no Postman\n2. Configure a variável de ambiente 'base_url' como 'http://localhost:8800'\n3. Para rotas que requerem session token, faça login primeiro\n4. Use as rotas de API Keys para gerenciar suas chaves de acesso\n5. Use diferentes API Keys para testar diferentes níveis de acesso\n\nGuia completo: POSTMAN_GUIDE_Complete.md",
+		"description": "Coleção completa para testar a API Azore Blockchain Service\n\nInclui todos os endpoints:\n- Health Check e Informações\n- Testes da Blockchain\n- 🔐 Autenticação e Sessões (com múltiplas API Keys)\n- Gerenciamento de Usuários\n- Rotas Admin (API_ADMIN)\n- Gerenciamento de Carteiras\n- Gerenciamento de Contratos e Tokens (com roles)\n- 🪙 Gerenciamento de Tokens\n- 📊 Sistema de Logs Completo\n\nNOVAS FUNCIONALIDADES:\n- Sistema de múltiplas API Keys por usuário\n- Gerenciamento completo de API Keys (gerar, listar, editar, revogar)\n- Sistema de RBAC (API_ADMIN e CLIENT_ADMIN)\n- Rotas unificadas de roles (grant-role, has-role, revoke-role)\n- Gerenciamento de Tokens (atualizar metadados, conceder admin, verificar/revogar roles)\n- Tokens padrão automáticos (AZE, AZE-t, cBRL)\n- Obtenção de informações de tokens da blockchain\n- Mapeamento automático de roles para hashes\n- Lógica especial para admin role (atualiza adminPublicKey e revoga role anterior)\n- Sistema de logs por usuário (logs de requisições e transações)\n- Estatísticas detalhadas de logs e transações\n- Filtros avançados por data, status, rede, tipo de recurso\n- Exportação de logs em JSON/CSV\n- Limpeza automática de logs antigos\n\nCORREÇÕES IMPLEMENTADAS:\n- ✅ Correção na rota POST /api/admin/users: agora usa clientId do body corretamente\n- ✅ Correção na rota GET /api/admin/clients/{id}/users: parâmetro correto (id)\n- ✅ Correção na rota GET /api/users/client/{clientId}: parâmetro correto (clientId)\n- ✅ Correção nas rotas de busca por CPF/email/publicKey: retornam usuários desativados\n- ✅ Campo password obrigatório em POST /api/users\n- ✅ Sistema de logs por usuário funcionando\n\nROLES DISPONÍVEIS:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nSISTEMA DE LOGS:\n- Logs de requisições com filtros avançados\n- Logs de transações blockchain\n- Logs por usuário específico\n- Estatísticas agregadas\n- Logs de erro\n- Transações pendentes\n- Exportação de dados\n- Limpeza automática\n\nPara usar:\n1. Importe esta coleção no Postman\n2. Configure a variável de ambiente 'base_url' como 'http://localhost:8800'\n3. Para rotas que requerem session token, faça login primeiro\n4. Use as rotas de API Keys para gerenciar suas chaves de acesso\n5. Use diferentes API Keys para testar diferentes níveis de acesso\n6. Configure as variáveis user_id e tx_hash para testar rotas específicas\n\nGuia completo: POSTMAN_GUIDE_Complete.md",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -396,21 +396,7 @@
 						"description": "Obtém informações de um bloco específico"
 					},
 					"response": []
-				},
-				{
-					"name": "Endereço de Exemplo",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/test/example-address",
-							"host": ["{{base_url}}"],
-							"path": ["api", "test", "example-address"]
-						},
-						"description": "Gera um endereço Ethereum válido para testes"
-					},
-					"response": []
-				}
+								}
 			],
 			"description": "Endpoints para testar a conectividade e funcionalidades da blockchain"
 		},
@@ -435,7 +421,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@exemplo.com\",\n  \"cpf\": \"12345678901\",\n  \"phone\": \"11987654321\",\n  \"birthDate\": \"1990-01-01\",\n  \"clientId\": \"{{client_id}}\"\n}"
+							"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@exemplo.com\",\n  \"cpf\": \"12345678901\",\n  \"phone\": \"11987654321\",\n  \"birthDate\": \"1990-01-01\",\n  \"password\": \"a@1234567\",\n  \"clientId\": \"{{client_id}}\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/users",
@@ -731,7 +717,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Novo Usuário\",\n  \"email\": \"usuario@teste.com\",\n  \"password\": \"senha123\",\n  \"clientId\": \"{{client_id}}\",\n  \"cpf\": \"12345678901\",\n  \"phone\": \"11999999999\",\n  \"birthDate\": \"1990-01-01\",\n  \"permissions\": {\n    \"wallets\": {\"read\": true, \"create\": true, \"update\": true, \"delete\": true},\n    \"contracts\": {\"read\": true, \"create\": true, \"update\": true, \"delete\": true},\n    \"transactions\": {\"read\": true, \"create\": true, \"update\": true, \"delete\": true}\n  },\n  \"roles\": [\"CLIENT_ADMIN\"]\n}"
+							"raw": "{\n  \"name\": \"Novo Usuário\",\n  \"email\": \"usuario@teste.com\",\n  \"password\": \"a@1234567\",\n  \"clientId\": \"{{client_id}}\",\n  \"cpf\": \"12345678901\",\n  \"phone\": \"11999999999\",\n  \"birthDate\": \"1990-01-01\",\n  \"permissions\": {\n    \"wallets\": {\"read\": true, \"create\": true, \"update\": true, \"delete\": true},\n    \"contracts\": {\"read\": true, \"create\": true, \"update\": true, \"delete\": true},\n    \"transactions\": {\"read\": true, \"create\": true, \"update\": true, \"delete\": true}\n  },\n  \"roles\": [\"CLIENT_ADMIN\"]\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/admin/users",
@@ -1959,7 +1945,21 @@
 			"name": "📊 Sistema de Logs",
 			"item": [
 				{
-					"name": "Listar Logs",
+					"name": "Teste do Serviço",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/logs/test/service",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "test", "service"]
+						},
+						"description": "Testa se o serviço de logs está funcionando"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Logs de Requisições",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -1970,9 +1970,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/logs?page=1&limit=10",
+							"raw": "{{base_url}}/api/logs/requests?page=1&limit=50",
 							"host": ["{{base_url}}"],
-							"path": ["api", "logs"],
+							"path": ["api", "logs", "requests"],
 							"query": [
 								{
 									"key": "page",
@@ -1981,17 +1981,47 @@
 								},
 								{
 									"key": "limit",
-									"value": "10",
+									"value": "50",
 									"description": "Limite de itens por página"
+								},
+								{
+									"key": "clientId",
+									"value": "",
+									"description": "Filtrar por cliente (UUID)"
+								},
+								{
+									"key": "resourceType",
+									"value": "",
+									"description": "Filtrar por tipo de recurso"
+								},
+								{
+									"key": "statusCode",
+									"value": "",
+									"description": "Filtrar por código de status"
+								},
+								{
+									"key": "startDate",
+									"value": "",
+									"description": "Data de início (YYYY-MM-DD)"
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"description": "Data de fim (YYYY-MM-DD)"
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "Buscar por path, IP ou User-Agent"
 								}
 							]
 						},
-						"description": "Lista os logs de requisições"
+						"description": "Lista logs de requisições com filtros"
 					},
 					"response": []
 				},
 				{
-					"name": "Obter Log por ID",
+					"name": "Listar Transações",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -2002,16 +2032,58 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/logs/{{log_id}}",
+							"raw": "{{base_url}}/api/logs/transactions?page=1&limit=50",
 							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "{{log_id}}"]
+							"path": ["api", "logs", "transactions"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número da página"
+								},
+								{
+									"key": "limit",
+									"value": "50",
+									"description": "Limite de itens por página"
+								},
+								{
+									"key": "clientId",
+									"value": "",
+									"description": "Filtrar por cliente (UUID)"
+								},
+								{
+									"key": "status",
+									"value": "",
+									"description": "Filtrar por status (pending, confirmed, failed, cancelled)"
+								},
+								{
+									"key": "network",
+									"value": "",
+									"description": "Filtrar por rede (mainnet, testnet)"
+								},
+								{
+									"key": "transactionType",
+									"value": "",
+									"description": "Filtrar por tipo (transfer, contract_deploy, contract_call, contract_read, wallet_creation)"
+								},
+								{
+									"key": "startDate",
+									"value": "",
+									"description": "Data de início (YYYY-MM-DD)"
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"description": "Data de fim (YYYY-MM-DD)"
+								}
+							]
 						},
-						"description": "Obtém um log específico por ID"
+						"description": "Lista transações com filtros"
 					},
 					"response": []
 				},
 				{
-					"name": "Logs por Cliente",
+					"name": "Estatísticas de Logs",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -2022,16 +2094,528 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/logs/client/{{client_id}}",
+							"raw": "{{base_url}}/api/logs/stats",
 							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "client", "{{client_id}}"]
+							"path": ["api", "logs", "stats"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "",
+									"description": "Data de início (YYYY-MM-DD)"
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"description": "Data de fim (YYYY-MM-DD)"
+								},
+								{
+									"key": "clientId",
+									"value": "",
+									"description": "Filtrar por cliente (UUID)"
+								},
+								{
+									"key": "network",
+									"value": "",
+									"description": "Filtrar por rede (mainnet, testnet)"
+								},
+								{
+									"key": "resourceType",
+									"value": "",
+									"description": "Filtrar por tipo de recurso"
+								},
+								{
+									"key": "transactionType",
+									"value": "",
+									"description": "Filtrar por tipo de transação"
+								}
+							]
 						},
-						"description": "Lista logs de um usuário específico"
+						"description": "Obtém estatísticas de logs e transações"
+					},
+					"response": []
+				},
+				{
+					"name": "Logs de Erro",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/errors?page=1&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "errors"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número da página"
+								},
+								{
+									"key": "limit",
+									"value": "50",
+									"description": "Limite de itens por página"
+								},
+								{
+									"key": "startDate",
+									"value": "",
+									"description": "Data de início (YYYY-MM-DD)"
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"description": "Data de fim (YYYY-MM-DD)"
+								}
+							]
+						},
+						"description": "Obtém logs de erro"
+					},
+					"response": []
+				},
+				{
+					"name": "Transações Pendentes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/transactions/pending",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "transactions", "pending"],
+							"query": [
+								{
+									"key": "network",
+									"value": "",
+									"description": "Filtrar por rede (mainnet, testnet)"
+								},
+								{
+									"key": "limit",
+									"value": "100",
+									"description": "Limite de transações"
+								}
+							]
+						},
+						"description": "Obtém transações pendentes"
+					},
+					"response": []
+				},
+				{
+					"name": "Transação por Hash",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/transactions/{{tx_hash}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "transactions", "{{tx_hash}}"]
+						},
+						"description": "Obtém transação por hash"
+					},
+					"response": []
+				},
+				{
+					"name": "Meus Logs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/me/requests?page=1&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "me", "requests"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número da página"
+								},
+								{
+									"key": "limit",
+									"value": "50",
+									"description": "Limite de itens por página"
+								},
+								{
+									"key": "resourceType",
+									"value": "",
+									"description": "Filtrar por tipo de recurso"
+								},
+								{
+									"key": "statusCode",
+									"value": "",
+									"description": "Filtrar por código de status"
+								},
+								{
+									"key": "startDate",
+									"value": "",
+									"description": "Data de início (YYYY-MM-DD)"
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"description": "Data de fim (YYYY-MM-DD)"
+								}
+							]
+						},
+						"description": "Obtém logs do cliente autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "Minhas Transações",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/me/transactions?page=1&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "me", "transactions"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número da página"
+								},
+								{
+									"key": "limit",
+									"value": "50",
+									"description": "Limite de itens por página"
+								},
+								{
+									"key": "status",
+									"value": "",
+									"description": "Filtrar por status (pending, confirmed, failed, cancelled)"
+								},
+								{
+									"key": "network",
+									"value": "",
+									"description": "Filtrar por rede (mainnet, testnet)"
+								},
+								{
+									"key": "transactionType",
+									"value": "",
+									"description": "Filtrar por tipo de transação"
+								},
+								{
+									"key": "startDate",
+									"value": "",
+									"description": "Data de início (YYYY-MM-DD)"
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"description": "Data de fim (YYYY-MM-DD)"
+								}
+							]
+						},
+						"description": "Obtém transações do cliente autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "Minhas Estatísticas",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/me/stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "me", "stats"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "",
+									"description": "Data de início (YYYY-MM-DD)"
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"description": "Data de fim (YYYY-MM-DD)"
+								},
+								{
+									"key": "network",
+									"value": "",
+									"description": "Filtrar por rede (mainnet, testnet)"
+								},
+								{
+									"key": "resourceType",
+									"value": "",
+									"description": "Filtrar por tipo de recurso"
+								},
+								{
+									"key": "transactionType",
+									"value": "",
+									"description": "Filtrar por tipo de transação"
+								}
+							]
+						},
+						"description": "Obtém estatísticas do cliente autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "Logs por Usuário",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/users/{{user_id}}/requests?page=1&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "users", "{{user_id}}", "requests"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número da página"
+								},
+								{
+									"key": "limit",
+									"value": "50",
+									"description": "Limite de itens por página"
+								},
+								{
+									"key": "resourceType",
+									"value": "",
+									"description": "Filtrar por tipo de recurso"
+								},
+								{
+									"key": "statusCode",
+									"value": "",
+									"description": "Filtrar por código de status"
+								},
+								{
+									"key": "startDate",
+									"value": "",
+									"description": "Data de início (YYYY-MM-DD)"
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"description": "Data de fim (YYYY-MM-DD)"
+								}
+							]
+						},
+						"description": "Obtém logs de requisições de um usuário específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Transações por Usuário",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/users/{{user_id}}/transactions?page=1&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "users", "{{user_id}}", "transactions"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número da página"
+								},
+								{
+									"key": "limit",
+									"value": "50",
+									"description": "Limite de itens por página"
+								},
+								{
+									"key": "status",
+									"value": "",
+									"description": "Filtrar por status (pending, confirmed, failed, cancelled)"
+								},
+								{
+									"key": "network",
+									"value": "",
+									"description": "Filtrar por rede (mainnet, testnet)"
+								},
+								{
+									"key": "transactionType",
+									"value": "",
+									"description": "Filtrar por tipo de transação"
+								},
+								{
+									"key": "startDate",
+									"value": "",
+									"description": "Data de início (YYYY-MM-DD)"
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"description": "Data de fim (YYYY-MM-DD)"
+								}
+							]
+						},
+						"description": "Obtém transações de um usuário específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Estatísticas por Usuário",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/users/{{user_id}}/stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "users", "{{user_id}}", "stats"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "",
+									"description": "Data de início (YYYY-MM-DD)"
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"description": "Data de fim (YYYY-MM-DD)"
+								},
+								{
+									"key": "network",
+									"value": "",
+									"description": "Filtrar por rede (mainnet, testnet)"
+								},
+								{
+									"key": "resourceType",
+									"value": "",
+									"description": "Filtrar por tipo de recurso"
+								},
+								{
+									"key": "transactionType",
+									"value": "",
+									"description": "Filtrar por tipo de transação"
+								}
+							]
+						},
+						"description": "Obtém estatísticas de um usuário específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Exportar Logs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/export",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "export"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "",
+									"description": "Data de início (YYYY-MM-DD)"
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"description": "Data de fim (YYYY-MM-DD)"
+								},
+								{
+									"key": "clientId",
+									"value": "",
+									"description": "Filtrar por cliente (UUID)"
+								},
+								{
+									"key": "network",
+									"value": "",
+									"description": "Filtrar por rede (mainnet, testnet)"
+								},
+								{
+									"key": "format",
+									"value": "json",
+									"description": "Formato de exportação (json, csv)"
+								}
+							]
+						},
+						"description": "Exporta logs em formato JSON ou CSV"
+					},
+					"response": []
+				},
+				{
+					"name": "Limpar Logs Antigos",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/cleanup?daysToKeep=30",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "cleanup"],
+							"query": [
+								{
+									"key": "daysToKeep",
+									"value": "30",
+									"description": "Número de dias para manter"
+								}
+							]
+						},
+						"description": "Limpa logs antigos (mais de X dias)"
 					},
 					"response": []
 				}
 			],
-			"description": "Endpoints para consulta de logs de requisições"
+			"description": "Endpoints para consulta e gerenciamento de logs de requisições e transações"
 		}
 	],
 	"variable": [
@@ -2097,6 +2681,11 @@
 		},
 		{
 			"key": "api_key_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "tx_hash",
 			"value": "",
 			"type": "string"
 		}

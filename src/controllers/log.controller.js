@@ -411,6 +411,114 @@ class LogController {
   }
 
   /**
+   * Obtém logs de requisições de um usuário específico
+   */
+  async getUserLogs(req, res) {
+    try {
+      const { userId } = req.params;
+      const {
+        page,
+        limit,
+        resourceType,
+        statusCode,
+        startDate,
+        endDate
+      } = req.query;
+
+      const options = {
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 50,
+        userId,
+        resourceType,
+        statusCode: statusCode ? parseInt(statusCode) : undefined,
+        startDate,
+        endDate
+      };
+
+      const result = await logService.getUserLogs(options);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao obter logs do usuário',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Obtém transações de um usuário específico
+   */
+  async getUserTransactions(req, res) {
+    try {
+      const { userId } = req.params;
+      const {
+        page,
+        limit,
+        status,
+        network,
+        transactionType,
+        startDate,
+        endDate
+      } = req.query;
+
+      const options = {
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 50,
+        userId,
+        status,
+        network,
+        transactionType,
+        startDate,
+        endDate
+      };
+
+      const result = await logService.getUserTransactions(options);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao obter transações do usuário',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Obtém estatísticas de um usuário específico
+   */
+  async getUserStats(req, res) {
+    try {
+      const { userId } = req.params;
+      const {
+        startDate,
+        endDate,
+        network,
+        resourceType,
+        transactionType
+      } = req.query;
+
+      const options = {
+        startDate,
+        endDate,
+        userId,
+        network,
+        resourceType,
+        transactionType
+      };
+
+      const result = await logService.getUserStats(options);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao obter estatísticas do usuário',
+        error: error.message
+      });
+    }
+  }
+
+  /**
    * Testa o serviço de logs
    */
   async testService(req, res) {

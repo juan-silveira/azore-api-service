@@ -38,7 +38,7 @@ const startServer = () => {
       console.log(`   API Info: http://localhost:${PORT}/`);
       console.log(`   Test Connection: http://localhost:${PORT}/api/test/connection`);
       console.log(`   Network Info: http://localhost:${PORT}/api/test/network-info`);
-      console.log(`   Example Address: http://localhost:${PORT}/api/test/example-address`);
+
       console.log('');
       console.log('🔗 Para testar a conexão com a blockchain:');
       console.log(`   curl http://localhost:${PORT}/api/test/connection`);

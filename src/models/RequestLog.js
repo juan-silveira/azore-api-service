@@ -18,6 +18,15 @@ module.exports = (sequelize) => {
         key: 'id'
       }
     },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      comment: 'ID do usuário que fez a requisição (null para rotas sem autenticação)',
+      references: {
+        model: 'users',
+        key: 'id'
+      }
+    },
     method: {
       type: DataTypes.STRING(10),
       allowNull: false,
@@ -120,6 +129,10 @@ module.exports = (sequelize) => {
         fields: ['client_id']
       },
       {
+        name: 'idx_request_logs_user_id',
+        fields: ['user_id']
+      },
+      {
         name: 'idx_request_logs_method',
         fields: ['method']
       },
@@ -214,6 +227,7 @@ module.exports = (sequelize) => {
   // Associação
   RequestLog.associate = (models) => {
     RequestLog.belongsTo(models.Client, { foreignKey: 'clientId' });
+    RequestLog.belongsTo(models.User, { foreignKey: 'userId' });
   };
 
   // Métodos estáticos

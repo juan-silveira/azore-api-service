@@ -595,6 +595,187 @@ class LogService {
   }
 
   /**
+   * Obtém logs de requisições de um usuário específico
+   */
+  async getUserLogs(options = {}) {
+    try {
+      const { userId, page = 1, limit = 50, resourceType, statusCode, startDate, endDate } = options;
+      const offset = (page - 1) * limit;
+      
+      const where = { userId };
+      
+      if (resourceType) where.resourceType = resourceType;
+      if (statusCode) where.statusCode = statusCode;
+      if (startDate || endDate) {
+        where.createdAt = {};
+        if (startDate) where.createdAt[this.sequelize.Op.gte] = new Date(startDate);
+        if (endDate) where.createdAt[this.sequelize.Op.lte] = new Date(endDate);
+      }
+      
+      const { count, rows } = await this.RequestLog.findAndCountAll({
+        where,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        order: [['createdAt', 'DESC']],
+        include: [
+          { model: this.Client, as: 'client', attributes: ['id', 'name'] },
+          { model: global.models.User, as: 'user', attributes: ['id', 'name', 'email'] }
+        ]
+      });
+      
+      return {
+        success: true,
+        message: 'Logs do usuário obtidos com sucesso',
+        data: {
+          logs: rows,
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: count,
+            pages: Math.ceil(count / limit)
+          }
+        }
+      };
+    } catch (error) {
+      console.error('Erro ao obter logs do usuário:', error);
+      return {
+        success: false,
+        message: 'Erro ao obter logs do usuário',
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Obtém transações de um usuário específico
+   */
+  async getUserTransactions(options = {}) {
+    try {
+      const { userId, page = 1, limit = 50, status, network, transactionType, startDate, endDate } = options;
+      const offset = (page - 1) * limit;
+      
+      const where = { userId };
+      
+      if (status) where.status = status;
+      if (network) where.network = network;
+      if (transactionType) where.transactionType = transactionType;
+      if (startDate || endDate) {
+        where.createdAt = {};
+        if (startDate) where.createdAt[this.sequelize.Op.gte] = new Date(startDate);
+        if (endDate) where.createdAt[this.sequelize.Op.lte] = new Date(endDate);
+      }
+      
+      const { count, rows } = await this.Transaction.findAndCountAll({
+        where,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        order: [['createdAt', 'DESC']],
+        include: [
+          { model: this.Client, as: 'client', attributes: ['id', 'name'] },
+          { model: global.models.User, as: 'user', attributes: ['id', 'name', 'email'] }
+        ]
+      });
+      
+      return {
+        success: true,
+        message: 'Transações do usuário obtidas com sucesso',
+        data: {
+          transactions: rows,
+          pagination: {
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: count,
+            pages: Math.ceil(count / limit)
+          }
+        }
+      };
+    } catch (error) {
+      console.error('Erro ao obter transações do usuário:', error);
+      return {
+        success: false,
+        message: 'Erro ao obter transações do usuário',
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Obtém estatísticas de um usuário específico
+   */
+  async getUserStats(options = {}) {
+    try {
+      const { userId, startDate, endDate, network, resourceType, transactionType } = options;
+      
+      const where = { userId };
+      
+      if (startDate || endDate) {
+        where.createdAt = {};
+        if (startDate) where.createdAt[this.sequelize.Op.gte] = new Date(startDate);
+        if (endDate) where.createdAt[this.sequelize.Op.lte] = new Date(endDate);
+      }
+      
+      // Estatísticas de requisições
+      const requestStats = await this.RequestLog.findAll({
+        where,
+        attributes: [
+          [this.sequelize.fn('COUNT', this.sequelize.col('id')), 'totalRequests'],
+          [this.sequelize.fn('AVG', this.sequelize.col('response_time')), 'avgResponseTime'],
+          [this.sequelize.fn('COUNT', this.sequelize.literal('CASE WHEN status_code >= 400 THEN 1 ELSE NULL END')), 'errorCount'],
+          [this.sequelize.fn('COUNT', this.sequelize.literal('CASE WHEN status_code < 400 THEN 1 ELSE NULL END')), 'successCount']
+        ],
+        raw: true
+      });
+      
+      // Estatísticas de transações
+      const transactionWhere = { userId };
+      if (network) transactionWhere.network = network;
+      if (transactionType) transactionWhere.transactionType = transactionType;
+      if (startDate || endDate) {
+        transactionWhere.createdAt = {};
+        if (startDate) transactionWhere.createdAt[this.sequelize.Op.gte] = new Date(startDate);
+        if (endDate) transactionWhere.createdAt[this.sequelize.Op.lte] = new Date(endDate);
+      }
+      
+      const transactionStats = await this.Transaction.findAll({
+        where: transactionWhere,
+        attributes: [
+          [this.sequelize.fn('COUNT', this.sequelize.col('id')), 'totalTransactions'],
+          [this.sequelize.fn('COUNT', this.sequelize.literal('CASE WHEN status = \'confirmed\' THEN 1 ELSE NULL END')), 'confirmedCount'],
+          [this.sequelize.fn('COUNT', this.sequelize.literal('CASE WHEN status = \'pending\' THEN 1 ELSE NULL END')), 'pendingCount'],
+          [this.sequelize.fn('COUNT', this.sequelize.literal('CASE WHEN status = \'failed\' THEN 1 ELSE NULL END')), 'failedCount']
+        ],
+        raw: true
+      });
+      
+      return {
+        success: true,
+        message: 'Estatísticas do usuário obtidas com sucesso',
+        data: {
+          requests: requestStats[0] || {
+            totalRequests: 0,
+            avgResponseTime: 0,
+            errorCount: 0,
+            successCount: 0
+          },
+          transactions: transactionStats[0] || {
+            totalTransactions: 0,
+            confirmedCount: 0,
+            pendingCount: 0,
+            failedCount: 0
+          }
+        }
+      };
+    } catch (error) {
+      console.error('Erro ao obter estatísticas do usuário:', error);
+      return {
+        success: false,
+        message: 'Erro ao obter estatísticas do usuário',
+        error: error.message
+      };
+    }
+  }
+
+  /**
    * Testa o serviço de logs
    */
   async testService() {

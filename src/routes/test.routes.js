@@ -248,40 +248,6 @@ router.get('/gas-price', testController.getGasPrice);
  */
 router.get('/network', testController.getNetwork);
 
-/**
- * @swagger
- * /api/test/example-address:
- *   get:
- *     summary: Gera um endereço de exemplo
- *     description: Retorna um endereço Ethereum válido para testes
- *     tags: [Test]
- *     responses:
- *       200:
- *         description: Endereço de exemplo gerado com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: Endereço de exemplo gerado
- *                 data:
- *                   type: object
- *                   properties:
- *                     address:
- *                       type: string
- *                       example: 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6
- *                     privateKey:
- *                       type: string
- *                       example: 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
- *                     mnemonic:
- *                       type: string
- *                       example: "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
- */
-router.get('/example-address', testController.testExampleAddress);
+
 
 module.exports = router; 

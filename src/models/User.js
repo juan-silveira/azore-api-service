@@ -350,8 +350,7 @@ module.exports = (sequelize) => {
     }
     return this.findOne({
       where: {
-        email: email.toLowerCase(),
-        isActive: true
+        email: email.toLowerCase()
       },
       include: ['client']
     });
@@ -364,8 +363,7 @@ module.exports = (sequelize) => {
     const normalizedCpf = cpf.replace(/[.-]/g, '');
     return this.findOne({
       where: {
-        cpf: normalizedCpf,
-        isActive: true
+        cpf: normalizedCpf
       },
       include: ['client']
     });
@@ -377,8 +375,7 @@ module.exports = (sequelize) => {
     }
     return this.findOne({
       where: {
-        publicKey: publicKey,
-        isActive: true
+        publicKey: publicKey
       },
       include: ['client']
     });

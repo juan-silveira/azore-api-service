@@ -27,10 +27,17 @@ class UserController {
         });
       }
 
-      // Usar o clientId do client autenticado
-      const clientId = req.client ? req.client.id : userData.clientId;
+      // Para rotas admin, usar o clientId do body da requisição
+      // Para rotas normais, usar o clientId do client autenticado
+      let clientId;
       
-      if (!clientId) {
+      if (userData.clientId) {
+        // Rota admin: usar clientId do body (prioridade)
+        clientId = userData.clientId;
+      } else if (req.client) {
+        // Rota normal: usar client autenticado
+        clientId = req.client.id;
+      } else {
         return res.status(400).json({
           success: false,
           message: 'ClientId é obrigatório'

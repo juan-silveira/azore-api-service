@@ -197,40 +197,7 @@ class TestController {
     }
   }
 
-  /**
-   * Testa o endereço de exemplo configurado
-   * @param {Object} req - Request object
-   * @param {Object} res - Response object
-   */
-  async testExampleAddress(req, res) {
-    try {
-      const testAddress = process.env.TEST_ADDRESS;
-      
-      if (!testAddress) {
-        return res.status(400).json({
-          success: false,
-          message: 'Endereço de teste não configurado no .env'
-        });
-      }
 
-      const balance = await blockchainService.getBalance(testAddress);
-      
-      res.json({
-        success: true,
-        message: 'Teste do endereço de exemplo realizado com sucesso',
-        data: {
-          testAddress,
-          balance
-        }
-      });
-    } catch (error) {
-      res.status(400).json({
-        success: false,
-        message: 'Erro ao testar endereço de exemplo',
-        error: error.message
-      });
-    }
-  }
 }
 
 module.exports = new TestController(); 

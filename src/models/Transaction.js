@@ -18,6 +18,15 @@ module.exports = (sequelize) => {
         key: 'id'
       }
     },
+    userId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      comment: 'ID do usuário que iniciou a transação',
+      references: {
+        model: 'users',
+        key: 'id'
+      }
+    },
     requestLogId: {
       type: DataTypes.UUID,
       allowNull: true,
@@ -227,6 +236,10 @@ module.exports = (sequelize) => {
         fields: ['client_id', 'status']
       },
       {
+        name: 'idx_transactions_user_id',
+        fields: ['user_id']
+      },
+      {
         name: 'idx_transactions_network_status',
         fields: ['network', 'status']
       }
@@ -270,6 +283,7 @@ module.exports = (sequelize) => {
   // Associação
   Transaction.associate = (models) => {
     Transaction.belongsTo(models.Client, { foreignKey: 'clientId' });
+    Transaction.belongsTo(models.User, { foreignKey: 'userId' });
   };
 
   // Métodos estáticos

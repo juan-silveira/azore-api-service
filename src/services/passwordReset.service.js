@@ -28,27 +28,27 @@ class PasswordResetService {
   }
 
   /**
-   * Solicita recuperação de senha para um client
+   * Solicita recuperação de senha para um usuário
    */
   static async requestClientReset(email, ipAddress = null, userAgent = null) {
     try {
       console.log('🔍 Iniciando requestClientReset para:', email);
       const models = getModels();
       console.log('🔍 Models disponíveis:', Object.keys(models));
-      const { Client, PasswordReset } = models;
-      console.log('🔍 Client model:', !!Client);
+      const { User, PasswordReset } = models;
+      console.log('🔍 User model:', !!User);
       console.log('🔍 PasswordReset model:', !!PasswordReset);
 
-      // Verificar se o client existe
-      const client = await Client.findByEmail(email);
-      if (!client) {
+      // Verificar se o usuário existe
+      const user = await User.findByEmail(email);
+      if (!user) {
         return {
           success: false,
           message: 'Email não encontrado no sistema'
         };
       }
 
-      if (!client.isActive) {
+      if (!user.isActive) {
         return {
           success: false,
           message: 'Conta inativa. Entre em contato com o suporte.'
@@ -157,7 +157,7 @@ class PasswordResetService {
   static async resetPassword(token, newPassword) {
     try {
       const models = getModels();
-      const { Client, PasswordReset } = models;
+      const { User, PasswordReset } = models;
 
       // Validar token
       const passwordReset = await PasswordReset.findByToken(token);
@@ -183,12 +183,12 @@ class PasswordResetService {
         };
       }
 
-      // Buscar o client
-      const client = await Client.findByEmail(passwordReset.email);
-      if (!client) {
+      // Buscar o usuário
+      const user = await User.findByEmail(passwordReset.email);
+      if (!user) {
         return {
           success: false,
-          message: 'Client não encontrado'
+          message: 'Usuário não encontrado'
         };
       }
 
@@ -200,10 +200,10 @@ class PasswordResetService {
         };
       }
 
-      // Atualizar senha do client
-      client.password = newPassword;
-      client.isFirstAccess = false;
-      await client.save();
+      // Atualizar senha do usuário
+      user.password = newPassword;
+      user.isFirstAccess = false;
+      await user.save();
 
       // Marcar token como usado
       await PasswordReset.markAsUsed(passwordReset.id);
@@ -212,7 +212,7 @@ class PasswordResetService {
         success: true,
         message: 'Senha redefinida com sucesso',
         data: {
-          email: client.email,
+          email: user.email,
           isFirstAccess: false
         }
       };

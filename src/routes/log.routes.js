@@ -644,6 +644,195 @@ router.get('/me/stats', logController.getMyStats);
 
 /**
  * @swagger
+ * /api/logs/users/{userId}/requests:
+ *   get:
+ *     summary: Obtém logs de requisições de um usuário específico
+ *     tags: [Logs]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID do usuário
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Número da página
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Limite de itens por página
+ *       - in: query
+ *         name: resourceType
+ *         schema:
+ *           type: string
+ *         description: Filtrar por tipo de recurso
+ *       - in: query
+ *         name: statusCode
+ *         schema:
+ *           type: integer
+ *         description: Filtrar por código de status
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Data de início
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Data de fim
+ *     responses:
+ *       200:
+ *         description: Logs obtidos com sucesso
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Acesso negado
+ *       404:
+ *         description: Usuário não encontrado
+ */
+router.get('/users/:userId/requests', logController.getUserLogs);
+
+/**
+ * @swagger
+ * /api/logs/users/{userId}/transactions:
+ *   get:
+ *     summary: Obtém transações de um usuário específico
+ *     tags: [Logs]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID do usuário
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Número da página
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *         description: Limite de itens por página
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, confirmed, failed, cancelled]
+ *         description: Filtrar por status
+ *       - in: query
+ *         name: network
+ *         schema:
+ *           type: string
+ *           enum: [mainnet, testnet]
+ *         description: Filtrar por rede
+ *       - in: query
+ *         name: transactionType
+ *         schema:
+ *           type: string
+ *           enum: [transfer, contract_deploy, contract_call, contract_read, wallet_creation]
+ *         description: Filtrar por tipo de transação
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Data de início
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Data de fim
+ *     responses:
+ *       200:
+ *         description: Transações obtidas com sucesso
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Acesso negado
+ *       404:
+ *         description: Usuário não encontrado
+ */
+router.get('/users/:userId/transactions', logController.getUserTransactions);
+
+/**
+ * @swagger
+ * /api/logs/users/{userId}/stats:
+ *   get:
+ *     summary: Obtém estatísticas de um usuário específico
+ *     tags: [Logs]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID do usuário
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Data de início
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Data de fim
+ *       - in: query
+ *         name: network
+ *         schema:
+ *           type: string
+ *           enum: [mainnet, testnet]
+ *         description: Filtrar por rede
+ *       - in: query
+ *         name: resourceType
+ *         schema:
+ *           type: string
+ *         description: Filtrar por tipo de recurso
+ *       - in: query
+ *         name: transactionType
+ *         schema:
+ *           type: string
+ *           enum: [transfer, contract_deploy, contract_call, contract_read, wallet_creation]
+ *         description: Filtrar por tipo de transação
+ *     responses:
+ *       200:
+ *         description: Estatísticas obtidas com sucesso
+ *       401:
+ *         description: Não autenticado
+ *       403:
+ *         description: Acesso negado
+ *       404:
+ *         description: Usuário não encontrado
+ */
+router.get('/users/:userId/stats', logController.getUserStats);
+
+/**
+ * @swagger
  * /api/logs/test/service:
  *   get:
  *     summary: Testa o serviço de logs
