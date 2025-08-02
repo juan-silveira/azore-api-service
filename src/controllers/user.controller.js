@@ -290,54 +290,76 @@ class UserController {
   }
 
   /**
-   * Concede ou remove a flag isApiAdmin de um usuário
+   * Concede a flag isApiAdmin de um usuário
    */
-  async toggleApiAdmin(req, res) {
+  async addApiAdmin(req, res) {
     try {
       const { userId } = req.params;
-      const { isApiAdmin } = req.body;
       const adminUserId = req.user.id;
 
-      if (typeof isApiAdmin !== 'boolean') {
-        return res.status(400).json({
-          success: false,
-          message: 'Campo isApiAdmin deve ser um boolean'
-        });
-      }
-
-      const result = await userService.toggleApiAdmin(userId, isApiAdmin, adminUserId);
+      const result = await userService.addApiAdmin(userId, adminUserId);
       res.status(200).json(result);
     } catch (error) {
       res.status(400).json({
         success: false,
-        message: 'Erro ao gerenciar flag isApiAdmin',
+        message: 'Erro ao conceder flag isApiAdmin',
         error: error.message
       });
     }
   }
 
   /**
-   * Concede ou remove a flag isClientAdmin de um usuário
+   * Remove a flag isApiAdmin de um usuário
    */
-  async toggleClientAdmin(req, res) {
+  async removeApiAdmin(req, res) {
     try {
       const { userId } = req.params;
-      const { isClientAdmin } = req.body;
       const adminUserId = req.user.id;
 
-      if (typeof isClientAdmin !== 'boolean') {
-        return res.status(400).json({
-          success: false,
-          message: 'Campo isClientAdmin deve ser um boolean'
-        });
-      }
-
-      const result = await userService.toggleClientAdmin(userId, isClientAdmin, adminUserId);
+      const result = await userService.removeApiAdmin(userId, adminUserId);
       res.status(200).json(result);
     } catch (error) {
       res.status(400).json({
         success: false,
-        message: 'Erro ao gerenciar flag isClientAdmin',
+        message: 'Erro ao remover flag isApiAdmin',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Concede a flag isClientAdmin de um usuário
+   */
+  async addClientAdmin(req, res) {
+    try {
+      const { userId } = req.params;
+      const adminUserId = req.user.id;
+
+      const result = await userService.addClientAdmin(userId, adminUserId);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao conceder flag isClientAdmin',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Remove a flag isClientAdmin de um usuário
+   */
+  async removeClientAdmin(req, res) {
+    try {
+      const { userId } = req.params;
+      const adminUserId = req.user.id;
+
+      const result = await userService.removeClientAdmin(userId, adminUserId);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao remover flag isClientAdmin',
         error: error.message
       });
     }

@@ -694,7 +694,7 @@
 					"response": []
 				}
 			],
-			"description": "Endpoints para gerenciamento de usuários (requer autenticação de client)"
+			"description": "Endpoints para gerenciamento de usuários\n\nROTAS BÁSICAS:\n- Criar, listar, obter usuários\n- Buscar por ID, email, CPF\n- Gerenciar chaves de usuários\n\nROTAS ADMIN (requer admin_api_key):\n- Listar todos os usuários do sistema\n- Obter usuário por ID (admin)\n- Obter usuário por email (admin)\n- Obter usuário por CPF (admin)\n\nROTAS EXCLUSIVAS ADMIN:\n- Criar usuário com roles/permissions (🔐 Rotas Admin)\n- Gerenciar flags de admin (🔐 Rotas Admin)"
 		},
 		{
 			"name": "🔐 Rotas Admin",
@@ -724,112 +724,12 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "admin", "users"]
 						},
-						"description": "Cria um novo usuário vinculado a um client (admin)"
+						"description": "Cria um novo usuário com roles e permissions específicas (admin)"
 					},
 					"response": []
 				},
 				{
-					"name": "Listar Todos os Clients (Admin)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/clients",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "clients"]
-						},
-						"description": "Lista todos os clients (requer autenticação de admin)"
-					},
-					"response": []
-				},
-				{
-					"name": "Obter Client por ID (Admin)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/clients/{{client_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "clients", "{{client_id}}"]
-						},
-						"description": "Obtém um client específico por ID (admin)"
-					},
-					"response": []
-				},
-				{
-					"name": "Usuários de um Client (Admin)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/clients/{{client_id}}/users",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "clients", "{{client_id}}", "users"]
-						},
-						"description": "Lista todos os usuários de um client específico (admin)"
-					},
-					"response": []
-				},
-				{
-					"name": "Listar Todos os Usuários (Admin)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/users",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "users"]
-						},
-						"description": "Lista todos os usuários do sistema (admin)"
-					},
-					"response": []
-				},
-				{
-					"name": "Obter Usuário por ID (Admin)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/users/{{user_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "users", "{{user_id}}"]
-						},
-						"description": "Obtém um usuário específico por ID (admin)"
-					},
-					"response": []
-				},
-				{
-					"name": "Conceder/Remover API Admin",
+					"name": "Conceder API Admin",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -837,28 +737,19 @@
 								"key": "X-API-Key",
 								"value": "{{admin_api_key}}",
 								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"isApiAdmin\": true\n}"
-						},
 						"url": {
-							"raw": "{{base_url}}/api/admin/users/{{user_id}}/toggle-api-admin",
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}/add-api-admin",
 							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "users", "{{user_id}}", "toggle-api-admin"]
+							"path": ["api", "admin", "users", "{{user_id}}", "add-api-admin"]
 						},
-						"description": "Concede ou remove a flag isApiAdmin de um usuário (requer API_ADMIN)"
+						"description": "Concede a flag isApiAdmin de um usuário (requer API_ADMIN)"
 					},
 					"response": []
 				},
 				{
-					"name": "Conceder/Remover Client Admin",
+					"name": "Remover API Admin",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -866,30 +757,21 @@
 								"key": "X-API-Key",
 								"value": "{{admin_api_key}}",
 								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"isClientAdmin\": true\n}"
-						},
 						"url": {
-							"raw": "{{base_url}}/api/admin/users/{{user_id}}/toggle-client-admin",
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}/remove-api-admin",
 							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "users", "{{user_id}}", "toggle-client-admin"]
+							"path": ["api", "admin", "users", "{{user_id}}", "remove-api-admin"]
 						},
-						"description": "Concede ou remove a flag isClientAdmin de um usuário (requer API_ADMIN ou CLIENT_ADMIN)"
+						"description": "Remove a flag isApiAdmin de um usuário (requer API_ADMIN)"
 					},
 					"response": []
 				},
 				{
-					"name": "Obter Usuário por Email (Admin)",
+					"name": "Conceder Client Admin",
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"header": [
 							{
 								"key": "X-API-Key",
@@ -898,18 +780,18 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/admin/users/email/joao@exemplo.com",
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}/add-client-admin",
 							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "users", "email", "joao@exemplo.com"]
+							"path": ["api", "admin", "users", "{{user_id}}", "add-client-admin"]
 						},
-						"description": "Obtém um usuário por email (admin)"
+						"description": "Concede a flag isClientAdmin de um usuário (requer API_ADMIN ou CLIENT_ADMIN)"
 					},
 					"response": []
 				},
 				{
-					"name": "Obter Usuário por CPF (Admin)",
+					"name": "Remover Client Admin",
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"header": [
 							{
 								"key": "X-API-Key",
@@ -918,11 +800,11 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/admin/users/cpf/12345678901",
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}/remove-client-admin",
 							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "users", "cpf", "12345678901"]
+							"path": ["api", "admin", "users", "{{user_id}}", "remove-client-admin"]
 						},
-						"description": "Obtém um usuário por CPF (admin)"
+						"description": "Remove a flag isClientAdmin de um usuário (requer API_ADMIN ou CLIENT_ADMIN)"
 					},
 					"response": []
 				},
@@ -967,7 +849,7 @@
 					"response": []
 				}
 			],
-			"description": "Endpoints administrativos (requer autenticação de admin)"
+			"description": "Endpoints administrativos exclusivos (requer autenticação de admin)\n\nROTAS EXCLUSIVAS:\n- Criar usuário com roles/permissions\n- Gerenciar flags de admin (add/remove separados)\n- Obter chaves de qualquer usuário\n- Dashboard de estatísticas\n\nNOVAS ROTAS:\n- POST /api/admin/users/{userId}/add-api-admin\n- POST /api/admin/users/{userId}/remove-api-admin\n- POST /api/admin/users/{userId}/add-client-admin\n- POST /api/admin/users/{userId}/remove-client-admin\n\nOutras rotas básicas estão em suas seções específicas:\n- 👥 Gerenciamento de Usuários\n- 👥 Gerenciamento de Clients (Admin)"
 		},
 
 		{
@@ -1132,7 +1014,7 @@
 					"response": []
 				}
 			],
-			"description": "Endpoints para gerenciamento de clients (requer autenticação de admin)"
+			"description": "Endpoints para gerenciamento de clients (requer autenticação de admin)\n\nROTAS COMPLETAS:\n- Criar, listar, obter clients\n- Atualizar, desativar, reativar clients\n- Listar usuários de um client específico\n\nTodas as rotas de clients estão centralizadas nesta seção."
 		},
 		{
 			"name": "💼 Gerenciamento de Carteiras",

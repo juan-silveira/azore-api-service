@@ -92,6 +92,11 @@ class UserService {
         isActive: true
       });
 
+      // Processar roles e atualizar flags se roles foram fornecidas
+      if (userData.roles && Array.isArray(userData.roles) && userData.roles.length > 0) {
+        await user.setRoles(userData.roles);
+      }
+
       return {
         success: true,
         message: 'Usuário criado com sucesso',
@@ -385,9 +390,9 @@ class UserService {
   }
 
   /**
-   * Concede ou remove a flag isApiAdmin de um usuário
+   * Concede a flag isApiAdmin de um usuário
    */
-  async toggleApiAdmin(userId, isApiAdmin, adminUserId) {
+  async addApiAdmin(userId, adminUserId) {
     await this.init();
     
     try {
@@ -403,39 +408,91 @@ class UserService {
         throw new Error('Usuário não encontrado');
       }
 
-      // Atualizar a flag
-      await targetUser.update({ isApiAdmin });
-
-      // Atualizar roles se necessário
-      let roles = targetUser.roles || [];
-      if (isApiAdmin && !roles.includes('API_ADMIN')) {
-        roles.push('API_ADMIN');
-      } else if (!isApiAdmin && roles.includes('API_ADMIN')) {
-        roles = roles.filter(role => role !== 'API_ADMIN');
+      // Verificar se já tem a flag
+      if (targetUser.isApiAdmin) {
+        throw new Error('Usuário já possui a flag isApiAdmin');
       }
 
-      await targetUser.update({ roles });
+      // Atualizar a flag para true
+      await targetUser.update({ isApiAdmin: true });
+
+      // Adicionar role API_ADMIN se não existir
+      let roles = targetUser.roles || [];
+      if (!roles.includes('API_ADMIN')) {
+        roles.push('API_ADMIN');
+        await targetUser.update({ roles });
+      }
 
       return {
         success: true,
-        message: `Flag isApiAdmin ${isApiAdmin ? 'concedida' : 'removida'} com sucesso`,
+        message: 'Flag isApiAdmin concedida com sucesso',
         data: {
           id: targetUser.id,
           name: targetUser.name,
           email: targetUser.email,
-          isApiAdmin: targetUser.isApiAdmin,
+          isApiAdmin: true,
           roles: targetUser.roles
         }
       };
     } catch (error) {
-      throw new Error(`Erro ao gerenciar flag isApiAdmin: ${error.message}`);
+      throw new Error(`Erro ao conceder flag isApiAdmin: ${error.message}`);
     }
   }
 
   /**
-   * Concede ou remove a flag isClientAdmin de um usuário
+   * Remove a flag isApiAdmin de um usuário
    */
-  async toggleClientAdmin(userId, isClientAdmin, adminUserId) {
+  async removeApiAdmin(userId, adminUserId) {
+    await this.init();
+    
+    try {
+      // Verificar se o usuário que está fazendo a operação é API_ADMIN
+      const adminUser = await this.User.findByPk(adminUserId);
+      if (!adminUser || !adminUser.isApiAdmin) {
+        throw new Error('Apenas usuários com permissão API_ADMIN podem gerenciar essa flag');
+      }
+
+      // Verificar se o usuário alvo existe
+      const targetUser = await this.User.findByPk(userId);
+      if (!targetUser) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      // Verificar se já não tem a flag
+      if (!targetUser.isApiAdmin) {
+        throw new Error('Usuário não possui a flag isApiAdmin');
+      }
+
+      // Atualizar a flag para false
+      await targetUser.update({ isApiAdmin: false });
+
+      // Remover role API_ADMIN se existir
+      let roles = targetUser.roles || [];
+      if (roles.includes('API_ADMIN')) {
+        roles = roles.filter(role => role !== 'API_ADMIN');
+        await targetUser.update({ roles });
+      }
+
+      return {
+        success: true,
+        message: 'Flag isApiAdmin removida com sucesso',
+        data: {
+          id: targetUser.id,
+          name: targetUser.name,
+          email: targetUser.email,
+          isApiAdmin: false,
+          roles: targetUser.roles
+        }
+      };
+    } catch (error) {
+      throw new Error(`Erro ao remover flag isApiAdmin: ${error.message}`);
+    }
+  }
+
+  /**
+   * Concede a flag isClientAdmin de um usuário
+   */
+  async addClientAdmin(userId, adminUserId) {
     await this.init();
     
     try {
@@ -465,32 +522,98 @@ class UserService {
         }
       }
 
-      // Atualizar a flag
-      await targetUser.update({ isClientAdmin });
-
-      // Atualizar roles se necessário
-      let roles = targetUser.roles || [];
-      if (isClientAdmin && !roles.includes('CLIENT_ADMIN')) {
-        roles.push('CLIENT_ADMIN');
-      } else if (!isClientAdmin && roles.includes('CLIENT_ADMIN')) {
-        roles = roles.filter(role => role !== 'CLIENT_ADMIN');
+      // Verificar se já tem a flag
+      if (targetUser.isClientAdmin) {
+        throw new Error('Usuário já possui a flag isClientAdmin');
       }
 
-      await targetUser.update({ roles });
+      // Atualizar a flag para true
+      await targetUser.update({ isClientAdmin: true });
+
+      // Adicionar role CLIENT_ADMIN se não existir
+      let roles = targetUser.roles || [];
+      if (!roles.includes('CLIENT_ADMIN')) {
+        roles.push('CLIENT_ADMIN');
+        await targetUser.update({ roles });
+      }
 
       return {
         success: true,
-        message: `Flag isClientAdmin ${isClientAdmin ? 'concedida' : 'removida'} com sucesso`,
+        message: 'Flag isClientAdmin concedida com sucesso',
         data: {
           id: targetUser.id,
           name: targetUser.name,
           email: targetUser.email,
-          isClientAdmin: targetUser.isClientAdmin,
+          isClientAdmin: true,
           roles: targetUser.roles
         }
       };
     } catch (error) {
-      throw new Error(`Erro ao gerenciar flag isClientAdmin: ${error.message}`);
+      throw new Error(`Erro ao conceder flag isClientAdmin: ${error.message}`);
+    }
+  }
+
+  /**
+   * Remove a flag isClientAdmin de um usuário
+   */
+  async removeClientAdmin(userId, adminUserId) {
+    await this.init();
+    
+    try {
+      // Verificar se o usuário que está fazendo a operação tem permissão
+      const adminUser = await this.User.findByPk(adminUserId);
+      if (!adminUser) {
+        throw new Error('Usuário admin não encontrado');
+      }
+
+      // Verificar se o usuário alvo existe
+      const targetUser = await this.User.findByPk(userId);
+      if (!targetUser) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      // Verificar permissões:
+      // - API_ADMIN pode gerenciar qualquer usuário
+      // - CLIENT_ADMIN só pode gerenciar usuários do mesmo client
+      if (!adminUser.isApiAdmin) {
+        if (!adminUser.isClientAdmin) {
+          throw new Error('Apenas usuários com permissão API_ADMIN ou CLIENT_ADMIN podem gerenciar essa flag');
+        }
+        
+        // Se é CLIENT_ADMIN, verificar se o usuário alvo é do mesmo client
+        if (targetUser.clientId !== adminUser.clientId) {
+          throw new Error('CLIENT_ADMIN só pode gerenciar usuários do mesmo client');
+        }
+      }
+
+      // Verificar se já não tem a flag
+      if (!targetUser.isClientAdmin) {
+        throw new Error('Usuário não possui a flag isClientAdmin');
+      }
+
+      // Atualizar a flag para false
+      await targetUser.update({ isClientAdmin: false });
+
+      // Remover role CLIENT_ADMIN se existir
+      let roles = targetUser.roles || [];
+      if (roles.includes('CLIENT_ADMIN')) {
+        roles = roles.filter(role => role !== 'CLIENT_ADMIN');
+        await targetUser.update({ roles });
+      }
+
+      return {
+        success: true,
+        message: 'Flag isClientAdmin removida com sucesso',
+        data: {
+          id: targetUser.id,
+          name: targetUser.name,
+          email: targetUser.email,
+          isClientAdmin: false,
+          roles: targetUser.roles
+        }
+      };
+    } catch (error) {
+      throw new Error(`Erro ao remover flag isClientAdmin: ${error.message}`);
     }
   }
 

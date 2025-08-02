@@ -539,9 +539,9 @@ router.get('/users/cpf/:cpf', authenticateApiKey, requireApiAdmin, userControlle
 
 /**
  * @swagger
- * /api/admin/users/{userId}/toggle-api-admin:
+ * /api/admin/users/{userId}/add-api-admin:
  *   post:
- *     summary: Concede ou remove a flag isApiAdmin de um usuário (Admin)
+ *     summary: Concede a flag isApiAdmin de um usuário (Admin)
  *     tags: [Admin]
  *     security:
  *       - ApiKeyAuth: []
@@ -553,21 +553,9 @@ router.get('/users/cpf/:cpf', authenticateApiKey, requireApiAdmin, userControlle
  *           type: string
  *           format: uuid
  *         description: ID do usuário
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - isApiAdmin
- *             properties:
- *               isApiAdmin:
- *                 type: boolean
- *                 description: true para conceder, false para remover
  *     responses:
  *       200:
- *         description: Flag isApiAdmin gerenciada com sucesso
+ *         description: Flag concedida com sucesso
  *       400:
  *         description: Dados inválidos
  *       401:
@@ -575,13 +563,13 @@ router.get('/users/cpf/:cpf', authenticateApiKey, requireApiAdmin, userControlle
  *       403:
  *         description: Acesso negado
  */
-router.post('/users/:userId/toggle-api-admin', authenticateApiKey, requireApiAdmin, userController.toggleApiAdmin);
+router.post('/users/:userId/add-api-admin', authenticateApiKey, requireApiAdmin, userController.addApiAdmin);
 
 /**
  * @swagger
- * /api/admin/users/{userId}/toggle-client-admin:
+ * /api/admin/users/{userId}/remove-api-admin:
  *   post:
- *     summary: Concede ou remove a flag isClientAdmin de um usuário (Admin)
+ *     summary: Remove a flag isApiAdmin de um usuário (Admin)
  *     tags: [Admin]
  *     security:
  *       - ApiKeyAuth: []
@@ -593,21 +581,9 @@ router.post('/users/:userId/toggle-api-admin', authenticateApiKey, requireApiAdm
  *           type: string
  *           format: uuid
  *         description: ID do usuário
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - isClientAdmin
- *             properties:
- *               isClientAdmin:
- *                 type: boolean
- *                 description: true para conceder, false para remover
  *     responses:
  *       200:
- *         description: Flag isClientAdmin gerenciada com sucesso
+ *         description: Flag removida com sucesso
  *       400:
  *         description: Dados inválidos
  *       401:
@@ -615,7 +591,63 @@ router.post('/users/:userId/toggle-api-admin', authenticateApiKey, requireApiAdm
  *       403:
  *         description: Acesso negado
  */
-router.post('/users/:userId/toggle-client-admin', authenticateApiKey, requireAnyAdmin, userController.toggleClientAdmin);
+router.post('/users/:userId/remove-api-admin', authenticateApiKey, requireApiAdmin, userController.removeApiAdmin);
+
+/**
+ * @swagger
+ * /api/admin/users/{userId}/add-client-admin:
+ *   post:
+ *     summary: Concede a flag isClientAdmin de um usuário (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID do usuário
+ *     responses:
+ *       200:
+ *         description: Flag concedida com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       401:
+ *         description: Não autorizado
+ *       403:
+ *         description: Acesso negado
+ */
+router.post('/users/:userId/add-client-admin', authenticateApiKey, requireAnyAdmin, userController.addClientAdmin);
+
+/**
+ * @swagger
+ * /api/admin/users/{userId}/remove-client-admin:
+ *   post:
+ *     summary: Remove a flag isClientAdmin de um usuário (Admin)
+ *     tags: [Admin]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID do usuário
+ *     responses:
+ *       200:
+ *         description: Flag removida com sucesso
+ *       400:
+ *         description: Dados inválidos
+ *       401:
+ *         description: Não autorizado
+ *       403:
+ *         description: Acesso negado
+ */
+router.post('/users/:userId/remove-client-admin', authenticateApiKey, requireAnyAdmin, userController.removeClientAdmin);
 
 /**
  * @swagger
@@ -635,15 +667,42 @@ router.post('/users/:userId/toggle-client-admin', authenticateApiKey, requireAny
  */
 router.get('/dashboard/stats', authenticateApiKey, requireApiAdmin, async (req, res) => {
   try {
-    // Implementar lógica para obter estatísticas gerais
+    // Obter modelos do banco
+    const { Client, User, Wallet, SmartContract, Transaction } = global.models;
+    
+    // Buscar estatísticas reais do banco
+    const [
+      totalClients,
+      activeClients,
+      totalUsers,
+      activeUsers,
+      totalWallets,
+      totalContracts,
+      totalTransactions,
+      totalApiAdminUsers,
+      totalClientAdminUsers
+    ] = await Promise.all([
+      Client.count(),
+      Client.count({ where: { isActive: true } }),
+      User.count(),
+      User.count({ where: { isActive: true } }),
+      Wallet.count(),
+      SmartContract.count(),
+      Transaction.count(),
+      User.count({ where: { isApiAdmin: true, isActive: true } }),
+      User.count({ where: { isClientAdmin: true, isActive: true } })
+    ]);
+
     const stats = {
-      totalClients: 0,
-      activeClients: 0,
-      totalUsers: 0,
-      activeUsers: 0,
-      totalWallets: 0,
-      totalContracts: 0,
-      totalTransactions: 0,
+      totalClients,
+      activeClients,
+      totalUsers,
+      activeUsers,
+      totalWallets,
+      totalContracts,
+      totalTransactions,
+      totalApiAdminUsers,
+      totalClientAdminUsers,
       systemUptime: process.uptime(),
       timestamp: new Date().toISOString()
     };
@@ -654,6 +713,7 @@ router.get('/dashboard/stats', authenticateApiKey, requireApiAdmin, async (req, 
       data: stats
     });
   } catch (error) {
+    console.error('Erro ao obter estatísticas do dashboard:', error);
     res.status(500).json({
       success: false,
       message: 'Erro ao obter estatísticas',
