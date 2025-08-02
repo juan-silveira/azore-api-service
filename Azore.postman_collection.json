@@ -1,0 +1,2104 @@
+{
+	"info": {
+		"_postman_id": "azore-blockchain-api-final",
+		"name": "Azore_API",
+		"description": "Coleção completa para testar a API Azore Blockchain Service\n\nInclui todos os endpoints:\n- Health Check e Informações\n- Testes da Blockchain\n- 🔐 Autenticação e Sessões (com múltiplas API Keys)\n- Gerenciamento de Usuários\n- Rotas Admin (API_ADMIN)\n- Gerenciamento de Carteiras\n- Gerenciamento de Contratos e Tokens (com roles)\n- 🪙 Gerenciamento de Tokens\n- Sistema de Logs\n\nNOVAS FUNCIONALIDADES:\n- Sistema de múltiplas API Keys por usuário\n- Gerenciamento completo de API Keys (gerar, listar, editar, revogar)\n- Sistema de RBAC (API_ADMIN e CLIENT_ADMIN)\n- Rotas unificadas de roles (grant-role, has-role, revoke-role)\n- Gerenciamento de Tokens (atualizar metadados, conceder admin, verificar/revogar roles)\n- Tokens padrão automáticos (AZE, AZE-t, cBRL)\n- Obtenção de informações de tokens da blockchain\n- Mapeamento automático de roles para hashes\n- Lógica especial para admin role (atualiza adminPublicKey e revoga role anterior)\n\nROLES DISPONÍVEIS:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nPara usar:\n1. Importe esta coleção no Postman\n2. Configure a variável de ambiente 'base_url' como 'http://localhost:8800'\n3. Para rotas que requerem session token, faça login primeiro\n4. Use as rotas de API Keys para gerenciar suas chaves de acesso\n5. Use diferentes API Keys para testar diferentes níveis de acesso\n\nGuia completo: POSTMAN_GUIDE_Complete.md",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "🏥 Health Check",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["health"]
+						},
+						"description": "Verifica o status da aplicação"
+					},
+					"response": []
+				},
+				{
+					"name": "Informações da API",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/",
+							"host": ["{{base_url}}"],
+							"path": [""]
+						},
+						"description": "Retorna informações básicas da API"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints públicos para verificar o status da aplicação"
+		},
+		{
+			"name": "🔐 Autenticação e Sessões",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@azore.technology\",\n  \"password\": \"azore@admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "login"]
+						},
+						"description": "Realiza login do usuário com email e senha"
+					},
+					"response": []
+				},
+
+
+
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Token",
+								"value": "{{session_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "logout"]
+						},
+						"description": "Invalida a sessão atual do usuário"
+					},
+					"response": []
+				},
+				{
+					"name": "Alterar Senha",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Token",
+								"value": "{{session_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"currentPassword\": \"azore@admin123\",\n  \"newPassword\": \"novaSenha123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/change-password",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "change-password"]
+						},
+						"description": "Altera a senha do usuário (usado no primeiro acesso)"
+					},
+					"response": []
+				},
+				{
+					"name": "Gerar API Key",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Token",
+								"value": "{{session_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Minha Aplicação\",\n  \"description\": \"API Key para testes\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/generate-api-key",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "generate-api-key"]
+						},
+						"description": "Gera uma nova API Key para o usuário autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar API Keys",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Session-Token",
+								"value": "{{session_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/api-keys",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "api-keys"]
+						},
+						"description": "Lista todas as API Keys do usuário autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "Revogar API Key",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Token",
+								"value": "{{session_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/api-keys/{{api_key_id}}/revoke",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "api-keys", "{{api_key_id}}", "revoke"]
+						},
+						"description": "Revoga uma API Key específica do usuário autenticado"
+					},
+					"response": []
+				},
+				{
+					"name": "Editar API Key",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-Session-Token",
+								"value": "{{session_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Aplicação Atualizada\",\n  \"description\": \"Nova descrição da API Key\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/api-keys/{{api_key_id}}/edit",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "api-keys", "{{api_key_id}}", "edit"]
+						},
+						"description": "Edita informações de uma API Key específica"
+					},
+					"response": []
+				},
+				{
+					"name": "Solicitar Recuperação de Senha",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@azore.technology\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/password-reset/request",
+							"host": ["{{base_url}}"],
+							"path": ["api", "password-reset", "request"]
+						},
+						"description": "Solicita um token de recuperação de senha para o email informado"
+					},
+					"response": []
+				},
+				{
+					"name": "Validar Token de Recuperação",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/password-reset/validate/{{reset_token}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "password-reset", "validate", "{{reset_token}}"]
+						},
+						"description": "Valida se um token de recuperação é válido e não expirado"
+					},
+					"response": []
+				},
+				{
+					"name": "Redefinir Senha",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"newPassword\": \"novaSenha123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/password-reset/reset/{{reset_token}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "password-reset", "reset", "{{reset_token}}"]
+						},
+						"description": "Redefine a senha usando um token de recuperação válido"
+					},
+					"response": []
+				},
+				{
+					"name": "Configurar Timeout da Sessão",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-Session-Token",
+								"value": "{{session_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"timeout\": 1800\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/session-timeout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "session-timeout"]
+						},
+						"description": "Define o timeout da sessão em segundos (0 = sem expiração)"
+					},
+					"response": []
+				},
+				{
+					"name": "Informações da Sessão",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-Session-Token",
+								"value": "{{session_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/session-info",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "session-info"]
+						},
+						"description": "Obtém informações da sessão atual"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para autenticação e gerenciamento de sessões"
+		},
+		{
+			"name": "🧪 Testes da Blockchain",
+			"item": [
+				{
+					"name": "Teste de Conexão",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/test/connection?network=testnet",
+							"host": ["{{base_url}}"],
+							"path": ["api", "test", "connection"],
+							"query": [
+								{
+									"key": "network",
+									"value": "testnet",
+									"description": "Rede para testar (mainnet ou testnet)"
+								}
+							]
+						},
+						"description": "Testa a conexão com a blockchain Azore"
+					},
+					"response": []
+				},
+				{
+					"name": "Informações da Rede",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/test/network-info",
+							"host": ["{{base_url}}"],
+							"path": ["api", "test", "network-info"]
+						},
+						"description": "Obtém informações da rede atual"
+					},
+					"response": []
+				},
+				{
+					"name": "Saldo de Endereço",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/test/balance/0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
+							"host": ["{{base_url}}"],
+							"path": ["api", "test", "balance", "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6"]
+						},
+						"description": "Obtém o saldo de um endereço Ethereum"
+					},
+					"response": []
+				},
+				{
+					"name": "Informações do Bloco",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/test/block/latest",
+							"host": ["{{base_url}}"],
+							"path": ["api", "test", "block", "latest"]
+						},
+						"description": "Obtém informações de um bloco específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Endereço de Exemplo",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/test/example-address",
+							"host": ["{{base_url}}"],
+							"path": ["api", "test", "example-address"]
+						},
+						"description": "Gera um endereço Ethereum válido para testes"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para testar a conectividade e funcionalidades da blockchain"
+		},
+		{
+			"name": "👥 Gerenciamento de Usuários",
+			"item": [
+				{
+					"name": "Criar Usuário",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@exemplo.com\",\n  \"cpf\": \"12345678901\",\n  \"phone\": \"11987654321\",\n  \"birthDate\": \"1990-01-01\",\n  \"clientId\": \"{{client_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users"]
+						},
+						"description": "Cria um novo usuário"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Usuários",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número da página"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Limite de itens por página"
+								}
+							]
+						},
+						"description": "Lista usuários (requer autenticação de admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Usuário por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}"]
+						},
+						"description": "Obtém um usuário específico por ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Usuário por Email",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/email/joao@exemplo.com",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "email", "joao@exemplo.com"]
+						},
+						"description": "Obtém um usuário por email"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Usuário por CPF",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/cpf/12345678901",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "cpf", "12345678901"]
+						},
+						"description": "Obtém um usuário por CPF"
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Usuário",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"João Silva Atualizado\",\n  \"phone\": \"11987654322\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}"]
+						},
+						"description": "Atualiza dados de um usuário"
+					},
+					"response": []
+				},
+				{
+					"name": "Desativar Usuário",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/deactivate",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}", "deactivate"]
+						},
+						"description": "Desativa um usuário"
+					},
+					"response": []
+				},
+				{
+					"name": "Ativar Usuário",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/activate",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}", "activate"]
+						},
+						"description": "Ativa um usuário"
+					},
+					"response": []
+				},
+				{
+					"name": "Usuários por Client",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/client/{{client_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "client", "{{client_id}}"]
+						},
+						"description": "Lista todos os usuários de um client específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Chaves do Usuário (Client)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}/keys/client",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "{{user_id}}", "keys", "client"]
+						},
+						"description": "Obtém as chaves públicas e privadas de um usuário (acesso client)"
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Chaves por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/search/id/{{user_id}}/keys",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "search", "id", "{{user_id}}", "keys"]
+						},
+						"description": "Busca as chaves de um usuário por ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Chaves por Email",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/search/email/joao@exemplo.com/keys",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "search", "email", "joao@exemplo.com", "keys"]
+						},
+						"description": "Busca as chaves de um usuário por email"
+					},
+					"response": []
+				},
+				{
+					"name": "Buscar Chaves por CPF",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/search/cpf/12345678901/keys",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "search", "cpf", "12345678901", "keys"]
+						},
+						"description": "Busca as chaves de um usuário por CPF"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciamento de usuários (requer autenticação de client)"
+		},
+		{
+			"name": "🔐 Rotas Admin",
+			"item": [
+				{
+					"name": "Criar Usuário (Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Novo Usuário\",\n  \"email\": \"usuario@teste.com\",\n  \"password\": \"senha123\",\n  \"clientId\": \"{{client_id}}\",\n  \"cpf\": \"12345678901\",\n  \"phone\": \"11999999999\",\n  \"birthDate\": \"1990-01-01\",\n  \"permissions\": {\n    \"wallets\": {\"read\": true, \"create\": true, \"update\": true, \"delete\": true},\n    \"contracts\": {\"read\": true, \"create\": true, \"update\": true, \"delete\": true},\n    \"transactions\": {\"read\": true, \"create\": true, \"update\": true, \"delete\": true}\n  },\n  \"roles\": [\"CLIENT_ADMIN\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users"]
+						},
+						"description": "Cria um novo usuário vinculado a um client (admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Todos os Clients (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/clients",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "clients"]
+						},
+						"description": "Lista todos os clients (requer autenticação de admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Client por ID (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/clients/{{client_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "clients", "{{client_id}}"]
+						},
+						"description": "Obtém um client específico por ID (admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Usuários de um Client (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/clients/{{client_id}}/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "clients", "{{client_id}}", "users"]
+						},
+						"description": "Lista todos os usuários de um client específico (admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Todos os Usuários (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users"]
+						},
+						"description": "Lista todos os usuários do sistema (admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Usuário por ID (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users", "{{user_id}}"]
+						},
+						"description": "Obtém um usuário específico por ID (admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Conceder/Remover API Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"isApiAdmin\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}/toggle-api-admin",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users", "{{user_id}}", "toggle-api-admin"]
+						},
+						"description": "Concede ou remove a flag isApiAdmin de um usuário (requer API_ADMIN)"
+					},
+					"response": []
+				},
+				{
+					"name": "Conceder/Remover Client Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"isClientAdmin\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}/toggle-client-admin",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users", "{{user_id}}", "toggle-client-admin"]
+						},
+						"description": "Concede ou remove a flag isClientAdmin de um usuário (requer API_ADMIN ou CLIENT_ADMIN)"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Usuário por Email (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/email/joao@exemplo.com",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users", "email", "joao@exemplo.com"]
+						},
+						"description": "Obtém um usuário por email (admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Usuário por CPF (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/cpf/12345678901",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users", "cpf", "12345678901"]
+						},
+						"description": "Obtém um usuário por CPF (admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Chaves do Usuário (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}/keys",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users", "{{user_id}}", "keys"]
+						},
+						"description": "Obtém as chaves públicas e privadas de qualquer usuário (admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Dashboard Stats (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/dashboard/stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "dashboard", "stats"]
+						},
+						"description": "Obtém estatísticas do sistema (admin)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints administrativos (requer autenticação de admin)"
+		},
+
+		{
+			"name": "👥 Gerenciamento de Clients (Admin)",
+			"item": [
+				{
+					"name": "Criar Client",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Novo Client\",\n  \"rateLimit\": {\n    \"requestsPerMinute\": 100,\n    \"requestsPerHour\": 1000,\n    \"requestsPerDay\": 10000\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/clients",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "clients"]
+						},
+						"description": "Cria um novo client (requer autenticação de admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Clients",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/clients",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "clients"]
+						},
+						"description": "Lista todos os clients (requer autenticação de admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Client por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/clients/{{client_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "clients", "{{client_id}}"]
+						},
+						"description": "Obtém um client específico por ID (admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Client",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Client Atualizado\",\n  \"isActive\": true,\n  \"rateLimit\": {\n    \"requestsPerMinute\": 200,\n    \"requestsPerHour\": 2000,\n    \"requestsPerDay\": 20000\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/clients/{{client_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "clients", "{{client_id}}"]
+						},
+						"description": "Atualiza dados de um client (admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Desativar Client",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/clients/{{client_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "clients", "{{client_id}}"]
+						},
+						"description": "Desativa um client (admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Reativar Client",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/clients/{{client_id}}/activate",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "clients", "{{client_id}}", "activate"]
+						},
+						"description": "Reativa um client (admin)"
+					},
+					"response": []
+				},
+				{
+					"name": "Usuários de um Client",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{admin_api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/clients/{{client_id}}/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "clients", "{{client_id}}", "users"]
+						},
+						"description": "Lista todos os usuários de um client específico (admin)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciamento de clients (requer autenticação de admin)"
+		},
+		{
+			"name": "💼 Gerenciamento de Carteiras",
+			"item": [
+				{
+					"name": "Criar Carteira",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Minha Carteira\",\n  \"description\": \"Carteira para testes\",\n  \"userId\": \"{{user_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/wallets",
+							"host": ["{{base_url}}"],
+							"path": ["api", "wallets"]
+						},
+						"description": "Cria uma nova carteira"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Carteiras",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/wallets",
+							"host": ["{{base_url}}"],
+							"path": ["api", "wallets"]
+						},
+						"description": "Lista todas as carteiras do usuário"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Carteira por ID ou Endereço",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/wallets/{{wallet_id_or_address}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "wallets", "{{wallet_id_or_address}}"]
+						},
+						"description": "Obtém uma carteira por ID (UUID) ou endereço Ethereum (0x...)"
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Carteira",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Carteira Atualizada\",\n  \"description\": \"Nova descrição\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/wallets/{{wallet_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "wallets", "{{wallet_id}}"]
+						},
+						"description": "Atualiza dados de uma carteira"
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Carteira",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/wallets/{{wallet_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "wallets", "{{wallet_id}}"]
+						},
+						"description": "Deleta uma carteira"
+					},
+					"response": []
+				},
+				{
+					"name": "Saldo da Carteira",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/wallets/{{wallet_id}}/balance",
+							"host": ["{{base_url}}"],
+							"path": ["api", "wallets", "{{wallet_id}}", "balance"]
+						},
+						"description": "Obtém o saldo de uma carteira específica"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciamento de carteiras"
+		},
+		{
+			"name": "📄 Gerenciamento de Contratos",
+			"item": [
+				{
+					"name": "Criar Contrato",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Meu Contrato\",\n  \"type\": \"ERC20\",\n  \"address\": \"0x1234567890123456789012345678901234567890\",\n  \"abi\": \"[{\\\"inputs\\\":[],\\\"name\\\":\\\"totalSupply\\\",\\\"outputs\\\":[{\\\"internalType\\\":\\\"uint256\\\",\\\"name\\\":\\\"\\\",\\\"type\\\":\\\"uint256\\\"}],\\\"stateMutability\\\":\\\"view\\\",\\\"type\\\":\\\"function\\\"}]\",\n  \"description\": \"Contrato para testes\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts"]
+						},
+						"description": "Cria um novo contrato inteligente"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Contratos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/contracts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts"]
+						},
+						"description": "Lista todos os contratos do usuário"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Contrato por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_id}}"]
+						},
+						"description": "Obtém um contrato específico por ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Contrato",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Contrato Atualizado\",\n  \"description\": \"Nova descrição\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_id}}"]
+						},
+						"description": "Atualiza dados de um contrato"
+					},
+					"response": []
+				},
+				{
+					"name": "Deletar Contrato",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_id}}"]
+						},
+						"description": "Deleta um contrato"
+					},
+					"response": []
+				},
+				{
+					"name": "Conceder Role MINTER",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_address}}/grant-minter-role",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_address}}", "grant-minter-role"]
+						},
+						"description": "Concede MINTER_ROLE a um endereço específico (apenas para admin do contrato)"
+					},
+					"response": []
+				},
+				{
+					"name": "Conceder Role BURNER",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_address}}/grant-burner-role",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_address}}", "grant-burner-role"]
+						},
+						"description": "Concede BURNER_ROLE a um endereço específico (apenas para admin do contrato)"
+					},
+					"response": []
+				},
+				{
+					"name": "Conceder Role TRANSFER",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_address}}/grant-transfer-role",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_address}}", "grant-transfer-role"]
+						},
+						"description": "Concede TRANSFER_ROLE a um endereço específico (apenas para admin do contrato)"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Tokens Padrão",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/contracts/default-tokens",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "default-tokens"]
+						},
+						"description": "Lista os tokens padrão configurados no sistema"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Informações do Token",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_address}}/token-info",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_address}}", "token-info"]
+						},
+						"description": "Obtém name, symbol, decimals e totalSupply diretamente da blockchain (função somente de consulta, não gasta gás)"
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar Metadados do Token",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"description\": \"Nova descrição do token\",\n  \"website\": \"https://novo-website.com\",\n  \"explorer\": \"https://novo-explorer.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_address}}/update-metadata",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_address}}", "update-metadata"]
+						},
+						"description": "Atualiza description, website e explorer do token (campos editáveis que não são obtidos da blockchain)"
+					},
+					"response": []
+				},
+				{
+					"name": "Conceder Role Admin",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"adminPublicKey\": \"0x1234567890123456789012345678901234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_address}}/grant-admin-role",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_address}}", "grant-admin-role"]
+						},
+						"description": "Atualiza o adminPublicKey do token (referência para operações futuras)"
+					},
+					"response": []
+				},
+				{
+					"name": "Verificar Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\",\n  \"role\": \"MINTER_ROLE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_address}}/check-role",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_address}}", "check-role"]
+						},
+						"description": "Verifica se um endereço tem determinada role (DEFAULT_ADMIN_ROLE, MINTER_ROLE, BURNER_ROLE, TRANSFER_ROLE)"
+					},
+					"response": []
+				},
+				{
+					"name": "Conceder Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\",\n  \"walletAddress\": \"0x1234567890123456789012345678901234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_address}}/grant-role",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_address}}", "grant-role"]
+						},
+						"description": "Concede uma role a um endereço. Para admin role, automaticamente atualiza adminPublicKey e revoga role do admin anterior.\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)"
+					},
+					"response": []
+				},
+				{
+					"name": "Verificar Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_address}}/has-role",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_address}}", "has-role"]
+						},
+						"description": "Verifica se um endereço tem determinada role (função somente de consulta, não gasta gás).\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)"
+					},
+					"response": []
+				},
+				{
+					"name": "Revogar Role",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\",\n  \"walletAddress\": \"0x1234567890123456789012345678901234567890\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts/{{contract_address}}/revoke-role",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "{{contract_address}}", "revoke-role"]
+						},
+						"description": "Revoga uma role de um endereço (apenas admin do token pode revogar roles).\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciamento de contratos inteligentes e tokens\n\nInclui:\n- CRUD de contratos\n- Operações de leitura/escrita\n- Gerenciamento de roles (grant-role, has-role, revoke-role)\n- Tokens padrão automáticos\n- Metadados de tokens\n- Informações da blockchain"
+		},
+		{
+			"name": "🪙 Gerenciamento de Tokens",
+			"item": [
+				{
+					"name": "Saldo da Moeda AZE",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/tokens/balanceAZE?walletAddress={{test_wallet_address}}&network={{test_network}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tokens", "balanceAZE"],
+							"query": [
+								{
+									"key": "walletAddress",
+									"value": "{{test_wallet_address}}",
+									"description": "Endereço da carteira"
+								},
+								{
+									"key": "network",
+									"value": "{{test_network}}",
+									"description": "Rede (mainnet ou testnet)"
+								}
+							]
+						},
+						"description": "Obtém o saldo da moeda nativa AZE de uma carteira"
+					},
+					"response": []
+				},
+				{
+					"name": "Saldo de Token ERC20",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/tokens/balance?contractAddress={{test_contract_address}}&walletAddress={{test_wallet_address}}&network={{test_network}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tokens", "balance"],
+							"query": [
+								{
+									"key": "contractAddress",
+									"value": "{{test_contract_address}}",
+									"description": "Endereço do contrato do token"
+								},
+								{
+									"key": "walletAddress",
+									"value": "{{test_wallet_address}}",
+									"description": "Endereço da carteira"
+								},
+								{
+									"key": "network",
+									"value": "{{test_network}}",
+									"description": "Rede (mainnet ou testnet)"
+								}
+							]
+						},
+						"description": "Obtém o saldo de um token ERC20 específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Informações do Token",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/tokens/{{token_address}}/info?network={{network}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tokens", "{{token_address}}", "info"],
+							"query": [
+								{
+									"key": "network",
+									"value": "{{network}}",
+									"description": "Rede (mainnet ou testnet)"
+								}
+							]
+						},
+						"description": "Obtém informações básicas de um token (nome, símbolo, decimais, etc.)"
+					},
+					"response": []
+				},
+				{
+					"name": "Registrar Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"address\": \"{{token_address}}\",\n  \"network\": \"{{network}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/tokens/register",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tokens", "register"]
+						},
+						"description": "Registra um novo token no sistema"
+					},
+					"response": []
+				},
+				{
+					"name": "Mintar Tokens",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contractAddress\": \"{{token_address}}\",\n  \"toAddress\": \"{{wallet_address}}\",\n  \"amount\": \"100\",\n  \"gasPayer\": \"{{wallet_address}}\",\n  \"network\": \"{{network}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/tokens/mint",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tokens", "mint"]
+						},
+						"description": "Minta novos tokens para um endereço"
+					},
+					"response": []
+				},
+				{
+					"name": "Queimar Tokens",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contractAddress\": \"{{token_address}}\",\n  \"fromAddress\": \"{{wallet_address}}\",\n  \"amount\": \"10\",\n  \"gasPayer\": \"{{wallet_address}}\",\n  \"network\": \"{{network}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/tokens/burn",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tokens", "burn"]
+						},
+						"description": "Queima tokens de um endereço"
+					},
+					"response": []
+				},
+				{
+					"name": "Transferência sem Gás",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contractAddress\": \"{{token_address}}\",\n  \"fromAddress\": \"{{wallet_address}}\",\n  \"toAddress\": \"{{wallet_address}}\",\n  \"amount\": \"50\",\n  \"gasPayer\": \"{{wallet_address}}\",\n  \"network\": \"{{network}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/tokens/transfer-gasless",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tokens", "transfer-gasless"]
+						},
+						"description": "Transfere tokens sem que o usuário pague gás"
+					},
+					"response": []
+				},
+				{
+					"name": "Teste do Serviço de Tokens",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/tokens/test/service",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tokens", "test", "service"]
+						},
+						"description": "Testa a conectividade do serviço de tokens"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para gerenciamento de tokens ERC20 e moeda nativa AZE"
+		},
+		{
+			"name": "📊 Sistema de Logs",
+			"item": [
+				{
+					"name": "Listar Logs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs?page=1&limit=10",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Número da página"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Limite de itens por página"
+								}
+							]
+						},
+						"description": "Lista os logs de requisições"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Log por ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/{{log_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "{{log_id}}"]
+						},
+						"description": "Obtém um log específico por ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Logs por Cliente",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/logs/client/{{client_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "logs", "client", "{{client_id}}"]
+						},
+						"description": "Lista logs de um usuário específico"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints para consulta de logs de requisições"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8800",
+			"type": "string"
+		},
+		{
+			"key": "api_key",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "admin_api_key",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "session_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "client_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "wallet_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "wallet_id_or_address",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "contract_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "transaction_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "log_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "reset_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "api_key_id",
+			"value": "",
+			"type": "string"
+		}
+	]
+} 

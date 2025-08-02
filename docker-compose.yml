@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: azore_postgres
+    environment:
+      POSTGRES_DB: azore_blockchain_service
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - azore_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d azore_blockchain_service"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicação Node.js
+  api:
+    build: .
+    container_name: azore_api
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: azore_blockchain_service
+      DB_USER: postgres
+      DB_PASSWORD: postgres123
+      DB_DIALECT: postgres
+      MAINNET_RPC_URL: https://rpc-mainnet.azore.technology
+      MAINNET_CHAIN_ID: 8800
+      TESTNET_RPC_URL: https://rpc-testnet.azore.technology
+      TESTNET_CHAIN_ID: 88001
+      DEFAULT_NETWORK: ${DEFAULT_NETWORK}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      ADMIN_PRIVATE_KEY: ${ADMIN_PRIVATE_KEY}
+      TEST_ADDRESS: 0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6
+    ports:
+      - "8800:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - azore_network
+    restart: unless-stopped
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  azore_network:
+    driver: bridge 
