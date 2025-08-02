@@ -1,6 +1,9 @@
 const databaseConfig = require('../config/database');
 const crypto = require('crypto');
 const { ethers } = require('ethers');
+const axios = require('axios');
+const blockchainService = require('./blockchain.service');
+const tokenService = require('./token.service');
 
 /**
  * Serviço para gerenciamento de usuários
@@ -949,6 +952,84 @@ class UserService {
       };
     } catch (error) {
       throw new Error(`Erro no teste do serviço: ${error.message}`);
+    }
+  }
+
+  /**
+   * Obtém saldos de um usuário por endereço
+   * @param {string} address - Endereço do usuário
+   * @param {string} network - Rede (mainnet ou testnet)
+   * @returns {Promise<Object>} Saldos do usuário
+   */
+  async getUserBalances(address, network = 'testnet') {
+    try {
+      // Validar endereço
+      if (!ethers.isAddress(address)) {
+        throw new Error('Endereço inválido');
+      }
+
+      // Determinar URL da API baseada na rede
+      const apiUrl = network === 'mainnet' 
+        ? 'https://azorescan.com/api'
+        : 'https://floripa.azorescan.com/api';
+
+      // Obter saldo em AZE (moeda nativa)
+      const azeBalance = await tokenService.getAzeBalance(address, network);
+
+      // Obter lista de tokens do endereço
+      const tokenListResponse = await axios.get(`${apiUrl}`, {
+        params: {
+          module: 'account',
+          action: 'tokenlist',
+          address: address
+        },
+        timeout: 15000
+      });
+
+      let tokenBalances = [];
+      
+      if (tokenListResponse.data.status === '1' && tokenListResponse.data.result) {
+        // Processar cada token encontrado
+        for (const token of tokenListResponse.data.result) {
+          try {
+            const tokenBalance = await tokenService.getTokenBalance(
+              token.contractAddress, 
+              address, 
+              network
+            );
+            
+            tokenBalances.push({
+              contractAddress: token.contractAddress,
+              tokenName: token.name,
+              tokenSymbol: token.symbol,
+              tokenDecimals: parseInt(token.decimals),
+              balanceWei: tokenBalance.data.balanceWei,
+              balanceEth: tokenBalance.data.balanceEth
+            });
+          } catch (error) {
+            // Se não conseguir obter saldo de um token específico, continua com os outros
+            console.warn(`Erro ao obter saldo do token ${token.contractAddress}:`, error.message);
+          }
+        }
+      }
+
+      return {
+        success: true,
+        message: 'Saldos obtidos com sucesso',
+        data: {
+          address: address.toLowerCase(),
+          network: network,
+          azeBalance: {
+            balanceWei: azeBalance.data.balanceWei,
+            balanceEth: azeBalance.data.balanceEth
+          },
+          tokenBalances: tokenBalances,
+          totalTokens: tokenBalances.length,
+          timestamp: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      throw new Error(`Erro ao obter saldos do usuário: ${error.message}`);
     }
   }
 }

@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "azore-blockchain-api-final",
 		"name": "Azore_API",
-		"description": "Coleção completa para testar a API Azore Blockchain Service\n\nInclui todos os endpoints:\n- Health Check e Informações\n- Testes da Blockchain\n- 🔐 Autenticação e Sessões (com múltiplas API Keys)\n- Gerenciamento de Usuários\n- Rotas Admin (API_ADMIN)\n- Gerenciamento de Carteiras\n- Gerenciamento de Contratos e Tokens (com roles)\n- 🪙 Gerenciamento de Tokens\n- 📊 Sistema de Logs Completo\n\nNOVAS FUNCIONALIDADES:\n- Sistema de múltiplas API Keys por usuário\n- Gerenciamento completo de API Keys (gerar, listar, editar, revogar)\n- Sistema de RBAC (API_ADMIN e CLIENT_ADMIN)\n- Rotas unificadas de roles (grant-role, has-role, revoke-role)\n- Gerenciamento de Tokens (atualizar metadados, conceder admin, verificar/revogar roles)\n- Tokens padrão automáticos (AZE, AZE-t, cBRL)\n- Obtenção de informações de tokens da blockchain\n- Mapeamento automático de roles para hashes\n- Lógica especial para admin role (atualiza adminPublicKey e revoga role anterior)\n- Sistema de logs por usuário (logs de requisições e transações)\n- Estatísticas detalhadas de logs e transações\n- Filtros avançados por data, status, rede, tipo de recurso\n- Exportação de logs em JSON/CSV\n- Limpeza automática de logs antigos\n\nCORREÇÕES IMPLEMENTADAS:\n- ✅ Correção na rota POST /api/admin/users: agora usa clientId do body corretamente\n- ✅ Correção na rota GET /api/admin/clients/{id}/users: parâmetro correto (id)\n- ✅ Correção na rota GET /api/users/client/{clientId}: parâmetro correto (clientId)\n- ✅ Correção nas rotas de busca por CPF/email/publicKey: retornam usuários desativados\n- ✅ Campo password obrigatório em POST /api/users\n- ✅ Sistema de logs por usuário funcionando\n\nROLES DISPONÍVEIS:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nSISTEMA DE LOGS:\n- Logs de requisições com filtros avançados\n- Logs de transações blockchain\n- Logs por usuário específico\n- Estatísticas agregadas\n- Logs de erro\n- Transações pendentes\n- Exportação de dados\n- Limpeza automática\n\nPara usar:\n1. Importe esta coleção no Postman\n2. Configure a variável de ambiente 'base_url' como 'http://localhost:8800'\n3. Para rotas que requerem session token, faça login primeiro\n4. Use as rotas de API Keys para gerenciar suas chaves de acesso\n5. Use diferentes API Keys para testar diferentes níveis de acesso\n6. Configure as variáveis user_id e tx_hash para testar rotas específicas\n\nGuia completo: POSTMAN_GUIDE_Complete.md",
+		"description": "Coleção completa para testar a API Azore Blockchain Service\n\nInclui todos os endpoints:\n- Health Check e Informações\n- Testes da Blockchain\n- 🔐 Autenticação e Sessões (com múltiplas API Keys)\n- Gerenciamento de Usuários\n- Rotas Admin (API_ADMIN)\n- Gerenciamento de Carteiras\n- Gerenciamento de Contratos e Tokens (com roles)\n- 🪙 Gerenciamento de Tokens\n- 📊 Sistema de Logs Completo\n\nNOVAS FUNCIONALIDADES:\n- Sistema de múltiplas API Keys por usuário\n- Gerenciamento completo de API Keys (gerar, listar, editar, revogar)\n- Sistema de RBAC (API_ADMIN e CLIENT_ADMIN)\n- Rotas unificadas de roles (grant-role, has-role, revoke-role)\n- Gerenciamento de Tokens (atualizar metadados, conceder admin, verificar/revogar roles)\n- Tokens padrão automáticos (AZE, AZE-t, cBRL)\n- Obtenção de informações de tokens da blockchain\n- Mapeamento automático de roles para hashes\n- Lógica especial para admin role (atualiza adminPublicKey e revoga role anterior)\n- Sistema de logs por usuário (logs de requisições e transações)\n- Estatísticas detalhadas de logs e transações\n- Filtros avançados por data, status, rede, tipo de recurso\n- Exportação de logs em JSON/CSV\n- Limpeza automática de logs antigos\n- ✅ Obter usuário por endereço (publicKey)\n- ✅ Listar saldos completos (AZE + tokens ERC20)\n- ✅ Integração com AzoreScan (mainnet/testnet)\n- ✅ Busca automática de tokens via API\n\nCORREÇÕES IMPLEMENTADAS:\n- ✅ Correção na rota POST /api/admin/users: agora usa clientId do body corretamente\n- ✅ Correção na rota GET /api/admin/clients/{id}/users: parâmetro correto (id)\n- ✅ Correção na rota GET /api/users/client/{clientId}: parâmetro correto (clientId)\n- ✅ Correção nas rotas de busca por CPF/email/publicKey: retornam usuários desativados\n- ✅ Campo password obrigatório em POST /api/users\n- ✅ Sistema de logs por usuário funcionando\n\nROLES DISPONÍVEIS:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nSISTEMA DE LOGS:\n- Logs de requisições com filtros avançados\n- Logs de transações blockchain\n- Logs por usuário específico\n- Estatísticas agregadas\n- Logs de erro\n- Transações pendentes\n- Exportação de dados\n- Limpeza automática\n\nPara usar:\n1. Importe esta coleção no Postman\n2. Configure a variável de ambiente 'base_url' como 'http://localhost:8800'\n3. Para rotas que requerem session token, faça login primeiro\n4. Use as rotas de API Keys para gerenciar suas chaves de acesso\n5. Use diferentes API Keys para testar diferentes níveis de acesso\n6. Configure as variáveis user_id e tx_hash para testar rotas específicas\n\nGuia completo: POSTMAN_GUIDE_Complete.md",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -692,9 +692,83 @@
 						"description": "Busca as chaves de um usuário por CPF"
 					},
 					"response": []
+				},
+				{
+					"name": "Obter Usuário por Address",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/address/0x95aDDd264023038D7Aa77B0974Ef3C4dc43E3bd6",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "address", "0x95aDDd264023038D7Aa77B0974Ef3C4dc43E3bd6"]
+						},
+						"description": "Obtém um usuário por endereço (publicKey)"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Saldos por Address (Testnet)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/address/0x95aDDd264023038D7Aa77B0974Ef3C4dc43E3bd6/balances?network=testnet",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "address", "0x95aDDd264023038D7Aa77B0974Ef3C4dc43E3bd6", "balances"],
+							"query": [
+								{
+									"key": "network",
+									"value": "testnet",
+									"description": "Rede para consultar (testnet ou mainnet)"
+								}
+							]
+						},
+						"description": "Lista saldos de um usuário por endereço na testnet (AZE + tokens ERC20)"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Saldos por Address (Mainnet)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/address/0x95aDDd264023038D7Aa77B0974Ef3C4dc43E3bd6/balances?network=mainnet",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users", "address", "0x95aDDd264023038D7Aa77B0974Ef3C4dc43E3bd6", "balances"],
+							"query": [
+								{
+									"key": "network",
+									"value": "mainnet",
+									"description": "Rede para consultar (testnet ou mainnet)"
+								}
+							]
+						},
+						"description": "Lista saldos de um usuário por endereço na mainnet (AZE + tokens ERC20)"
+					},
+					"response": []
 				}
 			],
-			"description": "Endpoints para gerenciamento de usuários\n\nROTAS BÁSICAS:\n- Criar, listar, obter usuários\n- Buscar por ID, email, CPF\n- Gerenciar chaves de usuários\n\nROTAS ADMIN (requer admin_api_key):\n- Listar todos os usuários do sistema\n- Obter usuário por ID (admin)\n- Obter usuário por email (admin)\n- Obter usuário por CPF (admin)\n\nROTAS EXCLUSIVAS ADMIN:\n- Criar usuário com roles/permissions (🔐 Rotas Admin)\n- Gerenciar flags de admin (🔐 Rotas Admin)"
+			"description": "Endpoints para gerenciamento de usuários\n\nROTAS BÁSICAS:\n- Criar, listar, obter usuários\n- Buscar por ID, email, CPF, Address (publicKey)\n- Gerenciar chaves de usuários\n- Listar saldos por endereço (AZE + tokens ERC20)\n\nROTAS ADMIN (requer admin_api_key):\n- Listar todos os usuários do sistema\n- Obter usuário por ID (admin)\n- Obter usuário por email (admin)\n- Obter usuário por CPF (admin)\n\nROTAS EXCLUSIVAS ADMIN:\n- Criar usuário com roles/permissions (🔐 Rotas Admin)\n- Gerenciar flags de admin (🔐 Rotas Admin)\n\nNOVAS FUNCIONALIDADES:\n- ✅ Obter usuário por endereço (publicKey)\n- ✅ Listar saldos completos (AZE + tokens ERC20)\n- ✅ Integração com AzoreScan (mainnet/testnet)\n- ✅ Busca automática de tokens via API"
 		},
 		{
 			"name": "🔐 Rotas Admin",

@@ -380,6 +380,44 @@ class UserController {
       });
     }
   }
+
+  /**
+   * Obtém um usuário por endereço (publicKey)
+   */
+  async getUserByAddress(req, res) {
+    try {
+      const { address } = req.params;
+      const { includePrivateKey } = req.query;
+      const result = await userService.getUserByPublicKey(address, includePrivateKey === 'true');
+      
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(404).json({
+        success: false,
+        message: 'Erro ao obter usuário',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Lista saldos de um usuário por endereço
+   */
+  async getUserBalances(req, res) {
+    try {
+      const { address } = req.params;
+      const { network = 'testnet' } = req.query;
+      
+      const result = await userService.getUserBalances(address, network);
+      res.status(200).json(result);
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao obter saldos do usuário',
+        error: error.message
+      });
+    }
+  }
 }
 
 module.exports = new UserController(); 

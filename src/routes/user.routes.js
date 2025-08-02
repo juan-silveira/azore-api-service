@@ -149,6 +149,107 @@ router.get('/', userController.listUsers);
 
 /**
  * @swagger
+ * /api/users/address/{address}:
+ *   get:
+ *     summary: Obtém um usuário por endereço (publicKey)
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: address
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Endereço (publicKey) do usuário
+ *       - in: query
+ *         name: includePrivateKey
+ *         schema:
+ *           type: boolean
+ *           default: false
+ *         description: Incluir chave privada na resposta
+ *     responses:
+ *       200:
+ *         description: Usuário encontrado
+ *       404:
+ *         description: Usuário não encontrado
+ */
+router.get('/address/:address', userController.getUserByAddress);
+
+/**
+ * @swagger
+ * /api/users/address/{address}/balances:
+ *   get:
+ *     summary: Lista saldos de um usuário por endereço
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: address
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Endereço do usuário
+ *       - in: query
+ *         name: network
+ *         schema:
+ *           type: string
+ *           enum: [mainnet, testnet]
+ *           default: testnet
+ *         description: Rede para consultar (mainnet ou testnet)
+ *     responses:
+ *       200:
+ *         description: Saldos obtidos com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     address:
+ *                       type: string
+ *                     network:
+ *                       type: string
+ *                     azeBalance:
+ *                       type: object
+ *                       properties:
+ *                         balanceWei:
+ *                           type: string
+ *                         balanceEth:
+ *                           type: string
+ *                     tokenBalances:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           contractAddress:
+ *                             type: string
+ *                           tokenName:
+ *                             type: string
+ *                           tokenSymbol:
+ *                             type: string
+ *                           tokenDecimals:
+ *                             type: integer
+ *                           balanceWei:
+ *                             type: string
+ *                           balanceEth:
+ *                             type: string
+ *                     totalTokens:
+ *                       type: integer
+ *                     timestamp:
+ *                       type: string
+ *       400:
+ *         description: Endereço inválido ou erro na consulta
+ *       404:
+ *         description: Usuário não encontrado
+ */
+router.get('/address/:address/balances', userController.getUserBalances);
+
+/**
+ * @swagger
  * /api/users/{id}:
  *   get:
  *     summary: Obtém um usuário por ID
