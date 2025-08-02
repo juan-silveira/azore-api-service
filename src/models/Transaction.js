@@ -36,15 +36,7 @@ module.exports = (sequelize) => {
         key: 'id'
       }
     },
-    walletId: {
-      type: DataTypes.UUID,
-      allowNull: true,
-      comment: 'ID da carteira utilizada na transação',
-      references: {
-        model: 'wallets',
-        key: 'id'
-      }
-    },
+
     contractId: {
       type: DataTypes.UUID,
       allowNull: true,
@@ -60,7 +52,7 @@ module.exports = (sequelize) => {
       comment: 'Rede blockchain onde a transação foi executada'
     },
     transactionType: {
-      type: DataTypes.ENUM('transfer', 'contract_deploy', 'contract_call', 'contract_read', 'wallet_creation'),
+      type: DataTypes.ENUM('transfer', 'contract_deploy', 'contract_call', 'contract_read'),
       allowNull: false,
       comment: 'Tipo da transação'
     },

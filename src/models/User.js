@@ -186,7 +186,7 @@ module.exports = (sequelize) => {
       },
       validate: {
         isValidPermissions(value) {
-          const requiredSections = ['wallets', 'contracts', 'transactions'];
+          const requiredSections = ['contracts', 'transactions'];
           const requiredPermissions = ['create', 'read', 'update', 'delete'];
           
           for (const section of requiredSections) {
@@ -301,9 +301,7 @@ module.exports = (sequelize) => {
   // Associações
   User.associate = (models) => {
     User.belongsTo(models.Client, { foreignKey: 'clientId', as: 'client' });
-    if (models.Wallet) {
-      User.hasMany(models.Wallet, { foreignKey: 'userId' });
-    }
+
     if (models.Transaction) {
       User.hasMany(models.Transaction, { foreignKey: 'userId' });
     }
@@ -433,14 +431,8 @@ module.exports = (sequelize) => {
   };
 
   User.prototype.getUsageStats = async function() {
-    const { Wallet, Transaction } = sequelize.models;
+    const { Transaction } = sequelize.models;
     
-    const walletCount = await Wallet.count({
-      where: {
-        userId: this.id
-      }
-    });
-
     const transactionCount = await Transaction.count({
       where: {
         userId: this.id
@@ -448,7 +440,6 @@ module.exports = (sequelize) => {
     });
 
     return {
-      wallets: walletCount,
       transactions: transactionCount,
       lastActivity: this.lastActivityAt
     };

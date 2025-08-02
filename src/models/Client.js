@@ -82,9 +82,7 @@ module.exports = (sequelize) => {
     if (models.Transaction) {
       Client.hasMany(models.Transaction, { foreignKey: 'clientId' });
     }
-    if (models.Wallet) {
-      Client.hasMany(models.Wallet, { foreignKey: 'clientId' });
-    }
+
   };
 
   // Métodos estáticos

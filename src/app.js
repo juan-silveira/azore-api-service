@@ -10,7 +10,7 @@ const swaggerSpecs = require('./config/swagger');
 
 // Importar rotas
 const testRoutes = require('./routes/test.routes');
-const walletRoutes = require('./routes/wallet.routes');
+
 const contractRoutes = require('./routes/contract.routes');
 const tokenRoutes = require('./routes/token.routes');
 const clientRoutes = require('./routes/client.routes');
@@ -21,7 +21,6 @@ const authRoutes = require('./routes/auth.routes');
 const passwordResetRoutes = require('./routes/passwordReset.routes');
 
 // Importar serviços
-const walletService = require('./services/wallet.service');
 const contractService = require('./services/contract.service');
 const clientService = require('./services/client.service');
 const logService = require('./services/log.service');
@@ -133,7 +132,6 @@ app.use('/api/password-reset', passwordResetRoutes);
 app.use('/api/users', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, userRoutes);
 
 // Middleware de autenticação para rotas protegidas
-app.use('/api/wallets', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, walletRoutes);
 app.use('/api/contracts', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, contractRoutes);
 // Middleware de autenticação para rotas protegidas
 app.use('/api/tokens', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, tokenRoutes);

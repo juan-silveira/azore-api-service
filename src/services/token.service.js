@@ -1,7 +1,6 @@
 const { ethers } = require('ethers');
 const axios = require('axios');
 const blockchainService = require('./blockchain.service');
-const walletService = require('./wallet.service');
 const contractService = require('./contract.service');
 
 class TokenService {

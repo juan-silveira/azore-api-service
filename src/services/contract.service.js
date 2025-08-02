@@ -1,6 +1,5 @@
 const { ethers } = require('ethers');
 const blockchainService = require('./blockchain.service');
-const walletService = require('./wallet.service');
 const userService = require('./user.service');
 const databaseConfig = require('../config/database');
 
@@ -663,170 +662,26 @@ class ContractService {
 
   /**
    * Concede a role MINTER_ROLE a um usuário
+   * FUNCIONALIDADE REMOVIDA - Gerenciamento de carteiras foi descontinuado
    */
   async grantMinterRole(contractAddress, newMinterPublicKey, currentAdminPublicKey) {
-    try {
-      // Verificar se o contrato existe
-      const contract = await this.SmartContract.findByAddress(contractAddress);
-      if (!contract) {
-        throw new Error('Contrato não encontrado');
-      }
-
-      // Verificar se o currentAdminPublicKey tem a role DEFAULT_ADMIN_ROLE
-      const isCurrentAdmin = await this.verifyTokenAdmin(contractAddress, currentAdminPublicKey);
-      if (!isCurrentAdmin) {
-        throw new Error('O usuário atual não possui a role DEFAULT_ADMIN_ROLE no token');
-      }
-
-      // Obter provider e wallet
-      const provider = blockchainService.config.getProvider(contract.network);
-      const wallet = await walletService.getWalletByAddress(currentAdminPublicKey);
-      
-      if (!wallet) {
-        throw new Error('Carteira do admin não encontrada');
-      }
-
-      // Criar instância do contrato
-      const contractInstance = new ethers.Contract(
-        contractAddress,
-        contract.abi,
-        wallet
-      );
-
-      // Role MINTER_ROLE: 0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6
-      const MINTER_ROLE = '0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6';
-
-      // Executar grantRole
-      const tx = await contractInstance.grantRole(MINTER_ROLE, newMinterPublicKey);
-      await tx.wait();
-
-      return {
-        success: true,
-        message: 'Role MINTER_ROLE concedida com sucesso',
-        data: {
-          contractAddress,
-          newMinterPublicKey,
-          role: 'MINTER_ROLE',
-          roleHash: MINTER_ROLE,
-          transactionHash: tx.hash,
-          timestamp: new Date().toISOString()
-        }
-      };
-    } catch (error) {
-      throw new Error(`Erro ao conceder role MINTER_ROLE: ${error.message}`);
-    }
+    throw new Error('Funcionalidade de concessão de roles foi removida. O gerenciamento de carteiras foi descontinuado.');
   }
 
   /**
    * Concede a role BURNER_ROLE a um usuário
+   * FUNCIONALIDADE REMOVIDA - Gerenciamento de carteiras foi descontinuado
    */
   async grantBurnerRole(contractAddress, newBurnerPublicKey, currentAdminPublicKey) {
-    try {
-      // Verificar se o contrato existe
-      const contract = await this.SmartContract.findByAddress(contractAddress);
-      if (!contract) {
-        throw new Error('Contrato não encontrado');
-      }
-
-      // Verificar se o currentAdminPublicKey tem a role DEFAULT_ADMIN_ROLE
-      const isCurrentAdmin = await this.verifyTokenAdmin(contractAddress, currentAdminPublicKey);
-      if (!isCurrentAdmin) {
-        throw new Error('O usuário atual não possui a role DEFAULT_ADMIN_ROLE no token');
-      }
-
-      // Obter provider e wallet
-      const provider = blockchainService.config.getProvider(contract.network);
-      const wallet = await walletService.getWalletByAddress(currentAdminPublicKey);
-      
-      if (!wallet) {
-        throw new Error('Carteira do admin não encontrada');
-      }
-
-      // Criar instância do contrato
-      const contractInstance = new ethers.Contract(
-        contractAddress,
-        contract.abi,
-        wallet
-      );
-
-      // Role BURNER_ROLE: 0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848
-      const BURNER_ROLE = '0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848';
-
-      // Executar grantRole
-      const tx = await contractInstance.grantRole(BURNER_ROLE, newBurnerPublicKey);
-      await tx.wait();
-
-      return {
-        success: true,
-        message: 'Role BURNER_ROLE concedida com sucesso',
-        data: {
-          contractAddress,
-          newBurnerPublicKey,
-          role: 'BURNER_ROLE',
-          roleHash: BURNER_ROLE,
-          transactionHash: tx.hash,
-          timestamp: new Date().toISOString()
-        }
-      };
-    } catch (error) {
-      throw new Error(`Erro ao conceder role BURNER_ROLE: ${error.message}`);
-    }
+    throw new Error('Funcionalidade de concessão de roles foi removida. O gerenciamento de carteiras foi descontinuado.');
   }
 
   /**
    * Concede a role TRANSFER_ROLE a um usuário
+   * FUNCIONALIDADE REMOVIDA - Gerenciamento de carteiras foi descontinuado
    */
   async grantTransferRole(contractAddress, newTransferPublicKey, currentAdminPublicKey) {
-    try {
-      // Verificar se o contrato existe
-      const contract = await this.SmartContract.findByAddress(contractAddress);
-      if (!contract) {
-        throw new Error('Contrato não encontrado');
-      }
-
-      // Verificar se o currentAdminPublicKey tem a role DEFAULT_ADMIN_ROLE
-      const isCurrentAdmin = await this.verifyTokenAdmin(contractAddress, currentAdminPublicKey);
-      if (!isCurrentAdmin) {
-        throw new Error('O usuário atual não possui a role DEFAULT_ADMIN_ROLE no token');
-      }
-
-      // Obter provider e wallet
-      const provider = blockchainService.config.getProvider(contract.network);
-      const wallet = await walletService.getWalletByAddress(currentAdminPublicKey);
-      
-      if (!wallet) {
-        throw new Error('Carteira do admin não encontrada');
-      }
-
-      // Criar instância do contrato
-      const contractInstance = new ethers.Contract(
-        contractAddress,
-        contract.abi,
-        wallet
-      );
-
-      // Role TRANSFER_ROLE: 0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c
-      const TRANSFER_ROLE = '0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c';
-
-      // Executar grantRole
-      const tx = await contractInstance.grantRole(TRANSFER_ROLE, newTransferPublicKey);
-      await tx.wait();
-
-      return {
-        success: true,
-        message: 'Role TRANSFER_ROLE concedida com sucesso',
-        data: {
-          contractAddress,
-          newTransferPublicKey,
-          role: 'TRANSFER_ROLE',
-          roleHash: TRANSFER_ROLE,
-          transactionHash: tx.hash,
-          timestamp: new Date().toISOString()
-        }
-      };
-    } catch (error) {
-      throw new Error(`Erro ao conceder role TRANSFER_ROLE: ${error.message}`);
-    }
+    throw new Error('Funcionalidade de concessão de roles foi removida. O gerenciamento de carteiras foi descontinuado.');
   }
 
   /**
@@ -962,67 +817,10 @@ class ContractService {
 
   /**
    * Revoga uma role de um endereço
+   * FUNCIONALIDADE REMOVIDA - Gerenciamento de carteiras foi descontinuado
    */
   async revokeRole(contractAddress, targetAddress, role) {
-    try {
-      const contract = await this.SmartContract.findByAddress(contractAddress);
-      if (!contract) {
-        throw new Error('Token não encontrado');
-      }
-
-      // Verificar se o usuário atual é admin do token
-      if (!contract.adminPublicKey) {
-        throw new Error('Token não possui admin configurado');
-      }
-
-      // Obter wallet do admin
-      const adminWallet = await walletService.getWalletByAddress(contract.adminPublicKey);
-      if (!adminWallet) {
-        throw new Error('Carteira do admin não encontrada');
-      }
-
-      // Obter provider
-      const provider = blockchainService.config.getProvider(contract.network);
-      
-      // Criar instância do contrato com wallet do admin
-      const contractInstance = new ethers.Contract(
-        contractAddress,
-        contract.abi,
-        adminWallet
-      );
-
-      // Mapear roles para hashes
-      const roleHashes = {
-        'DEFAULT_ADMIN_ROLE': '0x0000000000000000000000000000000000000000000000000000000000000000',
-        'MINTER_ROLE': '0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6',
-        'BURNER_ROLE': '0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848',
-        'TRANSFER_ROLE': '0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c'
-      };
-
-      const roleHash = roleHashes[role];
-      if (!roleHash) {
-        throw new Error(`Role inválida: ${role}. Roles válidas: DEFAULT_ADMIN_ROLE, MINTER_ROLE, BURNER_ROLE, TRANSFER_ROLE`);
-      }
-
-      // Revogar role
-      const tx = await contractInstance.revokeRole(roleHash, targetAddress);
-      await tx.wait();
-
-      return {
-        success: true,
-        message: 'Role revogada com sucesso',
-        data: {
-          contractAddress,
-          targetAddress,
-          role,
-          roleHash,
-          transactionHash: tx.hash,
-          timestamp: new Date().toISOString()
-        }
-      };
-    } catch (error) {
-      throw new Error(`Erro ao revogar role: ${error.message}`);
-    }
+    throw new Error('Funcionalidade de revogação de roles foi removida. O gerenciamento de carteiras foi descontinuado.');
   }
 
   /**
@@ -1046,57 +844,10 @@ class ContractService {
 
   /**
    * Concede uma role a um endereço
+   * FUNCIONALIDADE REMOVIDA - Gerenciamento de carteiras foi descontinuado
    */
   async grantRole(contractAddress, role, targetAddress, walletAddress) {
-    try {
-      const contract = await this.SmartContract.findByAddress(contractAddress);
-      if (!contract) {
-        throw new Error('Token não encontrado');
-      }
-
-      // Obter wallet para assinatura
-      const wallet = await walletService.getWalletByAddress(walletAddress);
-      if (!wallet) {
-        throw new Error('Carteira não encontrada');
-      }
-
-      // Obter provider
-      const provider = blockchainService.config.getProvider(contract.network);
-      
-      // Criar instância do contrato com wallet
-      const contractInstance = new ethers.Contract(
-        contractAddress,
-        contract.abi,
-        wallet
-      );
-
-      // Obter hash da role
-      const roleHash = this.getRoleHash(role);
-
-      // Executar grantRole
-      const tx = await contractInstance.grantRole(roleHash, targetAddress);
-      await tx.wait();
-
-      // Se for admin role, atualizar adminPublicKey no banco
-      if (role === 'admin') {
-        await this.updateAdminPublicKey(contractAddress, targetAddress);
-      }
-
-      return {
-        success: true,
-        message: `Role ${role.toUpperCase()} concedida com sucesso`,
-        data: {
-          contractAddress,
-          targetAddress,
-          role,
-          roleHash,
-          transactionHash: tx.hash,
-          timestamp: new Date().toISOString()
-        }
-      };
-    } catch (error) {
-      throw new Error(`Erro ao conceder role ${role}: ${error.message}`);
-    }
+    throw new Error('Funcionalidade de concessão de roles foi removida. O gerenciamento de carteiras foi descontinuado.');
   }
 
   /**
@@ -1144,52 +895,10 @@ class ContractService {
 
   /**
    * Revoga uma role de um endereço
+   * FUNCIONALIDADE REMOVIDA - Gerenciamento de carteiras foi descontinuado
    */
   async revokeRole(contractAddress, role, targetAddress, walletAddress) {
-    try {
-      const contract = await this.SmartContract.findByAddress(contractAddress);
-      if (!contract) {
-        throw new Error('Token não encontrado');
-      }
-
-      // Obter wallet para assinatura
-      const wallet = await walletService.getWalletByAddress(walletAddress);
-      if (!wallet) {
-        throw new Error('Carteira não encontrada');
-      }
-
-      // Obter provider
-      const provider = blockchainService.config.getProvider(contract.network);
-      
-      // Criar instância do contrato com wallet
-      const contractInstance = new ethers.Contract(
-        contractAddress,
-        contract.abi,
-        wallet
-      );
-
-      // Obter hash da role
-      const roleHash = this.getRoleHash(role);
-
-      // Revogar role
-      const tx = await contractInstance.revokeRole(roleHash, targetAddress);
-      await tx.wait();
-
-      return {
-        success: true,
-        message: `Role ${role.toUpperCase()} revogada com sucesso`,
-        data: {
-          contractAddress,
-          targetAddress,
-          role,
-          roleHash,
-          transactionHash: tx.hash,
-          timestamp: new Date().toISOString()
-        }
-      };
-    } catch (error) {
-      throw new Error(`Erro ao revogar role ${role}: ${error.message}`);
-    }
+    throw new Error('Funcionalidade de revogação de roles foi removida. O gerenciamento de carteiras foi descontinuado.');
   }
 
   /**

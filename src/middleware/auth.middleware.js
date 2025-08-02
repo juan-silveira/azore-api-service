@@ -308,17 +308,7 @@ const checkUsageLimits = async (req, res, next) => {
     const usageStats = await req.user.getUsageStats();
     
     // Verificar limite de carteiras
-    if (req.path.includes('/wallets') && req.method === 'POST') {
-      if (usageStats.wallets >= req.user.maxWallets) {
-        return res.status(429).json({
-          success: false,
-          message: `Limite de carteiras atingido: ${usageStats.wallets}/${req.user.maxWallets}`,
-          error: 'WALLET_LIMIT_EXCEEDED',
-          currentUsage: usageStats.wallets,
-          maxAllowed: req.user.maxWallets
-        });
-      }
-    }
+
 
     // Verificar limite de contratos
     if (req.path.includes('/contracts') && req.method === 'POST') {

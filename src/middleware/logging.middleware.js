@@ -106,26 +106,7 @@ const transactionLogger = async (req, res, next) => {
   const originalSend = res.send;
   
   res.send = function(data) {
-    // Verificar se é uma resposta de transação blockchain
-    if (req.path.includes('/wallets') && req.method === 'POST' && req.body && req.body.network) {
-      // Log de criação de carteira
-      createTransactionLog({
-        clientId: req.client ? req.client.id : null,
-        requestLogId: null, // Será preenchido pelo log da requisição
-        walletId: null, // Será preenchido após criação
-        network: req.body.network,
-        transactionType: 'wallet_creation',
-        status: 'pending',
-        fromAddress: null,
-        toAddress: null,
-        metadata: {
-          externalSystemId: req.body.externalSystemId,
-          clientId: req.body.clientId
-        }
-      }).catch(err => {
-        console.error('Erro ao criar log de transação:', err.message);
-      });
-    }
+
     
     // Verificar se é uma operação de contrato
     if (req.path.includes('/contracts') && req.method === 'POST') {

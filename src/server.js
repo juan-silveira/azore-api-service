@@ -3,7 +3,7 @@ const app = require('./app');
 const databaseConfig = require('./config/database');
 const ClientModel = require('./models/Client');
 const UserModel = require('./models/User');
-const WalletModel = require('./models/Wallet');
+
 const SmartContractModel = require('./models/SmartContract');
 const RequestLogModel = require('./models/RequestLog');
 const TransactionModel = require('./models/Transaction');
@@ -12,7 +12,7 @@ const ApiKeyModel = require('./models/ApiKey');
 const StakeModel = require('./models/Stake');
 
 // Importar serviços
-const walletService = require('./services/wallet.service');
+
 const contractService = require('./services/contract.service');
 const clientService = require('./services/client.service');
 const userService = require('./services/user.service');
@@ -61,7 +61,7 @@ const startServer = () => {
     const models = {};
     models.Client = ClientModel(sequelize);
     models.User = UserModel(sequelize);
-    models.Wallet = WalletModel(sequelize);
+  
     models.SmartContract = SmartContractModel(sequelize);
     models.RequestLog = RequestLogModel(sequelize);
     models.Transaction = TransactionModel(sequelize);
@@ -83,7 +83,7 @@ const startServer = () => {
     
     // Aguardar inicialização dos serviços
     console.log('🔍 Inicializando serviços...');
-    await walletService.initialize();
+  
     await contractService.initialize();
     await clientService.initialize();
     await userService.init();

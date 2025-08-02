@@ -103,12 +103,7 @@ class AdminService {
           isClientAdmin: true,
           roles: ['API_ADMIN', 'CLIENT_ADMIN'],
           permissions: {
-            wallets: {
-              create: true,
-              read: true,
-              update: true,
-              delete: true
-            },
+
             contracts: {
               create: true,
               read: true,
