@@ -23,6 +23,28 @@ services:
       timeout: 5s
       retries: 5
 
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: azore_rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: azore
+      RABBITMQ_DEFAULT_PASS: azore123
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - azore_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Aplicação Node.js
   api:
     build: .
@@ -36,6 +58,11 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres123
       DB_DIALECT: postgres
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: azore
+      RABBITMQ_PASS: azore123
+      RABBITMQ_VHOST: /
       MAINNET_RPC_URL: https://rpc-mainnet.azore.technology
       MAINNET_CHAIN_ID: 8800
       TESTNET_RPC_URL: https://rpc-testnet.azore.technology
@@ -49,6 +76,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - azore_network
     restart: unless-stopped
@@ -58,6 +87,8 @@ services:
 
 volumes:
   postgres_data:
+    driver: local
+  rabbitmq_data:
     driver: local
 
 networks:

@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const transactionController = require('../controllers/transaction.controller');
+const { authenticateApiKey } = require('../middleware/auth.middleware');
+const { transactionRateLimiter } = require('../middleware/rateLimit.middleware');
 
 /**
  * @swagger
@@ -613,5 +615,200 @@ router.get('/stats/type', transactionController.getTypeStats);
  *         description: Não autorizado
  */
 router.get('/test', transactionController.testService);
+
+/**
+ * @swagger
+ * /api/transactions/enqueue:
+ *   post:
+ *     summary: Enfileira uma transação da blockchain
+ *     tags: [Transactions]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               type:
+ *                 type: string
+ *                 enum: [mint, burn, transfer, send_transaction]
+ *                 description: Tipo da transação
+ *               data:
+ *                 type: object
+ *                 description: Dados específicos da transação
+ *             required:
+ *               - type
+ *               - data
+ *     responses:
+ *       200:
+ *         description: Transação enfileirada com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     jobId:
+ *                       type: string
+ *                       format: uuid
+ *                     status:
+ *                       type: string
+ *                     type:
+ *                       type: string
+ *                     timestamp:
+ *                       type: string
+ *                       format: date-time
+ *                     estimatedProcessingTime:
+ *                       type: string
+ *                     rateLimit:
+ *                       type: object
+ *                       properties:
+ *                         limit:
+ *                           type: integer
+ *                         remaining:
+ *                           type: integer
+ *                         resetTime:
+ *                           type: string
+ *                           format: date-time
+ *       400:
+ *         description: Dados inválidos
+ *       401:
+ *         description: Não autorizado
+ *       429:
+ *         description: Rate limit excedido
+ *         headers:
+ *           X-RateLimit-Limit:
+ *             description: Limite de requisições
+ *             schema:
+ *               type: string
+ *           X-RateLimit-Remaining:
+ *             description: Requisições restantes
+ *             schema:
+ *               type: string
+ *           X-RateLimit-Reset:
+ *             description: Timestamp de reset
+ *             schema:
+ *               type: string
+ *           Retry-After:
+ *             description: Segundos para aguardar
+ *             schema:
+ *               type: string
+ */
+router.post('/enqueue', authenticateApiKey, transactionRateLimiter, transactionController.enqueueBlockchainTransaction);
+
+/**
+ * @swagger
+ * /api/transactions/queue/{jobId}:
+ *   get:
+ *     summary: Obtém o status de uma transação enfileirada
+ *     tags: [Transactions]
+ *     security:
+ *       - ApiKeyAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: jobId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID do job da transação
+ *     responses:
+ *       200:
+ *         description: Status da transação obtido com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     jobId:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                     timestamp:
+ *                       type: string
+ *       400:
+ *         description: Erro ao obter status
+ */
+router.get('/queue/:jobId', transactionController.getQueuedTransactionStatus);
+
+/**
+ * @swagger
+ * /api/transactions/queue/batch:
+ *   post:
+ *     summary: Obtém o status de múltiplas transações enfileiradas
+ *     tags: [Transactions]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               jobIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Lista de Job IDs das transações
+ *             required:
+ *               - jobIds
+ *     responses:
+ *       200:
+ *         description: Status das transações obtido com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     results:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           jobId:
+ *                             type: string
+ *                           status:
+ *                             type: string
+ *                           timestamp:
+ *                             type: string
+ *                     stats:
+ *                       type: object
+ *                       properties:
+ *                         total:
+ *                           type: integer
+ *                         completed:
+ *                           type: integer
+ *                         processing:
+ *                           type: integer
+ *                         failed:
+ *                           type: integer
+ *                         queued:
+ *                           type: integer
+ *                     timestamp:
+ *                       type: string
+ *       400:
+ *         description: Erro ao obter status
+ */
+router.post('/queue/batch', transactionController.getMultipleQueuedTransactionStatus);
 
 module.exports = router; 

@@ -1,259 +1,202 @@
-const databaseConfig = require('../config/database');
+/**
+ * Middleware de Rate Limiting
+ * Controla o número de requisições por cliente em diferentes janelas de tempo
+ */
 
-// Cache em memória para rate limiting (em produção, usar Redis)
-const rateLimitCache = new Map();
+// Armazenamento em memória para rate limiting (em produção, usar Redis)
+const rateLimitStore = new Map();
 
 /**
- * Limpa cache expirado
+ * Middleware de rate limiting genérico
+ * @param {Object} options - Opções de configuração
+ * @param {number} options.maxRequests - Número máximo de requisições
+ * @param {number} options.windowMs - Janela de tempo em milissegundos
+ * @param {string} options.keyPrefix - Prefixo para a chave de rate limit
+ * @param {Function} options.keyGenerator - Função para gerar a chave única
+ * @param {string} options.message - Mensagem de erro personalizada
  */
-const cleanupExpiredCache = () => {
-  const now = Date.now();
-  for (const [key, data] of rateLimitCache.entries()) {
-    if (data.expiresAt < now) {
-      rateLimitCache.delete(key);
-    }
-  }
-};
+const createRateLimiter = (options) => {
+  const {
+    maxRequests = 100,
+    windowMs = 15 * 60 * 1000, // 15 minutos padrão
+    keyPrefix = 'rate_limit',
+    keyGenerator = (req) => req.client?.id || req.ip,
+    message = 'Limite de requisições excedido'
+  } = options;
 
-// Limpar cache a cada 5 minutos
-setInterval(cleanupExpiredCache, 5 * 60 * 1000);
-
-/**
- * Middleware de rate limiting
- */
-const rateLimiter = async (req, res, next) => {
-  try {
-    if (!req.client) {
-      return res.status(401).json({
+  return (req, res, next) => {
+    const clientKey = keyGenerator(req);
+    
+    if (!clientKey) {
+      return res.status(400).json({
         success: false,
-        message: 'Cliente não autenticado',
-        error: 'NOT_AUTHENTICATED'
+        message: 'Cliente não identificado para rate limiting'
       });
     }
 
-    const clientId = req.client.id;
-    const now = Date.now();
+    const rateLimitKey = `${keyPrefix}:${clientKey}`;
+    const currentTime = Date.now();
+
+    // Obter ou criar registro de rate limit
+    let rateLimitData = rateLimitStore.get(rateLimitKey);
     
-    // Obter limites do cliente
-    const { requestsPerMinute, requestsPerHour, requestsPerDay } = req.client.rateLimit;
-    
-    // Criar chaves para diferentes períodos
-    const minuteKey = `${clientId}:minute:${Math.floor(now / (60 * 1000))}`;
-    const hourKey = `${clientId}:hour:${Math.floor(now / (60 * 60 * 1000))}`;
-    const dayKey = `${clientId}:day:${Math.floor(now / (24 * 60 * 60 * 1000))}`;
-    
-    // Verificar limite por minuto
-    const minuteData = rateLimitCache.get(minuteKey) || { count: 0, expiresAt: now + (60 * 1000) };
-    if (minuteData.count >= requestsPerMinute) {
+    if (!rateLimitData || currentTime > rateLimitData.resetTime) {
+      rateLimitData = {
+        count: 0,
+        resetTime: currentTime + windowMs
+      };
+      rateLimitStore.set(rateLimitKey, rateLimitData);
+    }
+
+    // Incrementar contador
+    rateLimitData.count++;
+
+    // Verificar se excedeu o limite
+    if (rateLimitData.count > maxRequests) {
+      const timeUntilReset = Math.ceil((rateLimitData.resetTime - currentTime) / 1000);
+      
+      // Adicionar headers de rate limit
+      res.set({
+        'X-RateLimit-Limit': maxRequests.toString(),
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': Math.floor(rateLimitData.resetTime / 1000),
+        'Retry-After': timeUntilReset
+      });
+
       return res.status(429).json({
         success: false,
-        message: 'Rate limit por minuto excedido',
-        error: 'RATE_LIMIT_MINUTE_EXCEEDED',
-        limit: requestsPerMinute,
-        resetTime: new Date(minuteData.expiresAt).toISOString()
+        message: `${message}. Aguarde ${timeUntilReset} segundos para fazer novas chamadas.`,
+        data: {
+          limit: maxRequests,
+          remaining: 0,
+          resetTime: new Date(rateLimitData.resetTime).toISOString(),
+          timeUntilReset: timeUntilReset,
+          retryAfter: timeUntilReset
+        }
       });
     }
-    
-    // Verificar limite por hora
-    const hourData = rateLimitCache.get(hourKey) || { count: 0, expiresAt: now + (60 * 60 * 1000) };
-    if (hourData.count >= requestsPerHour) {
-      return res.status(429).json({
-        success: false,
-        message: 'Rate limit por hora excedido',
-        error: 'RATE_LIMIT_HOUR_EXCEEDED',
-        limit: requestsPerHour,
-        resetTime: new Date(hourData.expiresAt).toISOString()
-      });
-    }
-    
-    // Verificar limite por dia
-    const dayData = rateLimitCache.get(dayKey) || { count: 0, expiresAt: now + (24 * 60 * 60 * 1000) };
-    if (dayData.count >= requestsPerDay) {
-      return res.status(429).json({
-        success: false,
-        message: 'Rate limit por dia excedido',
-        error: 'RATE_LIMIT_DAY_EXCEEDED',
-        limit: requestsPerDay,
-        resetTime: new Date(dayData.expiresAt).toISOString()
-      });
-    }
-    
-    // Incrementar contadores
-    minuteData.count++;
-    hourData.count++;
-    dayData.count++;
-    
-    rateLimitCache.set(minuteKey, minuteData);
-    rateLimitCache.set(hourKey, hourData);
-    rateLimitCache.set(dayKey, dayData);
-    
-    // Adicionar headers de rate limit
+
+    // Adicionar headers de rate limit na resposta
+    const remaining = maxRequests - rateLimitData.count;
     res.set({
-      'X-RateLimit-Minute-Limit': requestsPerMinute,
-      'X-RateLimit-Minute-Remaining': requestsPerMinute - minuteData.count,
-      'X-RateLimit-Minute-Reset': new Date(minuteData.expiresAt).toISOString(),
-      'X-RateLimit-Hour-Limit': requestsPerHour,
-      'X-RateLimit-Hour-Remaining': requestsPerHour - hourData.count,
-      'X-RateLimit-Hour-Reset': new Date(hourData.expiresAt).toISOString(),
-      'X-RateLimit-Day-Limit': requestsPerDay,
-      'X-RateLimit-Day-Remaining': requestsPerDay - dayData.count,
-      'X-RateLimit-Day-Reset': new Date(dayData.expiresAt).toISOString()
+      'X-RateLimit-Limit': maxRequests.toString(),
+      'X-RateLimit-Remaining': remaining.toString(),
+      'X-RateLimit-Reset': Math.floor(rateLimitData.resetTime / 1000)
     });
-    
-    next();
-  } catch (error) {
-    console.error('Erro no rate limiting:', error);
-    // Em caso de erro, permitir a requisição
-    next();
-  }
-};
 
-/**
- * Middleware de rate limiting específico para operações de escrita
- */
-const writeRateLimiter = async (req, res, next) => {
-  try {
-    if (!req.client) {
-      return res.status(401).json({
-        success: false,
-        message: 'Cliente não autenticado',
-        error: 'NOT_AUTHENTICATED'
-      });
+    // Adicionar dados de rate limit ao request para uso posterior
+    if (!req.rateLimitData) {
+      req.rateLimitData = {};
     }
-
-    // Para operações de escrita, usar limites mais restritivos
-    const clientId = req.client.id;
-    const now = Date.now();
-    
-    // Limites específicos para escrita (10% dos limites normais)
-    const writeRequestsPerMinute = Math.max(1, Math.floor(req.client.rateLimit.requestsPerMinute * 0.1));
-    const writeRequestsPerHour = Math.max(1, Math.floor(req.client.rateLimit.requestsPerHour * 0.1));
-    const writeRequestsPerDay = Math.max(1, Math.floor(req.client.rateLimit.requestsPerDay * 0.1));
-    
-    // Criar chaves específicas para escrita
-    const minuteKey = `${clientId}:write:minute:${Math.floor(now / (60 * 1000))}`;
-    const hourKey = `${clientId}:write:hour:${Math.floor(now / (60 * 60 * 1000))}`;
-    const dayKey = `${clientId}:write:day:${Math.floor(now / (24 * 60 * 60 * 1000))}`;
-    
-    // Verificar limites
-    const minuteData = rateLimitCache.get(minuteKey) || { count: 0, expiresAt: now + (60 * 1000) };
-    if (minuteData.count >= writeRequestsPerMinute) {
-      return res.status(429).json({
-        success: false,
-        message: 'Rate limit de escrita por minuto excedido',
-        error: 'WRITE_RATE_LIMIT_MINUTE_EXCEEDED',
-        limit: writeRequestsPerMinute,
-        resetTime: new Date(minuteData.expiresAt).toISOString()
-      });
-    }
-    
-    const hourData = rateLimitCache.get(hourKey) || { count: 0, expiresAt: now + (60 * 60 * 1000) };
-    if (hourData.count >= writeRequestsPerHour) {
-      return res.status(429).json({
-        success: false,
-        message: 'Rate limit de escrita por hora excedido',
-        error: 'WRITE_RATE_LIMIT_HOUR_EXCEEDED',
-        limit: writeRequestsPerHour,
-        resetTime: new Date(hourData.expiresAt).toISOString()
-      });
-    }
-    
-    const dayData = rateLimitCache.get(dayKey) || { count: 0, expiresAt: now + (24 * 60 * 60 * 1000) };
-    if (dayData.count >= writeRequestsPerDay) {
-      return res.status(429).json({
-        success: false,
-        message: 'Rate limit de escrita por dia excedido',
-        error: 'WRITE_RATE_LIMIT_DAY_EXCEEDED',
-        limit: writeRequestsPerDay,
-        resetTime: new Date(dayData.expiresAt).toISOString()
-      });
-    }
-    
-    // Incrementar contadores
-    minuteData.count++;
-    hourData.count++;
-    dayData.count++;
-    
-    rateLimitCache.set(minuteKey, minuteData);
-    rateLimitCache.set(hourKey, hourData);
-    rateLimitCache.set(dayKey, dayData);
-    
-    // Adicionar headers específicos para escrita
-    res.set({
-      'X-WriteRateLimit-Minute-Limit': writeRequestsPerMinute,
-      'X-WriteRateLimit-Minute-Remaining': writeRequestsPerMinute - minuteData.count,
-      'X-WriteRateLimit-Minute-Reset': new Date(minuteData.expiresAt).toISOString(),
-      'X-WriteRateLimit-Hour-Limit': writeRequestsPerHour,
-      'X-WriteRateLimit-Hour-Remaining': writeRequestsPerHour - hourData.count,
-      'X-WriteRateLimit-Hour-Reset': new Date(hourData.expiresAt).toISOString(),
-      'X-WriteRateLimit-Day-Limit': writeRequestsPerDay,
-      'X-WriteRateLimit-Day-Remaining': writeRequestsPerDay - dayData.count,
-      'X-WriteRateLimit-Day-Reset': new Date(dayData.expiresAt).toISOString()
-    });
-    
-    next();
-  } catch (error) {
-    console.error('Erro no rate limiting de escrita:', error);
-    next();
-  }
-};
-
-/**
- * Middleware para obter estatísticas de rate limit
- */
-const getRateLimitStats = async (req, res, next) => {
-  try {
-    if (!req.client) {
-      return res.status(401).json({
-        success: false,
-        message: 'Cliente não autenticado',
-        error: 'NOT_AUTHENTICATED'
-      });
-    }
-
-    const clientId = req.client.id;
-    const now = Date.now();
-    
-    // Obter estatísticas atuais
-    const minuteKey = `${clientId}:minute:${Math.floor(now / (60 * 1000))}`;
-    const hourKey = `${clientId}:hour:${Math.floor(now / (60 * 60 * 1000))}`;
-    const dayKey = `${clientId}:day:${Math.floor(now / (24 * 60 * 60 * 1000))}`;
-    
-    const minuteData = rateLimitCache.get(minuteKey) || { count: 0, expiresAt: now + (60 * 1000) };
-    const hourData = rateLimitCache.get(hourKey) || { count: 0, expiresAt: now + (60 * 60 * 1000) };
-    const dayData = rateLimitCache.get(dayKey) || { count: 0, expiresAt: now + (24 * 60 * 60 * 1000) };
-    
-    // Adicionar estatísticas ao request
-    req.rateLimitStats = {
-      minute: {
-        used: minuteData.count,
-        limit: req.client.rateLimit.requestsPerMinute,
-        remaining: req.client.rateLimit.requestsPerMinute - minuteData.count,
-        resetTime: new Date(minuteData.expiresAt).toISOString()
-      },
-      hour: {
-        used: hourData.count,
-        limit: req.client.rateLimit.requestsPerHour,
-        remaining: req.client.rateLimit.requestsPerHour - hourData.count,
-        resetTime: new Date(hourData.expiresAt).toISOString()
-      },
-      day: {
-        used: dayData.count,
-        limit: req.client.rateLimit.requestsPerDay,
-        remaining: req.client.rateLimit.requestsPerDay - dayData.count,
-        resetTime: new Date(dayData.expiresAt).toISOString()
-      }
+    req.rateLimitData[rateLimitKey] = {
+      count: rateLimitData.count,
+      remaining: remaining,
+      resetTime: rateLimitData.resetTime
     };
-    
+
     next();
-  } catch (error) {
-    console.error('Erro ao obter estatísticas de rate limit:', error);
-    next();
+  };
+};
+
+/**
+ * Rate limiter específico para transações blockchain
+ * 10 transações por minuto por cliente
+ */
+const transactionRateLimiter = createRateLimiter({
+  maxRequests: 10,
+  windowMs: 60 * 1000, // 1 minuto
+  keyPrefix: 'transaction_rate_limit',
+  keyGenerator: (req) => req.client?.id,
+  message: 'Limite de transações blockchain excedido. Máximo 10 transações por minuto.'
+});
+
+/**
+ * Rate limiter para API calls gerais
+ * 100 requisições por 15 minutos por cliente
+ */
+const apiRateLimiter = createRateLimiter({
+  maxRequests: 100,
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  keyPrefix: 'api_rate_limit',
+  keyGenerator: (req) => req.client?.id || req.ip,
+  message: 'Limite de requisições da API excedido. Máximo 100 requisições por 15 minutos.'
+});
+
+/**
+ * Rate limiter para login
+ * 5 tentativas por 15 minutos por IP
+ */
+const loginRateLimiter = createRateLimiter({
+  maxRequests: 5,
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  keyPrefix: 'login_rate_limit',
+  keyGenerator: (req) => req.ip,
+  message: 'Limite de tentativas de login excedido. Máximo 5 tentativas por 15 minutos.'
+});
+
+/**
+ * Rate limiter para geração de API Keys
+ * 3 por hora por cliente
+ */
+const apiKeyRateLimiter = createRateLimiter({
+  maxRequests: 3,
+  windowMs: 60 * 60 * 1000, // 1 hora
+  keyPrefix: 'api_key_rate_limit',
+  keyGenerator: (req) => req.client?.id,
+  message: 'Limite de geração de API Keys excedido. Máximo 3 por hora.'
+});
+
+/**
+ * Função para limpar dados antigos de rate limit
+ * Executar periodicamente para evitar vazamento de memória
+ */
+const cleanupRateLimitData = () => {
+  const currentTime = Date.now();
+  const keysToDelete = [];
+
+  for (const [key, data] of rateLimitStore.entries()) {
+    if (currentTime > data.resetTime) {
+      keysToDelete.push(key);
+    }
   }
+
+  keysToDelete.forEach(key => rateLimitStore.delete(key));
+  
+  if (keysToDelete.length > 0) {
+    console.log(`🧹 Limpeza de rate limit: ${keysToDelete.length} registros removidos`);
+  }
+};
+
+// Executar limpeza a cada 5 minutos
+setInterval(cleanupRateLimitData, 5 * 60 * 1000);
+
+/**
+ * Função para obter estatísticas de rate limit
+ */
+const getRateLimitStats = () => {
+  const stats = {
+    totalEntries: rateLimitStore.size,
+    entries: []
+  };
+
+  for (const [key, data] of rateLimitStore.entries()) {
+    stats.entries.push({
+      key,
+      count: data.count,
+      resetTime: new Date(data.resetTime).toISOString(),
+      isExpired: Date.now() > data.resetTime
+    });
+  }
+
+  return stats;
 };
 
 module.exports = {
-  rateLimiter,
-  writeRateLimiter,
+  createRateLimiter,
+  transactionRateLimiter,
+  apiRateLimiter,
+  loginRateLimiter,
+  apiKeyRateLimiter,
+  cleanupRateLimitData,
   getRateLimitStats
 }; 

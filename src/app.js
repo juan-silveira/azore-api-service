@@ -20,6 +20,7 @@ const adminRoutes = require('./routes/admin.routes');
 const authRoutes = require('./routes/auth.routes');
 const passwordResetRoutes = require('./routes/passwordReset.routes');
 const transactionRoutes = require('./routes/transaction.routes');
+const queueRoutes = require('./routes/queue.routes');
 
 // Importar serviços
 const contractService = require('./services/contract.service');
@@ -43,8 +44,10 @@ const {
   logAdminRequest 
 } = require('./middleware/admin.middleware');
 const { 
-  rateLimiter, 
-  writeRateLimiter, 
+  apiRateLimiter, 
+  transactionRateLimiter, 
+  loginRateLimiter,
+  apiKeyRateLimiter,
   getRateLimitStats 
 } = require('./middleware/rateLimit.middleware');
 const { 
@@ -130,21 +133,24 @@ app.use('/api/auth', authRoutes);
 app.use('/api/password-reset', passwordResetRoutes);
 
 // Rotas de usuários (com autenticação)
-app.use('/api/users', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, userRoutes);
+app.use('/api/users', authenticateApiKey, apiRateLimiter, addUserInfo, logAuthenticatedRequest, userRoutes);
 
 // Middleware de autenticação para rotas protegidas
-app.use('/api/contracts', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, contractRoutes);
+app.use('/api/contracts', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, contractRoutes);
 // Middleware de autenticação para rotas protegidas
-app.use('/api/tokens', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, tokenRoutes);
+app.use('/api/tokens', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, tokenRoutes);
 
 // Rotas de transações (com autenticação)
-app.use('/api/transactions', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, transactionRoutes);
+app.use('/api/transactions', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionRoutes);
 
 // Rotas de logs (com autenticação)
-app.use('/api/logs', authenticateApiKey, rateLimiter, addUserInfo, logAuthenticatedRequest, logRoutes);
+app.use('/api/logs', authenticateApiKey, apiRateLimiter, addUserInfo, logAuthenticatedRequest, logRoutes);
+
+// Rotas de fila (com autenticação admin)
+app.use('/api/queue', queueRoutes);
 
 // Rotas admin (com autenticação admin)
-app.use('/api/admin', authenticateApiKey, requireApiAdmin, rateLimiter, addAdminUserInfo, logAdminRequest, adminRoutes);
+app.use('/api/admin', authenticateApiKey, requireApiAdmin, apiRateLimiter, addAdminUserInfo, logAdminRequest, adminRoutes);
 
 // Middleware de tratamento de erros 404
 app.use('*', (req, res) => {
