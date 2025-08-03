@@ -100,26 +100,26 @@ const createRateLimiter = (options) => {
 
 /**
  * Rate limiter específico para transações blockchain
- * 10 transações por minuto por cliente
+ * 100 transações por minuto por cliente (aumentado para clients grandes)
  */
 const transactionRateLimiter = createRateLimiter({
-  maxRequests: 10,
+  maxRequests: 100,
   windowMs: 60 * 1000, // 1 minuto
   keyPrefix: 'transaction_rate_limit',
   keyGenerator: (req) => req.client?.id,
-  message: 'Limite de transações blockchain excedido. Máximo 10 transações por minuto.'
+  message: 'Limite de transações blockchain excedido. Máximo 100 transações por minuto.'
 });
 
 /**
  * Rate limiter para API calls gerais
- * 100 requisições por 15 minutos por cliente
+ * 1000 requisições por 15 minutos por cliente (aumentado para clients grandes)
  */
 const apiRateLimiter = createRateLimiter({
-  maxRequests: 100,
+  maxRequests: 1000,
   windowMs: 15 * 60 * 1000, // 15 minutos
   keyPrefix: 'api_rate_limit',
   keyGenerator: (req) => req.client?.id || req.ip,
-  message: 'Limite de requisições da API excedido. Máximo 100 requisições por 15 minutos.'
+  message: 'Limite de requisições da API excedido. Máximo 1000 requisições por 15 minutos.'
 });
 
 /**

@@ -125,7 +125,9 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
 
 // Rotas públicas (sem autenticação)
 app.use('/api/test', testRoutes);
-app.use('/api/clients', clientRoutes);
+
+// Rotas de clientes (com autenticação e rate limiting)
+app.use('/api/clients', authenticateApiKey, apiRateLimiter, addUserInfo, logAuthenticatedRequest, clientRoutes);
 
 // Rotas de autenticação (públicas)
 app.use('/api/auth', authRoutes);

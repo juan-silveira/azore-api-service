@@ -761,7 +761,7 @@ class UserService {
         where: { 
           clientId,
           createdAt: {
-            [this.sequelize.Op.gte]: thirtyDaysAgo
+            [this.sequelize.Sequelize.Op.gte]: thirtyDaysAgo
           }
         }
       });
@@ -771,7 +771,7 @@ class UserService {
         where: { 
           clientId,
           lastActivityAt: {
-            [this.sequelize.Op.ne]: null
+            [this.sequelize.Sequelize.Op.ne]: null
           }
         },
         order: [['lastActivityAt', 'DESC']],

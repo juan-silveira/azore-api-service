@@ -1,4 +1,5 @@
 const databaseConfig = require('../config/database');
+const { Op } = require('sequelize');
 
 class LogService {
   constructor() {
@@ -65,8 +66,8 @@ class LogService {
       const totalRequests = await this.RequestLog.count({
         where: {
           clientId,
-          createdAt: {
-            [this.sequelize.Op.gte]: startDate
+          created_at: {
+            [Op.gte]: startDate
           }
         }
       });
@@ -76,10 +77,10 @@ class LogService {
         where: {
           clientId,
           statusCode: {
-            [this.sequelize.Op.between]: [200, 299]
+            [Op.between]: [200, 299]
           },
-          createdAt: {
-            [this.sequelize.Op.gte]: startDate
+          created_at: {
+            [Op.gte]: startDate
           }
         }
       });
@@ -88,10 +89,10 @@ class LogService {
         where: {
           clientId,
           statusCode: {
-            [this.sequelize.Op.gte]: 400
+            [Op.gte]: 400
           },
-          createdAt: {
-            [this.sequelize.Op.gte]: startDate
+          created_at: {
+            [Op.gte]: startDate
           }
         }
       });
@@ -100,8 +101,8 @@ class LogService {
       const methodStats = await this.RequestLog.findAll({
         where: {
           clientId,
-          createdAt: {
-            [this.sequelize.Op.gte]: startDate
+          created_at: {
+            [Op.gte]: startDate
           }
         },
         attributes: [
@@ -116,14 +117,14 @@ class LogService {
       const endpointStats = await this.RequestLog.findAll({
         where: {
           clientId,
-          createdAt: {
-            [this.sequelize.Op.gte]: startDate
+          created_at: {
+            [Op.gte]: startDate
           }
         },
         attributes: [
           'path',
           [this.sequelize.fn('COUNT', '*'), 'count'],
-          [this.sequelize.fn('AVG', this.sequelize.col('responseTime')), 'avgResponseTime']
+          [this.sequelize.fn('AVG', this.sequelize.col('response_time')), 'avgResponseTime']
         ],
         group: ['path'],
         order: [[this.sequelize.fn('COUNT', '*'), 'DESC']],
@@ -134,12 +135,12 @@ class LogService {
       const avgResponseTime = await this.RequestLog.findOne({
         where: {
           clientId,
-          createdAt: {
-            [this.sequelize.Op.gte]: startDate
+          created_at: {
+            [Op.gte]: startDate
           }
         },
         attributes: [
-          [this.sequelize.fn('AVG', this.sequelize.col('responseTime')), 'avgResponseTime']
+          [this.sequelize.fn('AVG', this.sequelize.col('response_time')), 'avgResponseTime']
         ]
       });
 
@@ -147,16 +148,16 @@ class LogService {
       const hourlyStats = await this.RequestLog.findAll({
         where: {
           clientId,
-          createdAt: {
-            [this.sequelize.Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000)
+          created_at: {
+            [Op.gte]: new Date(Date.now() - 24 * 60 * 60 * 1000)
           }
         },
         attributes: [
-          [this.sequelize.fn('DATE_TRUNC', 'hour', this.sequelize.col('createdAt')), 'hour'],
+          [this.sequelize.fn('DATE_TRUNC', 'hour', this.sequelize.col('created_at')), 'hour'],
           [this.sequelize.fn('COUNT', '*'), 'count']
         ],
-        group: [this.sequelize.fn('DATE_TRUNC', 'hour', this.sequelize.col('createdAt'))],
-        order: [[this.sequelize.fn('DATE_TRUNC', 'hour', this.sequelize.col('createdAt')), 'ASC']]
+        group: [this.sequelize.fn('DATE_TRUNC', 'hour', this.sequelize.col('created_at'))],
+        order: [[this.sequelize.fn('DATE_TRUNC', 'hour', this.sequelize.col('created_at')), 'ASC']]
       });
 
       return {
@@ -219,16 +220,16 @@ class LogService {
       if (statusCode) where.statusCode = statusCode;
 
       if (startDate || endDate) {
-        where.createdAt = {};
-        if (startDate) where.createdAt.$gte = new Date(startDate);
-        if (endDate) where.createdAt.$lte = new Date(endDate);
+        where.created_at = {};
+        if (startDate) where.created_at.$gte = new Date(startDate);
+        if (endDate) where.created_at.$lte = new Date(endDate);
       }
 
       if (search) {
-        where[this.sequelize.Op.or] = [
-          { path: { [this.sequelize.Op.iLike]: `%${search}%` } },
-          { ipAddress: { [this.sequelize.Op.iLike]: `%${search}%` } },
-          { userAgent: { [this.sequelize.Op.iLike]: `%${search}%` } }
+        where[Op.or] = [
+          { path: { [Op.iLike]: `%${search}%` } },
+          { ipAddress: { [Op.iLike]: `%${search}%` } },
+          { userAgent: { [Op.iLike]: `%${search}%` } }
         ];
       }
 
@@ -236,7 +237,7 @@ class LogService {
         where,
         limit: parseInt(limit),
         offset: parseInt(offset),
-        order: [['createdAt', 'DESC']]
+        order: [['created_at', 'DESC']]
       });
 
       return {
@@ -282,16 +283,16 @@ class LogService {
       if (transactionType) where.transactionType = transactionType;
 
       if (startDate || endDate) {
-        where.createdAt = {};
-        if (startDate) where.createdAt.$gte = new Date(startDate);
-        if (endDate) where.createdAt.$lte = new Date(endDate);
+        where.created_at = {};
+        if (startDate) where.created_at.$gte = new Date(startDate);
+        if (endDate) where.created_at.$lte = new Date(endDate);
       }
 
       const { count, rows } = await this.Transaction.findAndCountAll({
         where,
         limit: parseInt(limit),
         offset: parseInt(offset),
-        order: [['createdAt', 'DESC']]
+        order: [['created_at', 'DESC']]
       });
 
       return {
@@ -503,8 +504,8 @@ class LogService {
       // Limpar logs de requisições antigas
       const deletedRequests = await this.RequestLog.destroy({
         where: {
-          createdAt: {
-            [this.sequelize.Op.lt]: cutoffDate
+          created_at: {
+            [Op.lt]: cutoffDate
           }
         }
       });
@@ -512,11 +513,11 @@ class LogService {
       // Limpar transações antigas (apenas as confirmadas ou falhadas)
       const deletedTransactions = await this.Transaction.destroy({
         where: {
-          createdAt: {
-            [this.sequelize.Op.lt]: cutoffDate
+          created_at: {
+            [Op.lt]: cutoffDate
           },
           status: {
-            [this.sequelize.Op.in]: ['confirmed', 'failed', 'cancelled']
+            [Op.in]: ['confirmed', 'failed', 'cancelled']
           }
         }
       });
@@ -551,9 +552,9 @@ class LogService {
       const where = {};
 
       if (startDate || endDate) {
-        where.createdAt = {};
-        if (startDate) where.createdAt.$gte = new Date(startDate);
-        if (endDate) where.createdAt.$lte = new Date(endDate);
+        where.created_at = {};
+        if (startDate) where.created_at.$gte = new Date(startDate);
+        if (endDate) where.created_at.$lte = new Date(endDate);
       }
 
       if (clientId) where.clientId = clientId;
@@ -561,12 +562,12 @@ class LogService {
 
       const requestLogs = await this.RequestLog.findAll({
         where,
-        order: [['createdAt', 'DESC']]
+        order: [['created_at', 'DESC']]
       });
 
       const transactions = await this.Transaction.findAll({
         where,
-        order: [['createdAt', 'DESC']]
+        order: [['created_at', 'DESC']]
       });
 
       const exportData = {
@@ -607,16 +608,16 @@ class LogService {
       if (resourceType) where.resourceType = resourceType;
       if (statusCode) where.statusCode = statusCode;
       if (startDate || endDate) {
-        where.createdAt = {};
-        if (startDate) where.createdAt[this.sequelize.Op.gte] = new Date(startDate);
-        if (endDate) where.createdAt[this.sequelize.Op.lte] = new Date(endDate);
+        where.created_at = {};
+        if (startDate) where.created_at[Op.gte] = new Date(startDate);
+        if (endDate) where.created_at[Op.lte] = new Date(endDate);
       }
       
       const { count, rows } = await this.RequestLog.findAndCountAll({
         where,
         limit: parseInt(limit),
         offset: parseInt(offset),
-        order: [['createdAt', 'DESC']],
+        order: [['created_at', 'DESC']],
         include: [
           { model: this.Client, as: 'client', attributes: ['id', 'name'] },
           { model: global.models.User, as: 'user', attributes: ['id', 'name', 'email'] }
@@ -660,16 +661,16 @@ class LogService {
       if (network) where.network = network;
       if (transactionType) where.transactionType = transactionType;
       if (startDate || endDate) {
-        where.createdAt = {};
-        if (startDate) where.createdAt[this.sequelize.Op.gte] = new Date(startDate);
-        if (endDate) where.createdAt[this.sequelize.Op.lte] = new Date(endDate);
+        where.created_at = {};
+        if (startDate) where.created_at[Op.gte] = new Date(startDate);
+        if (endDate) where.created_at[Op.lte] = new Date(endDate);
       }
       
       const { count, rows } = await this.Transaction.findAndCountAll({
         where,
         limit: parseInt(limit),
         offset: parseInt(offset),
-        order: [['createdAt', 'DESC']],
+        order: [['created_at', 'DESC']],
         include: [
           { model: this.Client, as: 'client', attributes: ['id', 'name'] },
           { model: global.models.User, as: 'user', attributes: ['id', 'name', 'email'] }
@@ -709,9 +710,9 @@ class LogService {
       const where = { userId };
       
       if (startDate || endDate) {
-        where.createdAt = {};
-        if (startDate) where.createdAt[this.sequelize.Op.gte] = new Date(startDate);
-        if (endDate) where.createdAt[this.sequelize.Op.lte] = new Date(endDate);
+        where.created_at = {};
+        if (startDate) where.created_at[this.sequelize.Sequelize.Op.gte] = new Date(startDate);
+        if (endDate) where.created_at[this.sequelize.Sequelize.Op.lte] = new Date(endDate);
       }
       
       // Estatísticas de requisições
@@ -731,9 +732,9 @@ class LogService {
       if (network) transactionWhere.network = network;
       if (transactionType) transactionWhere.transactionType = transactionType;
       if (startDate || endDate) {
-        transactionWhere.createdAt = {};
-        if (startDate) transactionWhere.createdAt[this.sequelize.Op.gte] = new Date(startDate);
-        if (endDate) transactionWhere.createdAt[this.sequelize.Op.lte] = new Date(endDate);
+        transactionWhere.created_at = {};
+        if (startDate) transactionWhere.created_at[this.sequelize.Sequelize.Op.gte] = new Date(startDate);
+        if (endDate) transactionWhere.created_at[this.sequelize.Sequelize.Op.lte] = new Date(endDate);
       }
       
       const transactionStats = await this.Transaction.findAll({
@@ -795,7 +796,7 @@ class LogService {
         method: 'GET',
         path: '/api/test',
         statusCode: 200,
-        responseTime: 150,
+        response_time: 150,
         ipAddress: '127.0.0.1',
         userAgent: 'Test Agent'
       });

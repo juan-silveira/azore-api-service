@@ -189,8 +189,23 @@ class ClientService {
    */
   async updateRateLimits(id, rateLimit) {
     try {
-      // Validar rate limits
-      this.Client.build({ rateLimit }).validate();
+      // Validar rate limits manualmente
+      const requiredLimits = ['requestsPerMinute', 'requestsPerHour', 'requestsPerDay'];
+      
+      for (const limit of requiredLimits) {
+        if (typeof rateLimit[limit] !== 'number' || rateLimit[limit] < 1) {
+          throw new Error(`Rate limit '${limit}' deve ser um número maior que 0`);
+        }
+      }
+      
+      // Validar hierarquia dos limites
+      if (rateLimit.requestsPerMinute > rateLimit.requestsPerHour) {
+        throw new Error('requestsPerMinute não pode ser maior que requestsPerHour');
+      }
+      
+      if (rateLimit.requestsPerHour > rateLimit.requestsPerDay) {
+        throw new Error('requestsPerHour não pode ser maior que requestsPerDay');
+      }
 
       const [updated] = await this.Client.updateClient(id, { rateLimit });
       

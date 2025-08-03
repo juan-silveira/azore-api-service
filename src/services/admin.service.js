@@ -61,14 +61,20 @@ class AdminService {
       let adminUser = await User.findByEmail(adminConfig.email);
       
       if (adminUser) {
-        console.log('Usuário admin já existe, atualizando senha...');
+        console.log('Usuário admin já existe, verificando se precisa atualizar senha...');
         
-        // Atualizar senha
-        adminUser.password = adminConfig.password;
-        adminUser.isFirstAccess = true;
-        await adminUser.save();
-        
-        console.log('Senha do usuário admin atualizada com sucesso');
+        // Verificar se a senha mudou
+        const isValidPassword = await adminUser.verifyPassword(adminConfig.password);
+        if (!isValidPassword) {
+          console.log('Senha do admin mudou, atualizando...');
+          // Atualizar senha
+          adminUser.password = adminConfig.password;
+          // Não alterar isFirstAccess aqui, manter o valor atual
+          await adminUser.save();
+          console.log('Senha do usuário admin atualizada com sucesso');
+        } else {
+          console.log('Senha do admin não mudou, mantendo configuração atual');
+        }
       } else {
         console.log('Criando usuário admin padrão...');
         

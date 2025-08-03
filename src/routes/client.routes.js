@@ -115,7 +115,7 @@ router.get('/', authMiddleware.authenticateApiKey, authMiddleware.requireApiAdmi
  * @swagger
  * /api/clients/{id}:
  *   get:
- *     summary: Obtém um cliente por ID
+ *     summary: Obtém um cliente por ID (acessível pelo próprio cliente)
  *     tags: [Clients]
  *     security:
  *       - ApiKeyAuth: []
@@ -134,6 +134,8 @@ router.get('/', authMiddleware.authenticateApiKey, authMiddleware.requireApiAdmi
  *         description: Cliente não encontrado
  *       401:
  *         description: Não autorizado
+ *       403:
+ *         description: Acesso negado (só pode ver próprio cliente)
  */
 router.get('/:id', authMiddleware.authenticateApiKey, clientController.getClientById);
 
@@ -264,7 +266,7 @@ router.put('/:id/rate-limits', authMiddleware.authenticateApiKey, authMiddleware
  * @swagger
  * /api/clients/{id}/usage-stats:
  *   get:
- *     summary: Obtém estatísticas de uso de um cliente
+ *     summary: Obtém estatísticas de uso de um cliente (acessível pelo próprio cliente)
  *     tags: [Clients]
  *     security:
  *       - ApiKeyAuth: []
@@ -283,6 +285,8 @@ router.put('/:id/rate-limits', authMiddleware.authenticateApiKey, authMiddleware
  *         description: Erro ao obter estatísticas
  *       401:
  *         description: Não autorizado
+ *       403:
+ *         description: Acesso negado (só pode ver próprio cliente)
  */
 router.get('/:id/usage-stats', authMiddleware.authenticateApiKey, clientController.getClientUsageStats);
 
@@ -290,7 +294,7 @@ router.get('/:id/usage-stats', authMiddleware.authenticateApiKey, clientControll
  * @swagger
  * /api/clients/{id}/users:
  *   get:
- *     summary: Lista usuários de um cliente
+ *     summary: Lista usuários de um cliente (acessível pelo próprio cliente)
  *     tags: [Clients]
  *     security:
  *       - ApiKeyAuth: []
@@ -331,6 +335,8 @@ router.get('/:id/usage-stats', authMiddleware.authenticateApiKey, clientControll
  *         description: Parâmetros inválidos
  *       401:
  *         description: Não autorizado
+ *       403:
+ *         description: Acesso negado (só pode ver próprio cliente)
  */
 router.get('/:id/users', authMiddleware.authenticateApiKey, clientController.getClientUsers);
 
