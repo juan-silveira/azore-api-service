@@ -118,7 +118,14 @@ class BlockchainConfig {
   async getBlock(blockNumber = 'latest', network = this.defaultNetwork) {
     try {
       const provider = this.getProvider(network);
-      const block = await provider.getBlock(blockNumber);
+      
+      // Converter o número do bloco para o formato correto
+      let blockParam = blockNumber;
+      if (blockNumber !== 'latest' && blockNumber !== 'earliest' && blockNumber !== 'pending') {
+        blockParam = parseInt(blockNumber);
+      }
+      
+      const block = await provider.getBlock(blockParam);
       
       if (!block) {
         throw new Error('Bloco não encontrado');

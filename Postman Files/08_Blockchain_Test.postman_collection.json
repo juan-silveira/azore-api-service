@@ -44,9 +44,9 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/test/blockchain/connection",
+          "raw": "{{base_url}}/api/test/connection",
           "host": ["{{base_url}}"],
-          "path": ["api", "test", "blockchain", "connection"]
+          "path": ["api", "test", "connection"]
         }
       },
       "response": []
@@ -62,9 +62,9 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/test/blockchain/network-info",
+          "raw": "{{base_url}}/api/test/network-info",
           "host": ["{{base_url}}"],
-          "path": ["api", "test", "blockchain", "network-info"]
+          "path": ["api", "test", "network-info"]
         }
       },
       "response": []
@@ -80,9 +80,9 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/test/blockchain/latest-block",
+          "raw": "{{base_url}}/api/test/block/latest",
           "host": ["{{base_url}}"],
-          "path": ["api", "test", "blockchain", "latest-block"]
+          "path": ["api", "test", "block", "latest"]
         }
       },
       "response": []
@@ -98,9 +98,9 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/test/blockchain/blocks/{{block_number}}",
+          "raw": "{{base_url}}/api/test/blocks/{{block_number}}",
           "host": ["{{base_url}}"],
-          "path": ["api", "test", "blockchain", "blocks", "{{block_number}}"]
+          "path": ["api", "test", "blocks", "{{block_number}}"]
         }
       },
       "response": []
@@ -116,9 +116,9 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/test/blockchain/transactions/{{transaction_hash}}",
+          "raw": "{{base_url}}/api/test/transactions/{{transaction_hash}}",
           "host": ["{{base_url}}"],
-          "path": ["api", "test", "blockchain", "transactions", "{{transaction_hash}}"]
+          "path": ["api", "test", "transactions", "{{transaction_hash}}"]
         }
       },
       "response": []
@@ -134,9 +134,9 @@
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/test/blockchain/wallets/{{wallet_address}}/balance",
+          "raw": "{{base_url}}/api/test/wallets/{{wallet_address}}/balance",
           "host": ["{{base_url}}"],
-          "path": ["api", "test", "blockchain", "wallets", "{{wallet_address}}", "balance"]
+          "path": ["api", "test", "wallets", "{{wallet_address}}", "balance"]
         }
       },
       "response": []

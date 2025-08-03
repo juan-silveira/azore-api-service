@@ -123,17 +123,17 @@ class TestController {
    */
   async getTransaction(req, res) {
     try {
-      const { txHash } = req.params;
+      const { transactionHash } = req.params;
       const { network } = req.query;
 
-      if (!txHash) {
+      if (!transactionHash) {
         return res.status(400).json({
           success: false,
           message: 'Hash da transação é obrigatório'
         });
       }
 
-      const transaction = await blockchainService.getTransaction(txHash, network);
+      const transaction = await blockchainService.getTransaction(transactionHash, network);
       
       res.json({
         success: true,
@@ -192,6 +192,169 @@ class TestController {
       res.status(500).json({
         success: false,
         message: 'Erro ao obter informações da rede',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Obtém o bloco mais recente
+   * @param {Object} req - Request object
+   * @param {Object} res - Response object
+   */
+  async getLatestBlock(req, res) {
+    try {
+      const { network } = req.query;
+      const block = await blockchainService.getBlock('latest', network);
+      
+      res.json({
+        success: true,
+        message: 'Informações do bloco mais recente obtidas com sucesso',
+        data: block
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Erro ao obter informações do bloco mais recente',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Consulta o saldo de uma carteira
+   * @param {Object} req - Request object
+   * @param {Object} res - Response object
+   */
+  async getWalletBalance(req, res) {
+    try {
+      const { walletAddress } = req.params;
+      const { network } = req.query;
+
+      if (!walletAddress) {
+        return res.status(400).json({
+          success: false,
+          message: 'Endereço da carteira é obrigatório'
+        });
+      }
+
+      const balance = await blockchainService.getBalance(walletAddress, network);
+      
+      res.json({
+        success: true,
+        message: 'Saldo da carteira consultado com sucesso',
+        data: balance
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao consultar saldo da carteira',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Obtém informações detalhadas de uma transação usando AzoreScan
+   * @param {Object} req - Request object
+   * @param {Object} res - Response object
+   */
+  async getTransactionDetails(req, res) {
+    try {
+      const { transactionHash } = req.params;
+      const { network } = req.query;
+
+      if (!transactionHash) {
+        return res.status(400).json({
+          success: false,
+          message: 'Hash da transação é obrigatório'
+        });
+      }
+
+      const transaction = await blockchainService.getTransactionDetails(transactionHash, network);
+      
+      res.json({
+        success: true,
+        message: 'Informações detalhadas da transação obtidas com sucesso',
+        data: transaction
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao obter informações detalhadas da transação',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Obtém informações detalhadas de um bloco usando AzoreScan
+   * @param {Object} req - Request object
+   * @param {Object} res - Response object
+   */
+  async getBlockDetails(req, res) {
+    try {
+      const { blockNumber } = req.params;
+      const { network } = req.query;
+
+      if (!blockNumber) {
+        return res.status(400).json({
+          success: false,
+          message: 'Número do bloco é obrigatório'
+        });
+      }
+
+      const block = await blockchainService.getBlockDetails(blockNumber, network);
+      
+      res.json({
+        success: true,
+        message: 'Informações detalhadas do bloco obtidas com sucesso',
+        data: block
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao obter informações detalhadas do bloco',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Obtém saldos de múltiplos endereços
+   * @param {Object} req - Request object
+   * @param {Object} res - Response object
+   */
+  async getMultipleBalances(req, res) {
+    try {
+      const { addresses } = req.body;
+      const { network } = req.query;
+
+      if (!addresses || !Array.isArray(addresses) || addresses.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Lista de endereços é obrigatória'
+        });
+      }
+
+      if (addresses.length > 20) {
+        return res.status(400).json({
+          success: false,
+          message: 'Máximo de 20 endereços por consulta'
+        });
+      }
+
+      const balances = await blockchainService.getMultipleBalances(addresses, network);
+      
+      res.json({
+        success: true,
+        message: 'Saldos consultados com sucesso',
+        data: balances
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        message: 'Erro ao consultar saldos múltiplos',
         error: error.message
       });
     }

@@ -1,6 +1,9 @@
 const { ethers } = require('ethers');
 const blockchainConfig = require('../config/blockchain');
 
+// Import fetch para Node.js (disponível a partir do Node.js 18)
+const fetch = globalThis.fetch || require('node-fetch');
+
 class BlockchainService {
   constructor() {
     this.config = blockchainConfig;
@@ -86,20 +89,20 @@ class BlockchainService {
       const receipt = await provider.getTransactionReceipt(txHash);
 
       return {
-        hash: tx.hash,
-        from: tx.from,
-        to: tx.to,
-        value: tx.value.toString(),
-        valueEth: ethers.formatEther(tx.value),
-        gasPrice: tx.gasPrice.toString(),
-        gasLimit: tx.gasLimit.toString(),
-        nonce: tx.nonce,
-        data: tx.data,
-        blockNumber: tx.blockNumber,
-        confirmations: tx.confirmations,
+        hash: tx.hash || '',
+        from: tx.from || '',
+        to: tx.to || '',
+        value: tx.value ? tx.value.toString() : '0',
+        valueEth: tx.value ? ethers.formatEther(tx.value) : '0',
+        gasPrice: tx.gasPrice ? tx.gasPrice.toString() : '0',
+        gasLimit: tx.gasLimit ? tx.gasLimit.toString() : '0',
+        nonce: tx.nonce || 0,
+        data: tx.data || '',
+        blockNumber: tx.blockNumber || null,
+        confirmations: tx.confirmations || 0,
         status: receipt ? (receipt.status === 1 ? 'success' : 'failed') : 'pending',
-        gasUsed: receipt ? receipt.gasUsed.toString() : null,
-        effectiveGasPrice: receipt ? receipt.effectiveGasPrice.toString() : null,
+        gasUsed: receipt && receipt.gasUsed ? receipt.gasUsed.toString() : null,
+        effectiveGasPrice: receipt && receipt.effectiveGasPrice ? receipt.effectiveGasPrice.toString() : null,
         network: network || this.config.defaultNetwork
       };
     } catch (error) {
@@ -174,6 +177,103 @@ class BlockchainService {
    */
   weiToEth(weiValue) {
     return ethers.formatEther(weiValue.toString());
+  }
+
+  /**
+   * Obtém informações detalhadas de uma transação usando a API do AzoreScan
+   * @param {string} txHash - Hash da transação
+   * @param {string} network - Rede para consultar
+   * @returns {Promise<Object>} Informações detalhadas da transação
+   */
+  async getTransactionDetails(txHash, network = this.config.defaultNetwork) {
+    try {
+      const baseUrl = network === 'mainnet' 
+        ? 'https://azorescan.com/api' 
+        : 'https://floripa.azorescan.com/api';
+      
+      const response = await fetch(`${baseUrl}?module=transaction&action=gettxinfo&txhash=${txHash}`);
+      const data = await response.json();
+
+      if (data.status === '1' && data.result) {
+        return {
+          ...data.result,
+          network: network
+        };
+      } else {
+        throw new Error(data.message || 'Transação não encontrada');
+      }
+    } catch (error) {
+      throw new Error(`Erro ao obter detalhes da transação: ${error.message}`);
+    }
+  }
+
+  /**
+   * Obtém informações detalhadas de um bloco usando a API do AzoreScan
+   * @param {string} blockNumber - Número do bloco
+   * @param {string} network - Rede para consultar
+   * @returns {Promise<Object>} Informações detalhadas do bloco
+   */
+  async getBlockDetails(blockNumber, network = this.config.defaultNetwork) {
+    try {
+      const baseUrl = network === 'mainnet' 
+        ? 'https://azorescan.com/api' 
+        : 'https://floripa.azorescan.com/api';
+      
+      const response = await fetch(`${baseUrl}?module=block&action=getblocknobytime&timestamp=${Date.now() / 1000}&closest=before`);
+      const data = await response.json();
+
+      // Para obter informações específicas do bloco, usamos o provider ethers
+      const provider = this.config.getProvider(network);
+      const block = await provider.getBlock(blockNumber);
+      
+      if (!block) {
+        throw new Error('Bloco não encontrado');
+      }
+
+      return {
+        number: block.number,
+        hash: block.hash,
+        timestamp: block.timestamp,
+        transactions: block.transactions.length,
+        gasLimit: block.gasLimit.toString(),
+        gasUsed: block.gasUsed.toString(),
+        miner: block.miner,
+        difficulty: block.difficulty?.toString(),
+        totalDifficulty: block.totalDifficulty?.toString(),
+        network: network
+      };
+    } catch (error) {
+      throw new Error(`Erro ao obter detalhes do bloco: ${error.message}`);
+    }
+  }
+
+  /**
+   * Obtém o saldo de múltiplos endereços usando a API do AzoreScan
+   * @param {string[]} addresses - Array de endereços
+   * @param {string} network - Rede para consultar
+   * @returns {Promise<Object>} Saldos dos endereços
+   */
+  async getMultipleBalances(addresses, network = this.config.defaultNetwork) {
+    try {
+      const baseUrl = network === 'mainnet' 
+        ? 'https://azorescan.com/api' 
+        : 'https://floripa.azorescan.com/api';
+      
+      const addressList = addresses.join(',');
+      const response = await fetch(`${baseUrl}?module=account&action=balancemulti&address=${addressList}`);
+      const data = await response.json();
+
+      if (data.status === '1' && data.result) {
+        return {
+          balances: data.result,
+          network: network
+        };
+      } else {
+        throw new Error(data.message || 'Erro ao consultar saldos');
+      }
+    } catch (error) {
+      throw new Error(`Erro ao obter saldos múltiplos: ${error.message}`);
+    }
   }
 }
 
