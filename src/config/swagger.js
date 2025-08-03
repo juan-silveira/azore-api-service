@@ -6,7 +6,7 @@ const options = {
     info: {
       title: 'Azore Blockchain API',
       version: '2.0.0',
-      description: 'API para interação com a blockchain Azore - Gerenciamento de carteiras, contratos inteligentes e transações com sistema RBAC (Role-Based Access Control)\n\n## 🔐 Sistema de Roles\n\n- **API_ADMIN**: Administrador global da plataforma\n- **CLIENT_ADMIN**: Administrador de um client específico\n- **USER**: Usuário comum\n\n## 🆕 Novas Funcionalidades\n\n- Sistema de RBAC (API_ADMIN e CLIENT_ADMIN)\n- Gerenciamento de API Keys (gerar, revogar, editar)\n- Concessão de roles em contratos (MINTER, BURNER, TRANSFER)\n- Controle granular de acesso por role',
+      description: 'API para interação com a blockchain Azore - Gerenciamento de carteiras, contratos inteligentes e transações com sistema RBAC (Role-Based Access Control) e sistema de fila RabbitMQ para processamento assíncrono de transações blockchain.\n\n## 🔐 Sistema de Roles\n\n- **API_ADMIN**: Administrador global da plataforma\n- **CLIENT_ADMIN**: Administrador de um client específico\n- **USER**: Usuário comum\n\n## 🆕 Novas Funcionalidades\n\n- Sistema de RBAC (API_ADMIN e CLIENT_ADMIN)\n- Sistema de Fila RabbitMQ para transações blockchain\n- Rate Limiting inteligente por tipo de operação\n- Gerenciamento de API Keys (gerar, revogar, editar)\n- Concessão de roles em contratos (MINTER, BURNER, TRANSFER)\n- Controle granular de acesso por role\n- Monitoramento de filas em tempo real\n\n## ⚠️ Rate Limiting\n\n- **Transações Blockchain**: 10 por minuto por cliente\n- **API Calls Gerais**: 100 por 15 minutos por cliente\n- **Login**: 5 tentativas por 15 minutos por IP\n- **API Keys**: 3 por hora por cliente',
       contact: {
         name: 'Azore Blockchain Service',
         email: 'support@azore.technology'
@@ -48,6 +48,45 @@ const options = {
             status: {
               type: 'integer',
               description: 'Código de status HTTP'
+            }
+          }
+        },
+        RateLimitError: {
+          type: 'object',
+          properties: {
+            success: {
+              type: 'boolean',
+              example: false
+            },
+            message: {
+              type: 'string',
+              description: 'Mensagem de erro de rate limit'
+            },
+            data: {
+              type: 'object',
+              properties: {
+                limit: {
+                  type: 'integer',
+                  description: 'Limite de requisições'
+                },
+                remaining: {
+                  type: 'integer',
+                  description: 'Requisições restantes'
+                },
+                resetTime: {
+                  type: 'string',
+                  format: 'date-time',
+                  description: 'Data/hora de reset do rate limit'
+                },
+                timeUntilReset: {
+                  type: 'integer',
+                  description: 'Segundos até o reset'
+                },
+                retryAfter: {
+                  type: 'integer',
+                  description: 'Segundos para aguardar antes de tentar novamente'
+                }
+              }
             }
           }
         },
@@ -282,6 +321,81 @@ const options = {
             }
           }
         },
+        QueueJob: {
+          type: 'object',
+          properties: {
+            jobId: {
+              type: 'string',
+              format: 'uuid',
+              description: 'ID único do job'
+            },
+            status: {
+              type: 'string',
+              enum: ['queued', 'processing', 'completed', 'failed'],
+              description: 'Status do job'
+            },
+            type: {
+              type: 'string',
+              description: 'Tipo da transação'
+            },
+            timestamp: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Timestamp de criação'
+            },
+            estimatedProcessingTime: {
+              type: 'string',
+              description: 'Tempo estimado de processamento'
+            },
+            rateLimit: {
+              type: 'object',
+              properties: {
+                limit: {
+                  type: 'integer',
+                  description: 'Limite de requisições'
+                },
+                remaining: {
+                  type: 'integer',
+                  description: 'Requisições restantes'
+                },
+                resetTime: {
+                  type: 'string',
+                  format: 'date-time',
+                  description: 'Data/hora de reset'
+                }
+              }
+            }
+          }
+        },
+        QueueStats: {
+          type: 'object',
+          properties: {
+            totalJobs: {
+              type: 'integer',
+              description: 'Total de jobs'
+            },
+            completedJobs: {
+              type: 'integer',
+              description: 'Jobs completados'
+            },
+            failedJobs: {
+              type: 'integer',
+              description: 'Jobs que falharam'
+            },
+            processingJobs: {
+              type: 'integer',
+              description: 'Jobs em processamento'
+            },
+            queuedJobs: {
+              type: 'integer',
+              description: 'Jobs enfileirados'
+            },
+            averageProcessingTime: {
+              type: 'number',
+              description: 'Tempo médio de processamento em segundos'
+            }
+          }
+        },
         ApiKeyRequest: {
           type: 'object',
           properties: {
@@ -458,6 +572,14 @@ const options = {
       {
         name: 'Tokens',
         description: 'Gerenciamento de tokens'
+      },
+      {
+        name: 'Transactions',
+        description: 'Sistema de fila para transações blockchain'
+      },
+      {
+        name: 'Queue',
+        description: 'Monitoramento e gerenciamento de filas RabbitMQ (apenas para API_ADMIN)'
       },
       {
         name: 'Logs',

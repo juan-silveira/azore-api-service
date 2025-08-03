@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "azore-blockchain-api-final",
-		"name": "Azore_API",
-		"description": "Coleção completa para testar a API Azore Blockchain Service\n\nInclui todos os endpoints:\n- Health Check e Informações\n- Testes da Blockchain\n- 🔐 Autenticação e Sessões (com múltiplas API Keys)\n- Gerenciamento de Usuários\n- Rotas Admin (API_ADMIN)\n- 📄 Gerenciamento de Contratos (3 rotas de roles)\n- 🪙 Gerenciamento de Tokens (completo)\n- 📊 Sistema de Logs Completo\n\nATUALIZAÇÕES RECENTES:\n- ✅ Refatoração do Gerenciamento de Contratos: Removidas 13 rotas obsoletas\n- ✅ Gerenciamento de Tokens expandido: 6 novas rotas adicionadas\n- ✅ Roles simplificadas: grant-role, revoke-role e has-role\n- ✅ Campo adminPublicKey obrigatório em grant-role e revoke-role\n- ✅ Campo adminPublicKey obrigatório no registro de tokens\n- ✅ Metadados de tokens: website, description, explorer automático\n- ✅ Listagem de tokens com paginação e filtros\n- ✅ Ativação/desativação de tokens\n- ✅ Atualização de metadados de tokens\n- ✅ Banco de dados atualizado: Removidas colunas deployed_by/deployed_at\n- ✅ Removidas todas as referências ao Wallet (usa apenas User.publicKey)\n\nROTAS DE ROLES DISPONÍVEIS:\n- POST /api/contracts/{address}/grant-role: Concede roles (role, targetAddress, adminPublicKey)\n- POST /api/contracts/{address}/revoke-role: Revoga roles (role, targetAddress, adminPublicKey)\n- POST /api/contracts/{address}/has-role: Verifica roles (role, targetAddress)\n\nROTAS REMOVIDAS DO CONTRATOS:\n- Criar Contrato, Listar Contratos, Obter Contrato por ID\n- Atualizar Contrato, Deletar Contrato\n- Conceder Role MINTER/BURNER/TRANSFER/Admin\n- Listar Tokens Padrão, Obter Informações do Token\n- Atualizar Metadados do Token\n\nNOVAS ROTAS DE TOKENS:\n- Listar Tokens: Lista todos os tokens com filtros\n- Desativar Token: Muda status para inativo\n- Ativar Token: Muda status para ativo\n- Atualizar Informações: Atualiza metadados\n\nROLES DISPONÍVEIS:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nIMPLEMENTAÇÃO SIMPLIFICADA:\n- Baseada na lib externa: contract.grantRole(roleHash, targetAddress)\n- Baseada na lib externa: contract.revokeRole(roleHash, targetAddress)\n- Baseada na lib externa: contract.hasRole(roleHash, targetAddress)\n- AdminPublicKey sempre paga pelas transações\n- Removidas validações complexas de admin\n\nPara usar:\n1. Importe esta coleção no Postman\n2. Configure a variável de ambiente 'base_url' como 'http://localhost:8800'\n3. Para rotas que requerem session token, faça login primeiro\n4. Use as rotas de API Keys para gerenciar suas chaves de acesso\n5. Use diferentes API Keys para testar diferentes níveis de acesso\n6. Configure as variáveis user_id, tx_hash e admin_public_key para testar rotas específicas",
+		"_postman_id": "azore-blockchain-api-v2",
+		"name": "Azore Blockchain API v2.0",
+		"description": "Coleção completa para testar a API Azore Blockchain Service v2.0\n\n## 🆕 NOVAS FUNCIONALIDADES v2.0\n\n### 🔄 Sistema de Fila RabbitMQ\n- Processamento assíncrono de transações blockchain\n- Garantia de execução de todas as transações\n- Monitoramento em tempo real\n- Retry automático e Dead Letter Queue\n\n### ⚠️ Rate Limiting Inteligente\n- **Transações Blockchain**: 10 por minuto por cliente\n- **API Calls Gerais**: 100 por 15 minutos por cliente\n- **Login**: 5 tentativas por 15 minutos por IP\n- **API Keys**: 3 por hora por cliente\n\n### 📊 Monitoramento de Filas\n- Estatísticas em tempo real\n- Jobs em processamento\n- Jobs que falharam\n- Métricas de performance\n\n## 🔐 Sistema de Roles\n- **API_ADMIN**: Administrador global da plataforma\n- **CLIENT_ADMIN**: Administrador de um client específico\n- **USER**: Usuário comum\n\n## 📋 ENDPOINTS INCLUÍDOS\n- Health Check e Informações\n- 🔐 Autenticação e Sessões\n- Gerenciamento de API Keys\n- Gerenciamento de Usuários\n- Rotas Admin (API_ADMIN)\n- 📄 Gerenciamento de Contratos\n- 🪙 Gerenciamento de Tokens\n- 🔄 Sistema de Fila para Transações\n- 📊 Monitoramento de Filas\n- 📊 Sistema de Logs\n\n## 🚀 COMO USAR\n1. Importe esta coleção no Postman\n2. Configure a variável de ambiente 'base_url' como 'http://localhost:8800'\n3. Use as API Keys fornecidas para testar diferentes níveis de acesso\n4. Para transações blockchain, use o sistema de fila\n5. Monitore as filas em tempo real\n\n## ⚠️ RATE LIMITING\n- Respeite os limites para evitar bloqueios temporários\n- Verifique os headers X-RateLimit-* nas respostas\n- Implemente retry com backoff em caso de 429\n\n## 🔑 API KEYS DE TESTE\n- **API_ADMIN**: navi_api_key_2024_complete_admin_full_access\n- **CLIENT_ADMIN**: coinage_api_key_2024_admin_full_access",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -56,7 +56,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@azore.technology\",\n  \"password\": \"azore@admin123\"\n}"
+							"raw": "{\n  \"email\": \"admin@navi.com\",\n  \"password\": \"azore@admin123\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/auth/login",
@@ -67,9 +67,6 @@
 					},
 					"response": []
 				},
-
-
-
 				{
 					"name": "Logout",
 					"request": {
@@ -108,203 +105,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"currentPassword\": \"azore@admin123\",\n  \"newPassword\": \"novaSenha123\"\n}"
+							"raw": "{\n  \"currentPassword\": \"azore@admin123\",\n  \"newPassword\": \"nova_senha_123\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/auth/change-password",
 							"host": ["{{base_url}}"],
 							"path": ["api", "auth", "change-password"]
 						},
-						"description": "Altera a senha do usuário (usado no primeiro acesso)"
-					},
-					"response": []
-				},
-				{
-					"name": "Gerar API Key",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-Session-Token",
-								"value": "{{session_token}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Minha Aplicação\",\n  \"description\": \"API Key para testes\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/auth/generate-api-key",
-							"host": ["{{base_url}}"],
-							"path": ["api", "auth", "generate-api-key"]
-						},
-						"description": "Gera uma nova API Key para o usuário autenticado"
-					},
-					"response": []
-				},
-				{
-					"name": "Listar API Keys",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-Session-Token",
-								"value": "{{session_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/auth/api-keys",
-							"host": ["{{base_url}}"],
-							"path": ["api", "auth", "api-keys"]
-						},
-						"description": "Lista todas as API Keys do usuário autenticado"
-					},
-					"response": []
-				},
-				{
-					"name": "Revogar API Key",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-Session-Token",
-								"value": "{{session_token}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/auth/api-keys/{{api_key_id}}/revoke",
-							"host": ["{{base_url}}"],
-							"path": ["api", "auth", "api-keys", "{{api_key_id}}", "revoke"]
-						},
-						"description": "Revoga uma API Key específica do usuário autenticado"
-					},
-					"response": []
-				},
-				{
-					"name": "Editar API Key",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "X-Session-Token",
-								"value": "{{session_token}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Aplicação Atualizada\",\n  \"description\": \"Nova descrição da API Key\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/auth/api-keys/{{api_key_id}}/edit",
-							"host": ["{{base_url}}"],
-							"path": ["api", "auth", "api-keys", "{{api_key_id}}", "edit"]
-						},
-						"description": "Edita informações de uma API Key específica"
-					},
-					"response": []
-				},
-				{
-					"name": "Solicitar Recuperação de Senha",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"admin@azore.technology\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/password-reset/request",
-							"host": ["{{base_url}}"],
-							"path": ["api", "password-reset", "request"]
-						},
-						"description": "Solicita um token de recuperação de senha para o email informado"
-					},
-					"response": []
-				},
-				{
-					"name": "Validar Token de Recuperação",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/password-reset/validate/{{reset_token}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "password-reset", "validate", "{{reset_token}}"]
-						},
-						"description": "Valida se um token de recuperação é válido e não expirado"
-					},
-					"response": []
-				},
-				{
-					"name": "Redefinir Senha",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"newPassword\": \"novaSenha123\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/password-reset/reset/{{reset_token}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "password-reset", "reset", "{{reset_token}}"]
-						},
-						"description": "Redefine a senha usando um token de recuperação válido"
-					},
-					"response": []
-				},
-				{
-					"name": "Configurar Timeout da Sessão",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-Session-Token",
-								"value": "{{session_token}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"timeout\": 1800\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/auth/session-timeout",
-							"host": ["{{base_url}}"],
-							"path": ["api", "auth", "session-timeout"]
-						},
-						"description": "Define o timeout da sessão em segundos (0 = sem expiração)"
+						"description": "Altera a senha do usuário logado"
 					},
 					"response": []
 				},
@@ -324,81 +132,315 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "auth", "session-info"]
 						},
-						"description": "Obtém informações da sessão atual"
+						"description": "Retorna informações da sessão atual"
 					},
 					"response": []
 				}
 			],
-			"description": "Endpoints para autenticação e gerenciamento de sessões"
+			"description": "Endpoints de autenticação e gerenciamento de sessões"
 		},
 		{
-			"name": "🧪 Testes da Blockchain",
+			"name": "🔑 Gerenciamento de API Keys",
 			"item": [
 				{
-					"name": "Teste de Conexão",
+					"name": "Gerar Nova API Key",
 					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/test/connection?network=testnet",
-							"host": ["{{base_url}}"],
-							"path": ["api", "test", "connection"],
-							"query": [
-								{
-									"key": "network",
-									"value": "testnet",
-									"description": "Rede para testar (mainnet ou testnet)"
-								}
-							]
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"applicationName\": \"Minha Aplicação\"\n}"
 						},
-						"description": "Testa a conexão com a blockchain Azore"
+						"url": {
+							"raw": "{{base_url}}/api/auth/generate-api-key",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "generate-api-key"]
+						},
+						"description": "Gera uma nova API Key para o cliente autenticado"
 					},
 					"response": []
 				},
 				{
-					"name": "Informações da Rede",
+					"name": "Revogar API Key",
 					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/test/network-info",
-							"host": ["{{base_url}}"],
-							"path": ["api", "test", "network-info"]
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"apiKey\": \"api_key_para_revogar\"\n}"
 						},
-						"description": "Obtém informações da rede atual"
+						"url": {
+							"raw": "{{base_url}}/api/auth/revoke-api-key",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "revoke-api-key"]
+						},
+						"description": "Revoga uma API Key específica"
 					},
 					"response": []
 				},
 				{
-					"name": "Saldo de Endereço",
+					"name": "Editar API Key",
 					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/test/balance/0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6",
-							"host": ["{{base_url}}"],
-							"path": ["api", "test", "balance", "0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6"]
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"apiKey\": \"api_key_para_editar\",\n  \"applicationName\": \"Novo Nome da Aplicação\"\n}"
 						},
-						"description": "Obtém o saldo de um endereço Ethereum"
+						"url": {
+							"raw": "{{base_url}}/api/auth/edit-api-key",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth", "edit-api-key"]
+						},
+						"description": "Edita o nome da aplicação de uma API Key"
 					},
 					"response": []
-				},
-				{
-					"name": "Informações do Bloco",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/test/block/latest",
-							"host": ["{{base_url}}"],
-							"path": ["api", "test", "block", "latest"]
-						},
-						"description": "Obtém informações de um bloco específico"
-					},
-					"response": []
-								}
+				}
 			],
-			"description": "Endpoints para testar a conectividade e funcionalidades da blockchain"
+			"description": "Gerenciamento de API Keys (apenas para API_ADMIN e CLIENT_ADMIN)"
+		},
+		{
+			"name": "🔄 Sistema de Fila - Transações",
+			"item": [
+				{
+					"name": "Enfileirar Transação",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"type\": \"mint\",\n  \"data\": {\n    \"contractAddress\": \"0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804\",\n    \"toAddress\": \"0x88C35aA297c7CfdbA04a68a9Cb17514a2664208E\",\n    \"amount\": \"1\",\n    \"gasPayer\": \"0x5528C065931f523CA9F3a6e49a911896fb1D2e6f\",\n    \"network\": \"testnet\",\n    \"description\": \"Mint via sistema de fila\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions/enqueue",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "enqueue"]
+						},
+						"description": "Enfileira uma transação blockchain para processamento assíncrono"
+					},
+					"response": []
+				},
+				{
+					"name": "Verificar Status da Transação",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/transactions/queue/{{job_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "queue", "{{job_id}}"]
+						},
+						"description": "Verifica o status de uma transação enfileirada"
+					},
+					"response": []
+				},
+				{
+					"name": "Verificar Status de Múltiplas Transações",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"jobIds\": [\"job1\", \"job2\", \"job3\"]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions/queue/batch",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions", "queue", "batch"]
+						},
+						"description": "Verifica o status de múltiplas transações de uma vez"
+					},
+					"response": []
+				}
+			],
+			"description": "Sistema de fila para transações blockchain com processamento assíncrono"
+		},
+		{
+			"name": "📊 Monitoramento de Filas (API_ADMIN)",
+			"item": [
+				{
+					"name": "Estatísticas das Filas",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/queue/stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "queue", "stats"]
+						},
+						"description": "Obtém estatísticas gerais das filas RabbitMQ"
+					},
+					"response": []
+				},
+				{
+					"name": "Métricas de Performance",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/queue/metrics",
+							"host": ["{{base_url}}"],
+							"path": ["api", "queue", "metrics"]
+						},
+						"description": "Obtém métricas de performance das filas"
+					},
+					"response": []
+				},
+				{
+					"name": "Jobs em Processamento",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/queue/jobs",
+							"host": ["{{base_url}}"],
+							"path": ["api", "queue", "jobs"]
+						},
+						"description": "Lista jobs atualmente em processamento"
+					},
+					"response": []
+				},
+				{
+					"name": "Jobs que Falharam",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/queue/jobs/failed",
+							"host": ["{{base_url}}"],
+							"path": ["api", "queue", "jobs", "failed"]
+						},
+						"description": "Lista jobs que falharam no processamento"
+					},
+					"response": []
+				},
+				{
+					"name": "Reprocessar Job Falhado",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/queue/jobs/{{job_id}}/retry",
+							"host": ["{{base_url}}"],
+							"path": ["api", "queue", "jobs", "{{job_id}}", "retry"]
+						},
+						"description": "Tenta reprocessar um job que falhou"
+					},
+					"response": []
+				},
+				{
+					"name": "Limpar Jobs Antigos",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/queue/cleanup",
+							"host": ["{{base_url}}"],
+							"path": ["api", "queue", "cleanup"]
+						},
+						"description": "Remove jobs antigos e limpa o cache"
+					},
+					"response": []
+				}
+			],
+			"description": "Monitoramento e gerenciamento de filas RabbitMQ (apenas para API_ADMIN)"
 		},
 		{
 			"name": "👥 Gerenciamento de Usuários",
@@ -421,7 +463,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@exemplo.com\",\n  \"cpf\": \"12345678901\",\n  \"phone\": \"11987654321\",\n  \"birthDate\": \"1990-01-01\",\n  \"password\": \"a@1234567\",\n  \"clientId\": \"{{client_id}}\"\n}"
+							"raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao.silva@navi.com\",\n  \"publicKey\": \"0x1234567890123456789012345678901234567890\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/users",
@@ -444,28 +486,16 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/users?page=1&limit=10",
+							"raw": "{{base_url}}/api/users",
 							"host": ["{{base_url}}"],
-							"path": ["api", "users"],
-							"query": [
-								{
-									"key": "page",
-									"value": "1",
-									"description": "Número da página"
-								},
-								{
-									"key": "limit",
-									"value": "10",
-									"description": "Limite de itens por página"
-								}
-							]
+							"path": ["api", "users"]
 						},
-						"description": "Lista usuários (requer autenticação de admin)"
+						"description": "Lista todos os usuários"
 					},
 					"response": []
 				},
 				{
-					"name": "Obter Usuário por ID",
+					"name": "Buscar Usuário por Public Key",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -476,467 +506,68 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/users/{{user_id}}",
+							"raw": "{{base_url}}/api/users/public-key/0x1234567890123456789012345678901234567890",
 							"host": ["{{base_url}}"],
-							"path": ["api", "users", "{{user_id}}"]
+							"path": ["api", "users", "public-key", "0x1234567890123456789012345678901234567890"]
 						},
-						"description": "Obtém um usuário específico por ID"
-					},
-					"response": []
-				},
-				{
-					"name": "Obter Usuário por Email",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/users/email/joao@exemplo.com",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "email", "joao@exemplo.com"]
-						},
-						"description": "Obtém um usuário por email"
-					},
-					"response": []
-				},
-				{
-					"name": "Obter Usuário por CPF",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/users/cpf/12345678901",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "cpf", "12345678901"]
-						},
-						"description": "Obtém um usuário por CPF"
-					},
-					"response": []
-				},
-				{
-					"name": "Atualizar Usuário",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"João Silva Atualizado\",\n  \"phone\": \"11987654322\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/users/{{user_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "{{user_id}}"]
-						},
-						"description": "Atualiza dados de um usuário"
-					},
-					"response": []
-				},
-				{
-					"name": "Desativar Usuário",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/users/{{user_id}}/deactivate",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "{{user_id}}", "deactivate"]
-						},
-						"description": "Desativa um usuário"
-					},
-					"response": []
-				},
-				{
-					"name": "Ativar Usuário",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/users/{{user_id}}/activate",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "{{user_id}}", "activate"]
-						},
-						"description": "Ativa um usuário"
-					},
-					"response": []
-				},
-				{
-					"name": "Usuários por Client",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/users/client/{{client_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "client", "{{client_id}}"]
-						},
-						"description": "Lista todos os usuários de um client específico"
-					},
-					"response": []
-				},
-				{
-					"name": "Obter Chaves do Usuário (Client)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/users/{{user_id}}/keys/client",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "{{user_id}}", "keys", "client"]
-						},
-						"description": "Obtém as chaves públicas e privadas de um usuário (acesso client)"
-					},
-					"response": []
-				},
-				{
-					"name": "Buscar Chaves por ID",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/users/search/id/{{user_id}}/keys",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "search", "id", "{{user_id}}", "keys"]
-						},
-						"description": "Busca as chaves de um usuário por ID"
-					},
-					"response": []
-				},
-				{
-					"name": "Buscar Chaves por Email",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/users/search/email/joao@exemplo.com/keys",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "search", "email", "joao@exemplo.com", "keys"]
-						},
-						"description": "Busca as chaves de um usuário por email"
-					},
-					"response": []
-				},
-				{
-					"name": "Buscar Chaves por CPF",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/users/search/cpf/12345678901/keys",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "search", "cpf", "12345678901", "keys"]
-						},
-						"description": "Busca as chaves de um usuário por CPF"
-					},
-					"response": []
-				},
-				{
-					"name": "Obter Usuário por Address",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/users/address/0x95aDDd264023038D7Aa77B0974Ef3C4dc43E3bd6",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "address", "0x95aDDd264023038D7Aa77B0974Ef3C4dc43E3bd6"]
-						},
-						"description": "Obtém um usuário por endereço (publicKey)"
-					},
-					"response": []
-				},
-				{
-					"name": "Listar Saldos por Address (Testnet)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/users/address/0x95aDDd264023038D7Aa77B0974Ef3C4dc43E3bd6/balances?network=testnet",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "address", "0x95aDDd264023038D7Aa77B0974Ef3C4dc43E3bd6", "balances"],
-							"query": [
-								{
-									"key": "network",
-									"value": "testnet",
-									"description": "Rede para consultar (testnet ou mainnet)"
-								}
-							]
-						},
-						"description": "Lista saldos de um usuário por endereço na testnet (AZE + tokens ERC20)"
-					},
-					"response": []
-				},
-				{
-					"name": "Listar Saldos por Address (Mainnet)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/users/address/0x95aDDd264023038D7Aa77B0974Ef3C4dc43E3bd6/balances?network=mainnet",
-							"host": ["{{base_url}}"],
-							"path": ["api", "users", "address", "0x95aDDd264023038D7Aa77B0974Ef3C4dc43E3bd6", "balances"],
-							"query": [
-								{
-									"key": "network",
-									"value": "mainnet",
-									"description": "Rede para consultar (testnet ou mainnet)"
-								}
-							]
-						},
-						"description": "Lista saldos de um usuário por endereço na mainnet (AZE + tokens ERC20)"
+						"description": "Busca um usuário por sua public key"
 					},
 					"response": []
 				}
 			],
-			"description": "Endpoints para gerenciamento de usuários\n\nROTAS BÁSICAS:\n- Criar, listar, obter usuários\n- Buscar por ID, email, CPF, Address (publicKey)\n- Gerenciar chaves de usuários\n- Listar saldos por endereço (AZE + tokens ERC20)\n\nROTAS ADMIN (requer admin_api_key):\n- Listar todos os usuários do sistema\n- Obter usuário por ID (admin)\n- Obter usuário por email (admin)\n- Obter usuário por CPF (admin)\n\nROTAS EXCLUSIVAS ADMIN:\n- Criar usuário com roles/permissions (🔐 Rotas Admin)\n- Gerenciar flags de admin (🔐 Rotas Admin)\n\nNOVAS FUNCIONALIDADES:\n- ✅ Obter usuário por endereço (publicKey)\n- ✅ Listar saldos completos (AZE + tokens ERC20)\n- ✅ Integração com AzoreScan (mainnet/testnet)\n- ✅ Busca automática de tokens via API"
+			"description": "Gerenciamento de usuários do sistema"
 		},
 		{
-			"name": "🔐 Rotas Admin",
+			"name": "🏢 Rotas Admin (API_ADMIN)",
 			"item": [
 				{
-					"name": "Criar Usuário (Admin)",
+					"name": "Listar Todos os Usuários",
 					"request": {
-						"method": "POST",
+						"method": "GET",
 						"header": [
 							{
 								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
+								"value": "{{api_key}}",
 								"type": "text"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Novo Usuário\",\n  \"email\": \"usuario@teste.com\",\n  \"password\": \"a@1234567\",\n  \"clientId\": \"{{client_id}}\",\n  \"cpf\": \"12345678901\",\n  \"phone\": \"11999999999\",\n  \"birthDate\": \"1990-01-01\",\n  \"permissions\": {\n    \"wallets\": {\"read\": true, \"create\": true, \"update\": true, \"delete\": true},\n    \"contracts\": {\"read\": true, \"create\": true, \"update\": true, \"delete\": true},\n    \"transactions\": {\"read\": true, \"create\": true, \"update\": true, \"delete\": true}\n  },\n  \"roles\": [\"CLIENT_ADMIN\"]\n}"
-						},
 						"url": {
 							"raw": "{{base_url}}/api/admin/users",
 							"host": ["{{base_url}}"],
 							"path": ["api", "admin", "users"]
 						},
-						"description": "Cria um novo usuário com roles e permissions específicas (admin)"
+						"description": "Lista todos os usuários do sistema (apenas API_ADMIN)"
 					},
 					"response": []
 				},
 				{
-					"name": "Conceder API Admin",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/users/{{user_id}}/add-api-admin",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "users", "{{user_id}}", "add-api-admin"]
-						},
-						"description": "Concede a flag isApiAdmin de um usuário (requer API_ADMIN)"
-					},
-					"response": []
-				},
-				{
-					"name": "Remover API Admin",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/users/{{user_id}}/remove-api-admin",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "users", "{{user_id}}", "remove-api-admin"]
-						},
-						"description": "Remove a flag isApiAdmin de um usuário (requer API_ADMIN)"
-					},
-					"response": []
-				},
-				{
-					"name": "Conceder Client Admin",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/users/{{user_id}}/add-client-admin",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "users", "{{user_id}}", "add-client-admin"]
-						},
-						"description": "Concede a flag isClientAdmin de um usuário (requer API_ADMIN ou CLIENT_ADMIN)"
-					},
-					"response": []
-				},
-				{
-					"name": "Remover Client Admin",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/users/{{user_id}}/remove-client-admin",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "users", "{{user_id}}", "remove-client-admin"]
-						},
-						"description": "Remove a flag isClientAdmin de um usuário (requer API_ADMIN ou CLIENT_ADMIN)"
-					},
-					"response": []
-				},
-				{
-					"name": "Obter Chaves do Usuário (Admin)",
+					"name": "Listar Todos os Clientes",
 					"request": {
 						"method": "GET",
 						"header": [
 							{
 								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
+								"value": "{{api_key}}",
 								"type": "text"
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/admin/users/{{user_id}}/keys",
+							"raw": "{{base_url}}/api/admin/clients",
 							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "users", "{{user_id}}", "keys"]
+							"path": ["api", "admin", "clients"]
 						},
-						"description": "Obtém as chaves públicas e privadas de qualquer usuário (admin)"
+						"description": "Lista todos os clientes do sistema (apenas API_ADMIN)"
 					},
 					"response": []
 				},
 				{
-					"name": "Dashboard Stats (Admin)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/dashboard/stats",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "dashboard", "stats"]
-						},
-						"description": "Obtém estatísticas do sistema (admin)"
-					},
-					"response": []
-				}
-			],
-			"description": "Endpoints administrativos exclusivos (requer autenticação de admin)\n\nROTAS EXCLUSIVAS:\n- Criar usuário com roles/permissions\n- Gerenciar flags de admin (add/remove separados)\n- Obter chaves de qualquer usuário\n- Dashboard de estatísticas\n\nNOVAS ROTAS:\n- POST /api/admin/users/{userId}/add-api-admin\n- POST /api/admin/users/{userId}/remove-api-admin\n- POST /api/admin/users/{userId}/add-client-admin\n- POST /api/admin/users/{userId}/remove-client-admin\n\nOutras rotas básicas estão em suas seções específicas:\n- 👥 Gerenciamento de Usuários\n- 👥 Gerenciamento de Clients (Admin)"
-		},
-
-		{
-			"name": "👥 Gerenciamento de Clients (Admin)",
-			"item": [
-				{
-					"name": "Criar Client",
+					"name": "Reset de Senha Admin",
 					"request": {
 						"method": "POST",
 						"header": [
 							{
 								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
+								"value": "{{api_key}}",
 								"type": "text"
 							},
 							{
@@ -947,153 +578,92 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"name\": \"Novo Client\",\n  \"rateLimit\": {\n    \"requestsPerMinute\": 100,\n    \"requestsPerHour\": 1000,\n    \"requestsPerDay\": 10000\n  }\n}"
+							"raw": "{\n  \"email\": \"admin@navi.com\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/admin/clients",
+							"raw": "{{base_url}}/api/admin/password-reset",
 							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "clients"]
+							"path": ["api", "admin", "password-reset"]
 						},
-						"description": "Cria um novo client (requer autenticação de admin)"
-					},
-					"response": []
-				},
-				{
-					"name": "Listar Clients",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/clients",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "clients"]
-						},
-						"description": "Lista todos os clients (requer autenticação de admin)"
-					},
-					"response": []
-				},
-				{
-					"name": "Obter Client por ID",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/clients/{{client_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "clients", "{{client_id}}"]
-						},
-						"description": "Obtém um client específico por ID (admin)"
-					},
-					"response": []
-				},
-				{
-					"name": "Atualizar Client",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"name\": \"Client Atualizado\",\n  \"isActive\": true,\n  \"rateLimit\": {\n    \"requestsPerMinute\": 200,\n    \"requestsPerHour\": 2000,\n    \"requestsPerDay\": 20000\n  }\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/admin/clients/{{client_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "clients", "{{client_id}}"]
-						},
-						"description": "Atualiza dados de um client (admin)"
-					},
-					"response": []
-				},
-				{
-					"name": "Desativar Client",
-					"request": {
-						"method": "DELETE",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/clients/{{client_id}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "clients", "{{client_id}}"]
-						},
-						"description": "Desativa um client (admin)"
-					},
-					"response": []
-				},
-				{
-					"name": "Reativar Client",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/clients/{{client_id}}/activate",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "clients", "{{client_id}}", "activate"]
-						},
-						"description": "Reativa um client (admin)"
-					},
-					"response": []
-				},
-				{
-					"name": "Usuários de um Client",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{admin_api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/admin/clients/{{client_id}}/users",
-							"host": ["{{base_url}}"],
-							"path": ["api", "admin", "clients", "{{client_id}}", "users"]
-						},
-						"description": "Lista todos os usuários de um client específico (admin)"
+						"description": "Reset de senha administrativo (apenas API_ADMIN)"
 					},
 					"response": []
 				}
 			],
-			"description": "Endpoints para gerenciamento de clients (requer autenticação de admin)\n\nROTAS COMPLETAS:\n- Criar, listar, obter clients\n- Atualizar, desativar, reativar clients\n- Listar usuários de um client específico\n\nTodas as rotas de clients estão centralizadas nesta seção."
+			"description": "Rotas administrativas (apenas para API_ADMIN)"
 		},
-
 		{
 			"name": "📄 Gerenciamento de Contratos",
 			"item": [
+				{
+					"name": "Registrar Contrato",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"AZE Token\",\n  \"code\": \"AZE\",\n  \"address\": \"0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804\",\n  \"contractType\": \"token\",\n  \"network\": \"testnet\",\n  \"adminPublicKey\": \"0x5528C065931f523CA9F3a6e49a911896fb1D2e6f\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/contracts",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts"]
+						},
+						"description": "Registra um novo contrato inteligente"
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Contrato",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/contracts/0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804"]
+						},
+						"description": "Obtém informações de um contrato específico"
+					},
+					"response": []
+				},
+				{
+					"name": "Verificar Admin do Contrato",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/contracts/0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804/verify-admin",
+							"host": ["{{base_url}}"],
+							"path": ["api", "contracts", "0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804", "verify-admin"]
+						},
+						"description": "Verifica se o cliente é admin do contrato"
+					},
+					"response": []
+				},
 				{
 					"name": "Conceder Role",
 					"request": {
@@ -1112,14 +682,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\",\n  \"adminPublicKey\": \"{{admin_public_key}}\"\n}"
+							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x88C35aA297c7CfdbA04a68a9Cb17514a2664208E\",\n  \"adminPublicKey\": \"0x5528C065931f523CA9F3a6e49a911896fb1D2e6f\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/contracts/{{contract_address}}/grant-role",
+							"raw": "{{base_url}}/api/contracts/0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804/grant-role",
 							"host": ["{{base_url}}"],
-							"path": ["api", "contracts", "{{contract_address}}", "grant-role"]
+							"path": ["api", "contracts", "0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804", "grant-role"]
 						},
-						"description": "Concede uma role a um endereço usando contract.grantRole(roleHash, targetAddress).\n\nParâmetros obrigatórios:\n- role: tipo de role (admin, minter, burner, transfer)\n- targetAddress: endereço que receberá a role\n- adminPublicKey: endereço que pagará pela transação (deve existir no banco)\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nImplementação simplificada baseada na lib externa."
+						"description": "Concede uma role em um contrato (apenas admin do contrato)"
 					},
 					"response": []
 				},
@@ -1141,14 +711,14 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\",\n  \"adminPublicKey\": \"{{admin_public_key}}\"\n}"
+							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x88C35aA297c7CfdbA04a68a9Cb17514a2664208E\",\n  \"adminPublicKey\": \"0x5528C065931f523CA9F3a6e49a911896fb1D2e6f\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/contracts/{{contract_address}}/revoke-role",
+							"raw": "{{base_url}}/api/contracts/0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804/revoke-role",
 							"host": ["{{base_url}}"],
-							"path": ["api", "contracts", "{{contract_address}}", "revoke-role"]
+							"path": ["api", "contracts", "0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804", "revoke-role"]
 						},
-						"description": "Revoga uma role de um endereço usando contract.revokeRole(roleHash, targetAddress).\n\nParâmetros obrigatórios:\n- role: tipo de role (admin, minter, burner, transfer)\n- targetAddress: endereço que terá a role revogada\n- adminPublicKey: endereço que pagará pela transação (deve existir no banco)\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nImplementação simplificada baseada na lib externa."
+						"description": "Revoga uma role em um contrato (apenas admin do contrato)"
 					},
 					"response": []
 				},
@@ -1170,148 +740,23 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x1234567890123456789012345678901234567890\"\n}"
+							"raw": "{\n  \"role\": \"minter\",\n  \"targetAddress\": \"0x88C35aA297c7CfdbA04a68a9Cb17514a2664208E\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/contracts/{{contract_address}}/has-role",
+							"raw": "{{base_url}}/api/contracts/0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804/has-role",
 							"host": ["{{base_url}}"],
-							"path": ["api", "contracts", "{{contract_address}}", "has-role"]
+							"path": ["api", "contracts", "0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804", "has-role"]
 						},
-						"description": "Verifica se um endereço tem determinada role usando contract.hasRole(roleHash, targetAddress).\n\nParâmetros obrigatórios:\n- role: tipo de role (admin, minter, burner, transfer)\n- targetAddress: endereço que será verificado\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nApenas leitura do blockchain - não requer transação."
+						"description": "Verifica se um endereço tem uma role específica"
 					},
 					"response": []
 				}
 			],
-			"description": "Endpoints para gerenciamento de roles em contratos inteligentes\n\nROTAS DISPONÍVEIS:\n- Conceder Role: Concede roles usando contract.grantRole(roleHash, targetAddress)\n- Revogar Role: Revoga roles usando contract.revokeRole(roleHash, targetAddress)\n- Verificar Role: Verifica roles usando contract.hasRole(roleHash, targetAddress)\n\nPARÂMETROS OBRIGATÓRIOS:\n- grant-role e revoke-role: role, targetAddress, adminPublicKey\n- has-role: role, targetAddress (apenas leitura)\n\nRoles disponíveis:\n- admin: DEFAULT_ADMIN_ROLE (0x0000...0000)\n- minter: MINTER_ROLE (0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6)\n- burner: BURNER_ROLE (0x3c11d16cbaffd01df69ce1c404f6340ee057498f5f00246190ea54220576a848)\n- transfer: TRANSFER_ROLE (0x8502233096d909befbda0999bb8ea2f3a6be3c138b9fbf003752a4c8bce86f6c)\n\nImplementação simplificada baseada na lib externa.\n\nROTAS REMOVIDAS:\n- Criar Contrato, Listar Contratos, Obter Contrato por ID\n- Atualizar Contrato, Deletar Contrato\n- Conceder Role MINTER/BURNER/TRANSFER/Admin\n- Listar Tokens Padrão, Obter Informações do Token\n- Atualizar Metadados do Token\n\nEssas funcionalidades foram movidas para o módulo de Tokens."
+			"description": "Gerenciamento de contratos inteligentes"
 		},
 		{
 			"name": "🪙 Gerenciamento de Tokens",
 			"item": [
-				{
-					"name": "Saldo da Moeda AZE",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/tokens/balanceAZE?walletAddress={{test_wallet_address}}&network={{test_network}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "tokens", "balanceAZE"],
-							"query": [
-								{
-									"key": "walletAddress",
-									"value": "{{test_wallet_address}}",
-									"description": "Endereço da carteira"
-								},
-								{
-									"key": "network",
-									"value": "{{test_network}}",
-									"description": "Rede (mainnet ou testnet)"
-								}
-							]
-						},
-						"description": "Obtém o saldo da moeda nativa AZE de uma carteira"
-					},
-					"response": []
-				},
-				{
-					"name": "Saldo de Token ERC20",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/tokens/balance?contractAddress={{test_contract_address}}&walletAddress={{test_wallet_address}}&network={{test_network}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "tokens", "balance"],
-							"query": [
-								{
-									"key": "contractAddress",
-									"value": "{{test_contract_address}}",
-									"description": "Endereço do contrato do token"
-								},
-								{
-									"key": "walletAddress",
-									"value": "{{test_wallet_address}}",
-									"description": "Endereço da carteira"
-								},
-								{
-									"key": "network",
-									"value": "{{test_network}}",
-									"description": "Rede (mainnet ou testnet)"
-								}
-							]
-						},
-						"description": "Obtém o saldo de um token ERC20 específico"
-					},
-					"response": []
-				},
-				{
-					"name": "Informações do Token",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/tokens/{{token_address}}/info?network={{network}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "tokens", "{{token_address}}", "info"],
-							"query": [
-								{
-									"key": "network",
-									"value": "{{network}}",
-									"description": "Rede (mainnet ou testnet)"
-								}
-							]
-						},
-						"description": "Obtém informações básicas de um token (nome, símbolo, decimais, etc.)"
-					},
-					"response": []
-				},
-				{
-					"name": "Registrar Token",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"address\": \"{{token_address}}\",\n  \"network\": \"{{network}}\",\n  \"adminPublicKey\": \"{{admin_public_key}}\",\n  \"website\": \"https://meu-token.com\",\n  \"description\": \"Descrição do meu token\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/tokens/register",
-							"host": ["{{base_url}}"],
-							"path": ["api", "tokens", "register"]
-						},
-						"description": "Registra um novo token no sistema\n\nNOVOS CAMPOS:\n- adminPublicKey: PublicKey do admin do token (obrigatório)\n- website: Website do token\n- description: Descrição do token\n\nO campo explorer é definido automaticamente baseado na rede:\n- mainnet: https://azorescan.com\n- testnet: https://floripa.azorescan.com"
-					},
-					"response": []
-				},
 				{
 					"name": "Listar Tokens",
 					"request": {
@@ -1324,45 +769,32 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/tokens?page=1&limit=10&network={{network}}&contractType=ERC20&isActive=true",
+							"raw": "{{base_url}}/api/tokens?limit=10&offset=0&status=active",
 							"host": ["{{base_url}}"],
 							"path": ["api", "tokens"],
 							"query": [
 								{
-									"key": "page",
-									"value": "1",
-									"description": "Número da página"
-								},
-								{
 									"key": "limit",
-									"value": "10",
-									"description": "Limite de itens por página"
+									"value": "10"
 								},
 								{
-									"key": "network",
-									"value": "{{network}}",
-									"description": "Filtrar por rede (mainnet, testnet)"
+									"key": "offset",
+									"value": "0"
 								},
 								{
-									"key": "contractType",
-									"value": "ERC20",
-									"description": "Filtrar por tipo (ERC20, NATIVE, STAKE)"
-								},
-								{
-									"key": "isActive",
-									"value": "true",
-									"description": "Filtrar por status ativo"
+									"key": "status",
+									"value": "active"
 								}
 							]
 						},
-						"description": "Lista todos os tokens registrados (NATIVE e ERC20)\n\nRetorna:\n- Tokens com paginação\n- Filtros por rede, tipo e status\n- Metadados completos dos tokens"
+						"description": "Lista tokens com paginação e filtros"
 					},
 					"response": []
 				},
 				{
-					"name": "Desativar Token",
+					"name": "Obter Token",
 					"request": {
-						"method": "POST",
+						"method": "GET",
 						"header": [
 							{
 								"key": "X-API-Key",
@@ -1371,18 +803,18 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/tokens/{{token_address}}/deactivate",
+							"raw": "{{base_url}}/api/tokens/0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804",
 							"host": ["{{base_url}}"],
-							"path": ["api", "tokens", "{{token_address}}", "deactivate"]
+							"path": ["api", "tokens", "0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804"]
 						},
-						"description": "Desativa um token (muda is_active para false)"
+						"description": "Obtém informações detalhadas de um token"
 					},
 					"response": []
 				},
 				{
 					"name": "Ativar Token",
 					"request": {
-						"method": "POST",
+						"method": "PUT",
 						"header": [
 							{
 								"key": "X-API-Key",
@@ -1391,11 +823,31 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/tokens/{{token_address}}/activate",
+							"raw": "{{base_url}}/api/tokens/0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804/activate",
 							"host": ["{{base_url}}"],
-							"path": ["api", "tokens", "{{token_address}}", "activate"]
+							"path": ["api", "tokens", "0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804", "activate"]
 						},
-						"description": "Ativa um token (muda is_active para true)"
+						"description": "Ativa um token inativo"
+					},
+					"response": []
+				},
+				{
+					"name": "Desativar Token",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{api_key}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/tokens/0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804/deactivate",
+							"host": ["{{base_url}}"],
+							"path": ["api", "tokens", "0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804", "deactivate"]
+						},
+						"description": "Desativa um token ativo"
 					},
 					"response": []
 				},
@@ -1417,146 +869,25 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"website\": \"https://novo-website.com\",\n  \"description\": \"Nova descrição do token\"\n}"
+							"raw": "{\n  \"website\": \"https://azore.technology\",\n  \"description\": \"Token oficial da Azore Blockchain\"\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/tokens/{{token_address}}/update-info",
+							"raw": "{{base_url}}/api/tokens/0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804",
 							"host": ["{{base_url}}"],
-							"path": ["api", "tokens", "{{token_address}}", "update-info"]
+							"path": ["api", "tokens", "0x0A8c73967e4Eee8ffA06484C3fBf65E6Ae3b9804"]
 						},
-						"description": "Atualiza metadados do token (website e description)\n\nAtualiza apenas os campos fornecidos, preservando os existentes"
-					},
-					"response": []
-				},
-				{
-					"name": "Mintar Tokens",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"contractAddress\": \"{{token_address}}\",\n  \"toAddress\": \"{{wallet_address}}\",\n  \"amount\": \"100\",\n  \"gasPayer\": \"{{wallet_address}}\",\n  \"network\": \"{{network}}\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/tokens/mint",
-							"host": ["{{base_url}}"],
-							"path": ["api", "tokens", "mint"]
-						},
-						"description": "Minta novos tokens para um endereço"
-					},
-					"response": []
-				},
-				{
-					"name": "Queimar Tokens",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"contractAddress\": \"{{token_address}}\",\n  \"fromAddress\": \"{{wallet_address}}\",\n  \"amount\": \"10\",\n  \"gasPayer\": \"{{wallet_address}}\",\n  \"network\": \"{{network}}\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/tokens/burn",
-							"host": ["{{base_url}}"],
-							"path": ["api", "tokens", "burn"]
-						},
-						"description": "Queima tokens de um endereço"
-					},
-					"response": []
-				},
-				{
-					"name": "Transferência sem Gás",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"contractAddress\": \"{{token_address}}\",\n  \"fromAddress\": \"{{wallet_address}}\",\n  \"toAddress\": \"{{wallet_address}}\",\n  \"amount\": \"50\",\n  \"gasPayer\": \"{{wallet_address}}\",\n  \"network\": \"{{network}}\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/tokens/transfer-gasless",
-							"host": ["{{base_url}}"],
-							"path": ["api", "tokens", "transfer-gasless"]
-						},
-						"description": "Transfere tokens sem que o usuário pague gás"
-					},
-					"response": []
-				},
-				{
-					"name": "Teste do Serviço de Tokens",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/tokens/test/service",
-							"host": ["{{base_url}}"],
-							"path": ["api", "tokens", "test", "service"]
-						},
-						"description": "Testa a conectividade do serviço de tokens"
+						"description": "Atualiza informações de um token"
 					},
 					"response": []
 				}
 			],
-			"description": "Endpoints para gerenciamento de tokens ERC20 e moeda nativa AZE\n\nROTAS DISPONÍVEIS:\n- Saldo da Moeda AZE: Consulta saldo da moeda nativa\n- Saldo de Token ERC20: Consulta saldo de tokens ERC20\n- Informações do Token: Obtém dados da blockchain\n- Registrar Token: Registra novo token com metadados\n- Listar Tokens: Lista todos os tokens com filtros\n- Desativar Token: Muda status para inativo\n- Ativar Token: Muda status para ativo\n- Atualizar Informações: Atualiza metadados\n- Mintar Tokens: Cria novos tokens\n- Queimar Tokens: Destrói tokens\n- Transferência sem Gás: Transfere sem custo\n- Teste do Serviço: Verifica conectividade\n\nNOVAS FUNCIONALIDADES:\n- Campo adminPublicKey obrigatório no registro\n- Campos website e description para metadados\n- Explorer automático baseado na rede\n- Listagem com paginação e filtros\n- Ativação/desativação de tokens\n- Atualização de metadados"
+			"description": "Gerenciamento de tokens ERC20"
 		},
 		{
 			"name": "📊 Sistema de Logs",
 			"item": [
 				{
-					"name": "Teste do Serviço",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/api/logs/test/service",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "test", "service"]
-						},
-						"description": "Testa se o serviço de logs está funcionando"
-					},
-					"response": []
-				},
-				{
-					"name": "Listar Logs de Requisições",
+					"name": "Listar Logs",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -1567,58 +898,26 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/logs/requests?page=1&limit=50",
+							"raw": "{{base_url}}/api/logs?limit=10&offset=0",
 							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "requests"],
+							"path": ["api", "logs"],
 							"query": [
-								{
-									"key": "page",
-									"value": "1",
-									"description": "Número da página"
-								},
 								{
 									"key": "limit",
-									"value": "50",
-									"description": "Limite de itens por página"
+									"value": "10"
 								},
 								{
-									"key": "clientId",
-									"value": "",
-									"description": "Filtrar por cliente (UUID)"
-								},
-								{
-									"key": "resourceType",
-									"value": "",
-									"description": "Filtrar por tipo de recurso"
-								},
-								{
-									"key": "statusCode",
-									"value": "",
-									"description": "Filtrar por código de status"
-								},
-								{
-									"key": "startDate",
-									"value": "",
-									"description": "Data de início (YYYY-MM-DD)"
-								},
-								{
-									"key": "endDate",
-									"value": "",
-									"description": "Data de fim (YYYY-MM-DD)"
-								},
-								{
-									"key": "search",
-									"value": "",
-									"description": "Buscar por path, IP ou User-Agent"
+									"key": "offset",
+									"value": "0"
 								}
 							]
 						},
-						"description": "Lista logs de requisições com filtros"
+						"description": "Lista logs de requisições com paginação"
 					},
 					"response": []
 				},
 				{
-					"name": "Listar Transações",
+					"name": "Obter Log por ID",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -1629,590 +928,16 @@
 							}
 						],
 						"url": {
-							"raw": "{{base_url}}/api/logs/transactions?page=1&limit=50",
+							"raw": "{{base_url}}/api/logs/{{log_id}}",
 							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "transactions"],
-							"query": [
-								{
-									"key": "page",
-									"value": "1",
-									"description": "Número da página"
-								},
-								{
-									"key": "limit",
-									"value": "50",
-									"description": "Limite de itens por página"
-								},
-								{
-									"key": "clientId",
-									"value": "",
-									"description": "Filtrar por cliente (UUID)"
-								},
-								{
-									"key": "status",
-									"value": "",
-									"description": "Filtrar por status (pending, confirmed, failed, cancelled)"
-								},
-								{
-									"key": "network",
-									"value": "",
-									"description": "Filtrar por rede (mainnet, testnet)"
-								},
-								{
-									"key": "transactionType",
-									"value": "",
-									"description": "Filtrar por tipo (transfer, contract_deploy, contract_call, contract_read, wallet_creation)"
-								},
-								{
-									"key": "startDate",
-									"value": "",
-									"description": "Data de início (YYYY-MM-DD)"
-								},
-								{
-									"key": "endDate",
-									"value": "",
-									"description": "Data de fim (YYYY-MM-DD)"
-								}
-							]
+							"path": ["api", "logs", "{{log_id}}"]
 						},
-						"description": "Lista transações com filtros"
-					},
-					"response": []
-				},
-				{
-					"name": "Estatísticas de Logs",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/logs/stats",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "stats"],
-							"query": [
-								{
-									"key": "startDate",
-									"value": "",
-									"description": "Data de início (YYYY-MM-DD)"
-								},
-								{
-									"key": "endDate",
-									"value": "",
-									"description": "Data de fim (YYYY-MM-DD)"
-								},
-								{
-									"key": "clientId",
-									"value": "",
-									"description": "Filtrar por cliente (UUID)"
-								},
-								{
-									"key": "network",
-									"value": "",
-									"description": "Filtrar por rede (mainnet, testnet)"
-								},
-								{
-									"key": "resourceType",
-									"value": "",
-									"description": "Filtrar por tipo de recurso"
-								},
-								{
-									"key": "transactionType",
-									"value": "",
-									"description": "Filtrar por tipo de transação"
-								}
-							]
-						},
-						"description": "Obtém estatísticas de logs e transações"
-					},
-					"response": []
-				},
-				{
-					"name": "Logs de Erro",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/logs/errors?page=1&limit=50",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "errors"],
-							"query": [
-								{
-									"key": "page",
-									"value": "1",
-									"description": "Número da página"
-								},
-								{
-									"key": "limit",
-									"value": "50",
-									"description": "Limite de itens por página"
-								},
-								{
-									"key": "startDate",
-									"value": "",
-									"description": "Data de início (YYYY-MM-DD)"
-								},
-								{
-									"key": "endDate",
-									"value": "",
-									"description": "Data de fim (YYYY-MM-DD)"
-								}
-							]
-						},
-						"description": "Obtém logs de erro"
-					},
-					"response": []
-				},
-				{
-					"name": "Transações Pendentes",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/logs/transactions/pending",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "transactions", "pending"],
-							"query": [
-								{
-									"key": "network",
-									"value": "",
-									"description": "Filtrar por rede (mainnet, testnet)"
-								},
-								{
-									"key": "limit",
-									"value": "100",
-									"description": "Limite de transações"
-								}
-							]
-						},
-						"description": "Obtém transações pendentes"
-					},
-					"response": []
-				},
-				{
-					"name": "Transação por Hash",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/logs/transactions/{{tx_hash}}",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "transactions", "{{tx_hash}}"]
-						},
-						"description": "Obtém transação por hash"
-					},
-					"response": []
-				},
-				{
-					"name": "Meus Logs",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/logs/me/requests?page=1&limit=50",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "me", "requests"],
-							"query": [
-								{
-									"key": "page",
-									"value": "1",
-									"description": "Número da página"
-								},
-								{
-									"key": "limit",
-									"value": "50",
-									"description": "Limite de itens por página"
-								},
-								{
-									"key": "resourceType",
-									"value": "",
-									"description": "Filtrar por tipo de recurso"
-								},
-								{
-									"key": "statusCode",
-									"value": "",
-									"description": "Filtrar por código de status"
-								},
-								{
-									"key": "startDate",
-									"value": "",
-									"description": "Data de início (YYYY-MM-DD)"
-								},
-								{
-									"key": "endDate",
-									"value": "",
-									"description": "Data de fim (YYYY-MM-DD)"
-								}
-							]
-						},
-						"description": "Obtém logs do cliente autenticado"
-					},
-					"response": []
-				},
-				{
-					"name": "Minhas Transações",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/logs/me/transactions?page=1&limit=50",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "me", "transactions"],
-							"query": [
-								{
-									"key": "page",
-									"value": "1",
-									"description": "Número da página"
-								},
-								{
-									"key": "limit",
-									"value": "50",
-									"description": "Limite de itens por página"
-								},
-								{
-									"key": "status",
-									"value": "",
-									"description": "Filtrar por status (pending, confirmed, failed, cancelled)"
-								},
-								{
-									"key": "network",
-									"value": "",
-									"description": "Filtrar por rede (mainnet, testnet)"
-								},
-								{
-									"key": "transactionType",
-									"value": "",
-									"description": "Filtrar por tipo de transação"
-								},
-								{
-									"key": "startDate",
-									"value": "",
-									"description": "Data de início (YYYY-MM-DD)"
-								},
-								{
-									"key": "endDate",
-									"value": "",
-									"description": "Data de fim (YYYY-MM-DD)"
-								}
-							]
-						},
-						"description": "Obtém transações do cliente autenticado"
-					},
-					"response": []
-				},
-				{
-					"name": "Minhas Estatísticas",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/logs/me/stats",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "me", "stats"],
-							"query": [
-								{
-									"key": "startDate",
-									"value": "",
-									"description": "Data de início (YYYY-MM-DD)"
-								},
-								{
-									"key": "endDate",
-									"value": "",
-									"description": "Data de fim (YYYY-MM-DD)"
-								},
-								{
-									"key": "network",
-									"value": "",
-									"description": "Filtrar por rede (mainnet, testnet)"
-								},
-								{
-									"key": "resourceType",
-									"value": "",
-									"description": "Filtrar por tipo de recurso"
-								},
-								{
-									"key": "transactionType",
-									"value": "",
-									"description": "Filtrar por tipo de transação"
-								}
-							]
-						},
-						"description": "Obtém estatísticas do cliente autenticado"
-					},
-					"response": []
-				},
-				{
-					"name": "Logs por Usuário",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/logs/users/{{user_id}}/requests?page=1&limit=50",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "users", "{{user_id}}", "requests"],
-							"query": [
-								{
-									"key": "page",
-									"value": "1",
-									"description": "Número da página"
-								},
-								{
-									"key": "limit",
-									"value": "50",
-									"description": "Limite de itens por página"
-								},
-								{
-									"key": "resourceType",
-									"value": "",
-									"description": "Filtrar por tipo de recurso"
-								},
-								{
-									"key": "statusCode",
-									"value": "",
-									"description": "Filtrar por código de status"
-								},
-								{
-									"key": "startDate",
-									"value": "",
-									"description": "Data de início (YYYY-MM-DD)"
-								},
-								{
-									"key": "endDate",
-									"value": "",
-									"description": "Data de fim (YYYY-MM-DD)"
-								}
-							]
-						},
-						"description": "Obtém logs de requisições de um usuário específico"
-					},
-					"response": []
-				},
-				{
-					"name": "Transações por Usuário",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/logs/users/{{user_id}}/transactions?page=1&limit=50",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "users", "{{user_id}}", "transactions"],
-							"query": [
-								{
-									"key": "page",
-									"value": "1",
-									"description": "Número da página"
-								},
-								{
-									"key": "limit",
-									"value": "50",
-									"description": "Limite de itens por página"
-								},
-								{
-									"key": "status",
-									"value": "",
-									"description": "Filtrar por status (pending, confirmed, failed, cancelled)"
-								},
-								{
-									"key": "network",
-									"value": "",
-									"description": "Filtrar por rede (mainnet, testnet)"
-								},
-								{
-									"key": "transactionType",
-									"value": "",
-									"description": "Filtrar por tipo de transação"
-								},
-								{
-									"key": "startDate",
-									"value": "",
-									"description": "Data de início (YYYY-MM-DD)"
-								},
-								{
-									"key": "endDate",
-									"value": "",
-									"description": "Data de fim (YYYY-MM-DD)"
-								}
-							]
-						},
-						"description": "Obtém transações de um usuário específico"
-					},
-					"response": []
-				},
-				{
-					"name": "Estatísticas por Usuário",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/logs/users/{{user_id}}/stats",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "users", "{{user_id}}", "stats"],
-							"query": [
-								{
-									"key": "startDate",
-									"value": "",
-									"description": "Data de início (YYYY-MM-DD)"
-								},
-								{
-									"key": "endDate",
-									"value": "",
-									"description": "Data de fim (YYYY-MM-DD)"
-								},
-								{
-									"key": "network",
-									"value": "",
-									"description": "Filtrar por rede (mainnet, testnet)"
-								},
-								{
-									"key": "resourceType",
-									"value": "",
-									"description": "Filtrar por tipo de recurso"
-								},
-								{
-									"key": "transactionType",
-									"value": "",
-									"description": "Filtrar por tipo de transação"
-								}
-							]
-						},
-						"description": "Obtém estatísticas de um usuário específico"
-					},
-					"response": []
-				},
-				{
-					"name": "Exportar Logs",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/logs/export",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "export"],
-							"query": [
-								{
-									"key": "startDate",
-									"value": "",
-									"description": "Data de início (YYYY-MM-DD)"
-								},
-								{
-									"key": "endDate",
-									"value": "",
-									"description": "Data de fim (YYYY-MM-DD)"
-								},
-								{
-									"key": "clientId",
-									"value": "",
-									"description": "Filtrar por cliente (UUID)"
-								},
-								{
-									"key": "network",
-									"value": "",
-									"description": "Filtrar por rede (mainnet, testnet)"
-								},
-								{
-									"key": "format",
-									"value": "json",
-									"description": "Formato de exportação (json, csv)"
-								}
-							]
-						},
-						"description": "Exporta logs em formato JSON ou CSV"
-					},
-					"response": []
-				},
-				{
-					"name": "Limpar Logs Antigos",
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "X-API-Key",
-								"value": "{{api_key}}",
-								"type": "text"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/logs/cleanup?daysToKeep=30",
-							"host": ["{{base_url}}"],
-							"path": ["api", "logs", "cleanup"],
-							"query": [
-								{
-									"key": "daysToKeep",
-									"value": "30",
-									"description": "Número de dias para manter"
-								}
-							]
-						},
-						"description": "Limpa logs antigos (mais de X dias)"
+						"description": "Obtém um log específico por ID"
 					},
 					"response": []
 				}
 			],
-			"description": "Endpoints para consulta e gerenciamento de logs de requisições e transações"
+			"description": "Sistema de logs e auditoria"
 		}
 	],
 	"variable": [
@@ -2223,12 +948,7 @@
 		},
 		{
 			"key": "api_key",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "admin_api_key",
-			"value": "",
+			"value": "navi_api_key_2024_complete_admin_full_access",
 			"type": "string"
 		},
 		{
@@ -2237,52 +957,12 @@
 			"type": "string"
 		},
 		{
-			"key": "client_id",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "user_id",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "wallet_id",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "wallet_id_or_address",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "contract_id",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "transaction_id",
+			"key": "job_id",
 			"value": "",
 			"type": "string"
 		},
 		{
 			"key": "log_id",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "reset_token",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "api_key_id",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "tx_hash",
 			"value": "",
 			"type": "string"
 		}
