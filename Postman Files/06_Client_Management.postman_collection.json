@@ -1,0 +1,308 @@
+{
+  "info": {
+    "name": "🏢 Gerenciamento de Cliente",
+    "description": "Endpoints para gerenciamento de clientes da API Azore Blockchain",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "{{api_key}}",
+      "type": "string"
+    },
+    {
+      "key": "client_id",
+      "value": "{{client_id}}",
+      "type": "string"
+    },
+    {
+      "key": "client_name",
+      "value": "{{client_name}}",
+      "type": "string"
+    },
+    {
+      "key": "page",
+      "value": "{{page}}",
+      "type": "string"
+    },
+    {
+      "key": "limit",
+      "value": "{{limit}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create Client",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{client_name}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/clients",
+          "host": ["{{base_url}}"],
+          "path": ["api", "clients"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Clients",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/clients?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "clients"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Client by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/clients/{{client_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "clients", "{{client_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Client",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{client_name}} Atualizado\",\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/clients/{{client_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "clients", "{{client_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Deactivate Client",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/clients/{{client_id}}/deactivate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "clients", "{{client_id}}", "deactivate"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Activate Client",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/clients/{{client_id}}/activate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "clients", "{{client_id}}", "activate"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Rate Limits",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"rateLimit\": {\n    \"requestsPerMinute\": 100,\n    \"requestsPerHour\": 1000,\n    \"requestsPerDay\": 10000\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/clients/{{client_id}}/rate-limits",
+          "host": ["{{base_url}}"],
+          "path": ["api", "clients", "{{client_id}}", "rate-limits"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Client Usage Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/clients/{{client_id}}/usage-stats",
+          "host": ["{{base_url}}"],
+          "path": ["api", "clients", "{{client_id}}", "usage-stats"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Client Users",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/clients/{{client_id}}/users?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "clients", "{{client_id}}", "users"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Client Users Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/clients/{{client_id}}/users/stats",
+          "host": ["{{base_url}}"],
+          "path": ["api", "clients", "{{client_id}}", "users", "stats"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Client Requests Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/clients/{{client_id}}/requests/stats?period=day",
+          "host": ["{{base_url}}"],
+          "path": ["api", "clients", "{{client_id}}", "requests", "stats"],
+          "query": [
+            {
+              "key": "period",
+              "value": "day"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Clients Service",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/clients/test/service",
+          "host": ["{{base_url}}"],
+          "path": ["api", "clients", "test", "service"]
+        }
+      },
+      "response": []
+    }
+  ]
+} 

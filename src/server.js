@@ -21,6 +21,7 @@ const adminService = require('./services/admin.service');
 const passwordResetService = require('./services/passwordReset.service');
 const tokenInitializerService = require('./services/tokenInitializer.service');
 const tokenService = require('./services/token.service');
+const stakeService = require('./services/stake.service');
 const queueService = require('./services/queue.service');
 
 const PORT = process.env.PORT || 3000;
@@ -92,6 +93,7 @@ const startServer = () => {
     await logService.initialize();
     await passwordResetService.initialize();
     await tokenService.initialize();
+    await stakeService.initialize();
     await queueService.initialize();
     console.log('✅ Serviços inicializados com sucesso');
     

@@ -1,0 +1,241 @@
+{
+  "info": {
+    "name": "📄 Gerenciamento de Contratos",
+    "description": "Endpoints para validação, implantação e operações com contratos inteligentes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "{{api_key}}",
+      "type": "string"
+    },
+    {
+      "key": "contract_address",
+      "value": "{{contract_address}}",
+      "type": "string"
+    },
+    {
+      "key": "contract_abi",
+      "value": "{{contract_abi}}",
+      "type": "string"
+    },
+    {
+      "key": "function_name",
+      "value": "{{function_name}}",
+      "type": "string"
+    },
+    {
+      "key": "role",
+      "value": "{{role}}",
+      "type": "string"
+    },
+    {
+      "key": "user_address",
+      "value": "{{user_address}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Validate Contract",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"contractAddress\": \"{{contract_address}}\",\n  \"abi\": {{contract_abi}}\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/contracts/validate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "contracts", "validate"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Deploy Contract",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"contractName\": \"TestContract\",\n  \"constructorArgs\": [],\n  \"gasLimit\": 5000000\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/contracts/deploy",
+          "host": ["{{base_url}}"],
+          "path": ["api", "contracts", "deploy"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Call Contract Function",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"contractAddress\": \"{{contract_address}}\",\n  \"functionName\": \"{{function_name}}\",\n  \"args\": [],\n  \"gasLimit\": 100000\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/contracts/{{contract_address}}/call",
+          "host": ["{{base_url}}"],
+          "path": ["api", "contracts", "{{contract_address}}", "call"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Grant Role",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userAddress\": \"{{user_address}}\",\n  \"role\": \"{{role}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/contracts/{{contract_address}}/grant-role",
+          "host": ["{{base_url}}"],
+          "path": ["api", "contracts", "{{contract_address}}", "grant-role"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Revoke Role",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userAddress\": \"{{user_address}}\",\n  \"role\": \"{{role}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/contracts/{{contract_address}}/revoke-role",
+          "host": ["{{base_url}}"],
+          "path": ["api", "contracts", "{{contract_address}}", "revoke-role"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Check Role",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/contracts/{{contract_address}}/check-role/{{user_address}}/{{role}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "contracts", "{{contract_address}}", "check-role", "{{user_address}}", "{{role}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Contract Events",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/contracts/{{contract_address}}/events?fromBlock=0&toBlock=latest",
+          "host": ["{{base_url}}"],
+          "path": ["api", "contracts", "{{contract_address}}", "events"],
+          "query": [
+            {
+              "key": "fromBlock",
+              "value": "0"
+            },
+            {
+              "key": "toBlock",
+              "value": "latest"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Contract Service",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/contracts/test/service",
+          "host": ["{{base_url}}"],
+          "path": ["api", "contracts", "test", "service"]
+        }
+      },
+      "response": []
+    }
+  ]
+} 

@@ -1,0 +1,402 @@
+{
+  "info": {
+    "name": "👑 Rotas Admin",
+    "description": "Endpoints administrativos da API Azore Blockchain (apenas para API_ADMIN)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "{{api_key}}",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "{{user_id}}",
+      "type": "string"
+    },
+    {
+      "key": "client_id",
+      "value": "{{client_id}}",
+      "type": "string"
+    },
+    {
+      "key": "contract_address",
+      "value": "{{contract_address}}",
+      "type": "string"
+    },
+    {
+      "key": "admin_public_key",
+      "value": "{{admin_public_key}}",
+      "type": "string"
+    },
+    {
+      "key": "page",
+      "value": "{{page}}",
+      "type": "string"
+    },
+    {
+      "key": "limit",
+      "value": "{{limit}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Dashboard Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/dashboard/stats",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "dashboard", "stats"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List All Clients (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/clients?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "clients"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Client by ID (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/clients/{{client_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "clients", "{{client_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Client (Admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Cliente Admin\",\n  \"rateLimit\": {\n    \"requestsPerMinute\": 100,\n    \"requestsPerHour\": 1000,\n    \"requestsPerDay\": 10000\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/clients",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "clients"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Client (Admin)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Cliente Admin Atualizado\",\n  \"isActive\": true\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/clients/{{client_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "clients", "{{client_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Deactivate Client (Admin)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/clients/{{client_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "clients", "{{client_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Activate Client (Admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/clients/{{client_id}}/activate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "clients", "{{client_id}}", "activate"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Client Users (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/clients/{{client_id}}/users?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "clients", "{{client_id}}", "users"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create User (Admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Usuário Admin\",\n  \"email\": \"admin@test.com\",\n  \"password\": \"senha123\",\n  \"clientId\": \"{{client_id}}\",\n  \"cpf\": \"12345678901\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/users",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "users"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List All Users (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/users?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "users"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User by ID (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/users/{{user_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "users", "{{user_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Keys (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/users/{{user_id}}/keys",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "users", "{{user_id}}", "keys"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Add API Admin Role",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/users/{{user_id}}/add-api-admin",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "users", "{{user_id}}", "add-api-admin"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Remove API Admin Role",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/users/{{user_id}}/remove-api-admin",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "users", "{{user_id}}", "remove-api-admin"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Grant Admin Role to Contract",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"newAdminPublicKey\": \"{{admin_public_key}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/admin/contracts/{{contract_address}}/grant-admin-role",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "contracts", "{{contract_address}}", "grant-admin-role"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Admin Service",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/admin/test/service",
+          "host": ["{{base_url}}"],
+          "path": ["api", "admin", "test", "service"]
+        }
+      },
+      "response": []
+    }
+  ]
+} 

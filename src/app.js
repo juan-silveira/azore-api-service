@@ -13,6 +13,7 @@ const testRoutes = require('./routes/test.routes');
 
 const contractRoutes = require('./routes/contract.routes');
 const tokenRoutes = require('./routes/token.routes');
+const stakeRoutes = require('./routes/stake.routes');
 const clientRoutes = require('./routes/client.routes');
 const logRoutes = require('./routes/log.routes');
 const userRoutes = require('./routes/user.routes');
@@ -139,6 +140,8 @@ app.use('/api/users', authenticateApiKey, apiRateLimiter, addUserInfo, logAuthen
 app.use('/api/contracts', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, contractRoutes);
 // Middleware de autenticação para rotas protegidas
 app.use('/api/tokens', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, tokenRoutes);
+// Middleware de autenticação para rotas protegidas
+app.use('/api/stakes', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, stakeRoutes);
 
 // Rotas de transações (com autenticação)
 app.use('/api/transactions', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionRoutes);

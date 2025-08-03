@@ -1,0 +1,145 @@
+{
+  "info": {
+    "name": "🧪 Teste de Blockchain",
+    "description": "Endpoints para testes de conexão e consultas na blockchain Azore",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "{{api_key}}",
+      "type": "string"
+    },
+    {
+      "key": "block_number",
+      "value": "{{block_number}}",
+      "type": "string"
+    },
+    {
+      "key": "transaction_hash",
+      "value": "{{transaction_hash}}",
+      "type": "string"
+    },
+    {
+      "key": "wallet_address",
+      "value": "{{wallet_address}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Test Blockchain Connection",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/test/blockchain/connection",
+          "host": ["{{base_url}}"],
+          "path": ["api", "test", "blockchain", "connection"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Network Info",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/test/blockchain/network-info",
+          "host": ["{{base_url}}"],
+          "path": ["api", "test", "blockchain", "network-info"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Latest Block",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/test/blockchain/latest-block",
+          "host": ["{{base_url}}"],
+          "path": ["api", "test", "blockchain", "latest-block"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Block by Number",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/test/blockchain/blocks/{{block_number}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "test", "blockchain", "blocks", "{{block_number}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Transaction by Hash",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/test/blockchain/transactions/{{transaction_hash}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "test", "blockchain", "transactions", "{{transaction_hash}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Wallet Balance",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/test/blockchain/wallets/{{wallet_address}}/balance",
+          "host": ["{{base_url}}"],
+          "path": ["api", "test", "blockchain", "wallets", "{{wallet_address}}", "balance"]
+        }
+      },
+      "response": []
+    }
+  ]
+} 

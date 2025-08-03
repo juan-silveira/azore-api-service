@@ -24,7 +24,9 @@ const getDefaultAdminConfig = () => {
     name: process.env.DEFAULT_ADMIN_NAME || 'Admin',
     cpf: process.env.DEFAULT_ADMIN_CPF || '00000000000',
     phone: process.env.DEFAULT_ADMIN_PHONE || '11999999999',
-    birthDate: process.env.DEFAULT_ADMIN_BIRTH_DATE || '1990-01-01'
+    birthDate: process.env.DEFAULT_ADMIN_BIRTH_DATE || '1990-01-01',
+    publicKey: process.env.DEFAULT_ADMIN_PUBLIC_KEY,
+    privateKey: process.env.DEFAULT_ADMIN_PRIVATE_KEY
   };
 };
 
@@ -83,9 +85,22 @@ class AdminService {
           });
         }
         
-        // Gerar par de chaves Ethereum
-        const { ethers } = require('ethers');
-        const wallet = ethers.Wallet.createRandom();
+        // Verificar se as chaves estão definidas no .env
+        let publicKey, privateKey;
+        
+        if (adminConfig.publicKey && adminConfig.privateKey) {
+          // Usar chaves definidas no .env
+          publicKey = adminConfig.publicKey;
+          privateKey = adminConfig.privateKey;
+          console.log('Usando chaves definidas no .env para o admin padrão');
+        } else {
+          // Gerar par de chaves Ethereum automaticamente
+          const { ethers } = require('ethers');
+          const wallet = ethers.Wallet.createRandom();
+          publicKey = wallet.address;
+          privateKey = wallet.privateKey;
+          console.log('Gerando chaves automáticas para o admin padrão');
+        }
         
         // Criar usuário admin
         adminUser = await User.create({
@@ -94,8 +109,8 @@ class AdminService {
           cpf: adminConfig.cpf, // CPF padrão para o admin
           phone: adminConfig.phone,
           birthDate: adminConfig.birthDate,
-          publicKey: wallet.address,
-          privateKey: wallet.privateKey,
+          publicKey: publicKey,
+          privateKey: privateKey,
           clientId: defaultClient.id,
           password: adminConfig.password,
           isFirstAccess: true,

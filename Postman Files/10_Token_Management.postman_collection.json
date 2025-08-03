@@ -1,0 +1,336 @@
+{
+  "info": {
+    "name": "🪙 Gerenciamento de Tokens",
+    "description": "Endpoints para gerenciamento de tokens ERC-20 na blockchain Azore",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "{{api_key}}",
+      "type": "string"
+    },
+    {
+      "key": "token_address",
+      "value": "{{token_address}}",
+      "type": "string"
+    },
+    {
+      "key": "wallet_address",
+      "value": "{{wallet_address}}",
+      "type": "string"
+    },
+    {
+      "key": "amount",
+      "value": "{{amount}}",
+      "type": "string"
+    },
+    {
+      "key": "to_address",
+      "value": "{{to_address}}",
+      "type": "string"
+    },
+    {
+      "key": "from_address",
+      "value": "{{from_address}}",
+      "type": "string"
+    },
+    {
+      "key": "event_name",
+      "value": "{{event_name}}",
+      "type": "string"
+    },
+    {
+      "key": "from_block",
+      "value": "{{from_block}}",
+      "type": "string"
+    },
+    {
+      "key": "to_block",
+      "value": "{{to_block}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get Token Balance",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/tokens/{{token_address}}/balance/{{wallet_address}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tokens", "{{token_address}}", "balance", "{{wallet_address}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Token Info",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/tokens/{{token_address}}/info",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tokens", "{{token_address}}", "info"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Mint Tokens",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"to\": \"{{to_address}}\",\n  \"amount\": \"{{amount}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/tokens/{{token_address}}/mint",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tokens", "{{token_address}}", "mint"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Burn Tokens",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"from\": \"{{from_address}}\",\n  \"amount\": \"{{amount}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/tokens/{{token_address}}/burn",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tokens", "{{token_address}}", "burn"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Transfer Tokens",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"from\": \"{{from_address}}\",\n  \"to\": \"{{to_address}}\",\n  \"amount\": \"{{amount}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/tokens/{{token_address}}/transfer",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tokens", "{{token_address}}", "transfer"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Token Allowance",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/tokens/{{token_address}}/allowance/{{from_address}}/{{to_address}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tokens", "{{token_address}}", "allowance", "{{from_address}}", "{{to_address}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Approve Tokens",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"spender\": \"{{to_address}}\",\n  \"amount\": \"{{amount}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/tokens/{{token_address}}/approve",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tokens", "{{token_address}}", "approve"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Transfer From",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"from\": \"{{from_address}}\",\n  \"to\": \"{{to_address}}\",\n  \"amount\": \"{{amount}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/tokens/{{token_address}}/transfer-from",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tokens", "{{token_address}}", "transfer-from"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Token Events",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/tokens/{{token_address}}/events/{{event_name}}?fromBlock={{from_block}}&toBlock={{to_block}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tokens", "{{token_address}}", "events", "{{event_name}}"],
+          "query": [
+            {
+              "key": "fromBlock",
+              "value": "{{from_block}}"
+            },
+            {
+              "key": "toBlock",
+              "value": "{{to_block}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Register Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"tokenAddress\": \"{{token_address}}\",\n  \"name\": \"Test Token\",\n  \"symbol\": \"TEST\",\n  \"decimals\": 18\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/tokens/register",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tokens", "register"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Registered Tokens",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/tokens/registered",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tokens", "registered"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Token Service",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/tokens/test/service",
+          "host": ["{{base_url}}"],
+          "path": ["api", "tokens", "test", "service"]
+        }
+      },
+      "response": []
+    }
+  ]
+} 

@@ -1,0 +1,216 @@
+{
+  "info": {
+    "name": "🔄 Gerenciamento de Fila",
+    "description": "Endpoints para monitoramento e gerenciamento de filas RabbitMQ da API Azore Blockchain",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "{{api_key}}",
+      "type": "string"
+    },
+    {
+      "key": "job_id",
+      "value": "{{job_id}}",
+      "type": "string"
+    },
+    {
+      "key": "queue_name",
+      "value": "{{queue_name}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Queue Stats",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/queue/stats",
+          "host": ["{{base_url}}"],
+          "path": ["api", "queue", "stats"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Job Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/queue/jobs/{{job_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "queue", "jobs", "{{job_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Processing Jobs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/queue/jobs?status=processing&limit=50",
+          "host": ["{{base_url}}"],
+          "path": ["api", "queue", "jobs"],
+          "query": [
+            {
+              "key": "status",
+              "value": "processing"
+            },
+            {
+              "key": "limit",
+              "value": "50"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Failed Jobs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/queue/jobs/failed?limit=20",
+          "host": ["{{base_url}}"],
+          "path": ["api", "queue", "jobs", "failed"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "20"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Retry Failed Job",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/queue/jobs/{{job_id}}/retry",
+          "host": ["{{base_url}}"],
+          "path": ["api", "queue", "jobs", "{{job_id}}", "retry"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Cleanup Old Jobs",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/queue/cleanup",
+          "host": ["{{base_url}}"],
+          "path": ["api", "queue", "cleanup"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Queue Details",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/queue/queues/{{queue_name}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "queue", "queues", "{{queue_name}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Queue Metrics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/queue/metrics",
+          "host": ["{{base_url}}"],
+          "path": ["api", "queue", "metrics"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Queue Logs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/queue/queues/{{queue_name}}/logs?limit=100",
+          "host": ["{{base_url}}"],
+          "path": ["api", "queue", "queues", "{{queue_name}}", "logs"],
+          "query": [
+            {
+              "key": "limit",
+              "value": "100"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+} 

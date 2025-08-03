@@ -5,8 +5,8 @@ const options = {
     openapi: '3.0.0',
     info: {
       title: 'Azore Blockchain API',
-      version: '2.0.0',
-      description: 'API para interação com a blockchain Azore - Gerenciamento de carteiras, contratos inteligentes e transações com sistema RBAC (Role-Based Access Control) e sistema de fila RabbitMQ para processamento assíncrono de transações blockchain.\n\n## 🔐 Sistema de Roles\n\n- **API_ADMIN**: Administrador global da plataforma\n- **CLIENT_ADMIN**: Administrador de um client específico\n- **USER**: Usuário comum\n\n## 🆕 Novas Funcionalidades\n\n- Sistema de RBAC (API_ADMIN e CLIENT_ADMIN)\n- Sistema de Fila RabbitMQ para transações blockchain\n- Rate Limiting inteligente por tipo de operação\n- Gerenciamento de API Keys (gerar, revogar, editar)\n- Concessão de roles em contratos (MINTER, BURNER, TRANSFER)\n- Controle granular de acesso por role\n- Monitoramento de filas em tempo real\n\n## ⚠️ Rate Limiting\n\n- **Transações Blockchain**: 10 por minuto por cliente\n- **API Calls Gerais**: 100 por 15 minutos por cliente\n- **Login**: 5 tentativas por 15 minutos por IP\n- **API Keys**: 3 por hora por cliente',
+      version: '2.1.0',
+      description: 'API para interação com a blockchain Azore - Gerenciamento de usuários, contratos inteligentes, stakes, tokens e transações com sistema RBAC (Role-Based Access Control) e sistema de fila RabbitMQ para processamento assíncrono de transações blockchain.\n\n## 🔐 Sistema de Roles\n\n- **API_ADMIN**: Administrador global da plataforma\n- **CLIENT_ADMIN**: Administrador de um client específico\n- **USER**: Usuário comum\n\n## 🆕 Funcionalidades Principais\n\n- Sistema de RBAC (API_ADMIN e CLIENT_ADMIN)\n- Sistema de Fila RabbitMQ para transações blockchain\n- Rate Limiting inteligente por tipo de operação\n- Gerenciamento de API Keys (gerar, revogar, editar)\n- Concessão de roles em contratos (MINTER, BURNER, TRANSFER)\n- Controle granular de acesso por role\n- Monitoramento de filas em tempo real\n- **Sistema de Staking**: Gerenciamento completo de contratos de staking (28 endpoints)\n- **Sistema de Tokens**: Mint, burn, transferências e consultas\n- **Sistema de Logs**: Monitoramento completo de requisições e transações\n\n## ⚠️ Rate Limiting\n\n- **Transações Blockchain**: 10 por minuto por cliente\n- **API Calls Gerais**: 100 por 15 minutos por cliente\n- **Login**: 5 tentativas por 15 minutos por IP\n- **API Keys**: 3 por hora por cliente\n\n## 📊 Total de Endpoints: 139',
       contact: {
         name: 'Azore Blockchain Service',
         email: 'support@azore.technology'
@@ -147,38 +147,7 @@ const options = {
             }
           }
         },
-        Wallet: {
-          type: 'object',
-          properties: {
-            id: {
-              type: 'string',
-              format: 'uuid',
-              description: 'ID único da carteira'
-            },
-            publicAddress: {
-              type: 'string',
-              description: 'Endereço público da carteira'
-            },
-            externalSystemId: {
-              type: 'string',
-              description: 'ID do sistema externo'
-            },
-            clientId: {
-              type: 'string',
-              format: 'uuid',
-              description: 'ID do cliente proprietário'
-            },
-            isActive: {
-              type: 'boolean',
-              description: 'Status ativo da carteira'
-            },
-            createdAt: {
-              type: 'string',
-              format: 'date-time',
-              description: 'Data de criação'
-            }
-          }
-        },
+
         SmartContract: {
           type: 'object',
           properties: {
@@ -529,6 +498,98 @@ const options = {
               }
             }
           }
+        },
+        Stake: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              format: 'uuid',
+              description: 'ID único do stake'
+            },
+            name: {
+              type: 'string',
+              description: 'Nome do stake'
+            },
+            address: {
+              type: 'string',
+              pattern: '^0x[a-fA-F0-9]{40}$',
+              description: 'Endereço do contrato de stake'
+            },
+            abi: {
+              type: 'array',
+              description: 'ABI do contrato'
+            },
+            network: {
+              type: 'string',
+              enum: ['mainnet', 'testnet'],
+              description: 'Rede do contrato'
+            },
+            contractType: {
+              type: 'string',
+              description: 'Tipo do contrato (STAKE)'
+            },
+            adminPublicKey: {
+              type: 'string',
+              pattern: '^0x[a-fA-F0-9]{40}$',
+              description: 'PublicKey do usuário admin do stake'
+            },
+            metadata: {
+              type: 'object',
+              description: 'Metadados adicionais (stakeToken, rewardToken, minStake, etc.)'
+            },
+            isActive: {
+              type: 'boolean',
+              description: 'Status ativo do stake'
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Data de criação'
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'Data de atualização'
+            }
+          }
+        },
+        StakeInfo: {
+          type: 'object',
+          properties: {
+            address: {
+              type: 'string',
+              description: 'Endereço do contrato de stake'
+            },
+            stakeToken: {
+              type: 'string',
+              description: 'Endereço do token de stake'
+            },
+            rewardToken: {
+              type: 'string',
+              description: 'Endereço do token de recompensa'
+            },
+            minStake: {
+              type: 'string',
+              description: 'Valor mínimo para stake em ether'
+            },
+            network: {
+              type: 'string',
+              description: 'Rede do contrato'
+            },
+            contractType: {
+              type: 'string',
+              description: 'Tipo do contrato'
+            },
+            metadata: {
+              type: 'object',
+              description: 'Metadados adicionais'
+            },
+            adminPublicKey: {
+              type: 'string',
+              description: 'PublicKey do admin do stake'
+            }
+          }
         }
       }
     },
@@ -557,10 +618,7 @@ const options = {
         name: 'Users',
         description: 'Gerenciamento de usuários'
       },
-      {
-        name: 'Wallets',
-        description: 'Gerenciamento de carteiras'
-      },
+
       {
         name: 'Contracts',
         description: 'Gerenciamento de contratos inteligentes'
@@ -572,6 +630,22 @@ const options = {
       {
         name: 'Tokens',
         description: 'Gerenciamento de tokens'
+      },
+      {
+        name: 'Stake Management',
+        description: 'Gerenciamento de contratos de staking'
+      },
+      {
+        name: 'Stake Operations',
+        description: 'Operações de investimento e retirada em stakes'
+      },
+      {
+        name: 'Stake Admin',
+        description: 'Operações administrativas de stakes (apenas para admin do stake)'
+      },
+      {
+        name: 'Stake Queries',
+        description: 'Consultas de informações de stakes'
       },
       {
         name: 'Transactions',

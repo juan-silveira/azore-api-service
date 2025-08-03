@@ -1,0 +1,384 @@
+{
+  "info": {
+    "name": "👥 Gerenciamento de Usuários",
+    "description": "Endpoints para gerenciamento completo de usuários da API Azore Blockchain",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "{{api_key}}",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "{{user_id}}",
+      "type": "string"
+    },
+    {
+      "key": "client_id",
+      "value": "{{client_id}}",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "{{email}}",
+      "type": "string"
+    },
+    {
+      "key": "cpf",
+      "value": "{{cpf}}",
+      "type": "string"
+    },
+    {
+      "key": "wallet_address",
+      "value": "{{wallet_address}}",
+      "type": "string"
+    },
+    {
+      "key": "user_name",
+      "value": "{{user_name}}",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "{{password}}",
+      "type": "string"
+    },
+    {
+      "key": "network",
+      "value": "{{network}}",
+      "type": "string"
+    },
+    {
+      "key": "page",
+      "value": "{{page}}",
+      "type": "string"
+    },
+    {
+      "key": "limit",
+      "value": "{{limit}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{user_name}}\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"cpf\": \"{{cpf}}\",\n  \"clientId\": \"{{client_id}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/users",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Users",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/{{user_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "{{user_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User by Email",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/email/{{email}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "email", "{{email}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User by CPF",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/cpf/{{cpf}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "cpf", "{{cpf}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User by Address",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/address/{{wallet_address}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "address", "{{wallet_address}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Balances",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/address/{{wallet_address}}/balances?network={{network}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "address", "{{wallet_address}}", "balances"],
+          "query": [
+            {
+              "key": "network",
+              "value": "{{network}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update User",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{user_name}} Atualizado\",\n  \"email\": \"{{email}}\",\n  \"cpf\": \"{{cpf}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/users/{{user_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "{{user_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Deactivate User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/{{user_id}}/deactivate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "{{user_id}}", "deactivate"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Activate User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/{{user_id}}/activate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "{{user_id}}", "activate"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Users by Client",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/client/{{client_id}}?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "client", "{{client_id}}"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Keys (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/{{user_id}}/keys",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "{{user_id}}", "keys"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Keys (Client)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/{{user_id}}/keys/client",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "{{user_id}}", "keys", "client"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Search User Keys",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/search/email/{{email}}/keys",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "search", "email", "{{email}}", "keys"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Users Service",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/users/test/service",
+          "host": ["{{base_url}}"],
+          "path": ["api", "users", "test", "service"]
+        }
+      },
+      "response": []
+    }
+  ]
+} 

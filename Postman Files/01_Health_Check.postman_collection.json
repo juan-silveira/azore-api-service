@@ -1,0 +1,56 @@
+{
+  "info": {
+    "name": "🏥 Health Check",
+    "description": "Endpoints de verificação de saúde da API Azore Blockchain",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response has required fields\", function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response).to.have.property('status');",
+              "    pm.expect(response).to.have.property('timestamp');",
+              "    pm.expect(response).to.have.property('uptime');",
+              "    pm.expect(response).to.have.property('environment');",
+              "});",
+              "",
+              "pm.test(\"Status is OK\", function () {",
+              "    const response = pm.response.json();",
+              "    pm.expect(response.status).to.eql('OK');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+} 

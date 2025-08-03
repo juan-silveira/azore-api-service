@@ -1,0 +1,277 @@
+{
+  "info": {
+    "name": "🔐 Autenticação e Sessões",
+    "description": "Endpoints de autenticação, login, logout e gerenciamento de sessões da API Azore Blockchain",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "{{email}}",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "{{password}}",
+      "type": "string"
+    },
+    {
+      "key": "session_token",
+      "value": "{{session_token}}",
+      "type": "string"
+    },
+    {
+      "key": "api_key_name",
+      "value": "{{api_key_name}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "login"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    if (response.data && response.data.sessionToken) {",
+              "        pm.environment.set(\"session_token\", response.data.sessionToken);",
+              "        console.log(\"Session token saved to environment\");",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Session-Token",
+            "value": "{{session_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/logout",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "logout"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Session Info",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-Session-Token",
+            "value": "{{session_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/session-info",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "session-info"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Change Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Session-Token",
+            "value": "{{session_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"novaSenha123\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/change-password",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "change-password"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Generate API Key",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Session-Token",
+            "value": "{{session_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{api_key_name}}\",\n  \"description\": \"API Key para desenvolvimento\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/generate-api-key",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "generate-api-key"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    if (response.data && response.data.apiKey) {",
+              "        pm.environment.set(\"api_key\", response.data.apiKey);",
+              "        console.log(\"API Key saved to environment\");",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "List API Keys",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-Session-Token",
+            "value": "{{session_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/api-keys",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "api-keys"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Revoke API Key",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-Session-Token",
+            "value": "{{session_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/auth/api-keys/{{api_key_id}}/revoke",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "api-keys", "{{api_key_id}}", "revoke"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Edit API Key",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Session-Token",
+            "value": "{{session_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{api_key_name}} Atualizada\",\n  \"description\": \"API Key atualizada para desenvolvimento\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/api-keys/{{api_key_id}}/edit",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "api-keys", "{{api_key_id}}", "edit"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Set Session Timeout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Session-Token",
+            "value": "{{session_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"timeout\": 3600\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/session-timeout",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "session-timeout"]
+        }
+      },
+      "response": []
+    }
+  ]
+} 

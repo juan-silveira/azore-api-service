@@ -1,0 +1,657 @@
+{
+  "info": {
+    "name": "🪙 Gerenciamento de Stakes",
+    "description": "Endpoints para gerenciamento completo de contratos de staking na blockchain Azore",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "{{api_key}}",
+      "type": "string"
+    },
+    {
+      "key": "stake_id",
+      "value": "{{stake_id}}",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "{{user_id}}",
+      "type": "string"
+    },
+    {
+      "key": "contract_address",
+      "value": "{{contract_address}}",
+      "type": "string"
+    },
+    {
+      "key": "amount",
+      "value": "{{amount}}",
+      "type": "string"
+    },
+    {
+      "key": "wallet_address",
+      "value": "{{wallet_address}}",
+      "type": "string"
+    },
+    {
+      "key": "page",
+      "value": "{{page}}",
+      "type": "string"
+    },
+    {
+      "key": "limit",
+      "value": "{{limit}}",
+      "type": "string"
+    },
+    {
+      "key": "start_date",
+      "value": "{{start_date}}",
+      "type": "string"
+    },
+    {
+      "key": "end_date",
+      "value": "{{end_date}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Create Stake",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"contractAddress\": \"{{contract_address}}\",\n  \"amount\": \"{{amount}}\",\n  \"lockPeriod\": 30\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/stakes",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Stakes",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Stake by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/{{stake_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "{{stake_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Stakes",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/user/{{user_id}}?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "user", "{{user_id}}"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Contract Stakes",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/contract/{{contract_address}}?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "contract", "{{contract_address}}"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Stake",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": \"{{amount}}\",\n  \"lockPeriod\": 60\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/stakes/{{stake_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "{{stake_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Cancel Stake",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/{{stake_id}}/cancel",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "{{stake_id}}", "cancel"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Withdraw Stake",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/{{stake_id}}/withdraw",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "{{stake_id}}", "withdraw"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Claim Rewards",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/{{stake_id}}/claim-rewards",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "{{stake_id}}", "claim-rewards"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Stake Rewards",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/{{stake_id}}/rewards",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "{{stake_id}}", "rewards"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Total Staked",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/user/{{user_id}}/total-staked",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "user", "{{user_id}}", "total-staked"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Contract Total Staked",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/contract/{{contract_address}}/total-staked",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "contract", "{{contract_address}}", "total-staked"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Stakes by Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/status/active?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "status", "active"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Stakes by Date Range",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/date-range?startDate={{start_date}}&endDate={{end_date}}&page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "date-range"],
+          "query": [
+            {
+              "key": "startDate",
+              "value": "{{start_date}}"
+            },
+            {
+              "key": "endDate",
+              "value": "{{end_date}}"
+            },
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Stake Statistics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/statistics",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "statistics"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Stake Statistics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/user/{{user_id}}/statistics",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "user", "{{user_id}}", "statistics"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Contract Stake Statistics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/contract/{{contract_address}}/statistics",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "contract", "{{contract_address}}", "statistics"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Process Expired Stakes",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/process-expired",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "process-expired"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Calculate Rewards",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stakeId\": \"{{stake_id}}\",\n  \"endDate\": \"{{end_date}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/stakes/calculate-rewards",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "calculate-rewards"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Stake History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/{{stake_id}}/history",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "{{stake_id}}", "history"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Stake History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/user/{{user_id}}/history?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "user", "{{user_id}}", "history"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Contract Stake History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/contract/{{contract_address}}/history?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "contract", "{{contract_address}}", "history"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Stake Events",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/{{stake_id}}/events",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "{{stake_id}}", "events"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Stake Events",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/user/{{user_id}}/events?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "user", "{{user_id}}", "events"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Contract Stake Events",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/contract/{{contract_address}}/events?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "contract", "{{contract_address}}", "events"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Stake Service",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/stakes/test/service",
+          "host": ["{{base_url}}"],
+          "path": ["api", "stakes", "test", "service"]
+        }
+      },
+      "response": []
+    }
+  ]
+} 

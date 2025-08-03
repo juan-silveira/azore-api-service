@@ -1,0 +1,444 @@
+{
+  "info": {
+    "name": "📊 Sistema de Logs",
+    "description": "Endpoints para gerenciamento e consulta de logs de requisições da API Azore Blockchain",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "{{api_key}}",
+      "type": "string"
+    },
+    {
+      "key": "log_id",
+      "value": "{{log_id}}",
+      "type": "string"
+    },
+    {
+      "key": "client_id",
+      "value": "{{client_id}}",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "{{user_id}}",
+      "type": "string"
+    },
+    {
+      "key": "page",
+      "value": "{{page}}",
+      "type": "string"
+    },
+    {
+      "key": "limit",
+      "value": "{{limit}}",
+      "type": "string"
+    },
+    {
+      "key": "start_date",
+      "value": "{{start_date}}",
+      "type": "string"
+    },
+    {
+      "key": "end_date",
+      "value": "{{end_date}}",
+      "type": "string"
+    },
+    {
+      "key": "status_code",
+      "value": "{{status_code}}",
+      "type": "string"
+    },
+    {
+      "key": "method",
+      "value": "{{method}}",
+      "type": "string"
+    },
+    {
+      "key": "endpoint",
+      "value": "{{endpoint}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "List Request Logs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Log by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/{{log_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "{{log_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Client Logs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/client/{{client_id}}?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "client", "{{client_id}}"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Logs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/user/{{user_id}}?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "user", "{{user_id}}"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Logs by Date Range",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/date-range?startDate={{start_date}}&endDate={{end_date}}&page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "date-range"],
+          "query": [
+            {
+              "key": "startDate",
+              "value": "{{start_date}}"
+            },
+            {
+              "key": "endDate",
+              "value": "{{end_date}}"
+            },
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Logs by Status Code",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/status/{{status_code}}?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "status", "{{status_code}}"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Logs by Method",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/method/{{method}}?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "method", "{{method}}"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Logs by Endpoint",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/endpoint/{{endpoint}}?page={{page}}&limit={{limit}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "endpoint", "{{endpoint}}"],
+          "query": [
+            {
+              "key": "page",
+              "value": "{{page}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Log Statistics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/statistics",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "statistics"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Client Log Statistics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/client/{{client_id}}/statistics",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "client", "{{client_id}}", "statistics"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get User Log Statistics",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/user/{{user_id}}/statistics",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "user", "{{user_id}}", "statistics"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Log Statistics by Date Range",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/statistics/date-range?startDate={{start_date}}&endDate={{end_date}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "statistics", "date-range"],
+          "query": [
+            {
+              "key": "startDate",
+              "value": "{{start_date}}"
+            },
+            {
+              "key": "endDate",
+              "value": "{{end_date}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Export Logs",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/export?startDate={{start_date}}&endDate={{end_date}}&format=csv",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "export"],
+          "query": [
+            {
+              "key": "startDate",
+              "value": "{{start_date}}"
+            },
+            {
+              "key": "endDate",
+              "value": "{{end_date}}"
+            },
+            {
+              "key": "format",
+              "value": "csv"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Cleanup Old Logs",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/cleanup",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "cleanup"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Test Log Service",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/logs/test/service",
+          "host": ["{{base_url}}"],
+          "path": ["api", "logs", "test", "service"]
+        }
+      },
+      "response": []
+    }
+  ]
+} 

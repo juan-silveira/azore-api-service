@@ -1,64 +1,270 @@
 const { DataTypes } = require('sequelize');
+const { v4: uuidv4 } = require('uuid');
 
 module.exports = (sequelize) => {
   const Stake = sequelize.define('Stake', {
     id: {
       type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true
+      defaultValue: () => uuidv4(),
+      primaryKey: true,
+      allowNull: false
     },
-    userAddress: {
+    name: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+        len: [1, 255]
+      }
+    },
+    address: {
       type: DataTypes.STRING(42),
       allowNull: false,
-      field: 'user_address'
+      validate: {
+        is: /^0x[a-fA-F0-9]{40}$/,
+        notEmpty: true,
+        customValidator(value) {
+          if (!/^0x[a-fA-F0-9]{40}$/.test(value)) {
+            throw new Error('Endereço deve ter formato válido: 0x + 40 caracteres hexadecimais');
+          }
+        }
+      }
     },
-    amount: {
-      type: DataTypes.DECIMAL(65, 0),
-      allowNull: false
+    abi: {
+      type: DataTypes.JSONB,
+      allowNull: false,
+      validate: {
+        customValidator(value) {
+          if (!value || (Array.isArray(value) && value.length === 0)) {
+            throw new Error('ABI deve conter pelo menos uma função ou evento');
+          }
+        }
+      }
     },
-    timestamp: {
-      type: DataTypes.BIGINT,
-      allowNull: false
-    },
-    contractAddress: {
-      type: DataTypes.STRING(42),
+    bytecode: {
+      type: DataTypes.TEXT,
       allowNull: true,
-      field: 'contract_address'
+      comment: 'Bytecode do contrato (opcional)'
     },
     network: {
       type: DataTypes.ENUM('mainnet', 'testnet'),
-      defaultValue: 'testnet'
+      allowNull: false,
+      defaultValue: 'testnet',
+      validate: {
+        isIn: [['mainnet', 'testnet']]
+      }
     },
-    status: {
-      type: DataTypes.ENUM('active', 'withdrawn', 'compounded'),
-      defaultValue: 'active'
-    },
-    rewardAmount: {
-      type: DataTypes.DECIMAL(65, 0),
+    contractType: {
+      type: DataTypes.STRING(100),
       allowNull: true,
-      defaultValue: 0,
-      field: 'reward_amount'
+      defaultValue: 'STAKE',
+      comment: 'Tipo do contrato (ex: STAKE, ERC20, ERC721, Custom)'
     },
-    rewardClaimed: {
+    version: {
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      defaultValue: '1.0.0',
+      comment: 'Versão do contrato'
+    },
+    isVerified: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
-      field: 'reward_claimed'
+      allowNull: false,
+      comment: 'Se o contrato foi verificado no explorer'
     },
-    rewardClaimedAt: {
-      type: DataTypes.DATE,
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      allowNull: false
+    },
+    adminPublicKey: {
+      type: DataTypes.STRING(42),
       allowNull: true,
-      field: 'reward_claimed_at'
+      comment: 'PublicKey do usuário admin do stake',
+      field: 'adminPublicKey'
+    },
+    metadata: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      comment: 'Metadados adicionais do contrato (stakeToken, rewardToken, minStake, etc.)'
     }
   }, {
     tableName: 'stakes',
     timestamps: true,
-    underscored: true
+    indexes: [
+      {
+        name: 'idx_stakes_address_network',
+        unique: true,
+        fields: ['address', 'network']
+      },
+      {
+        name: 'idx_stakes_address',
+        fields: ['address']
+      },
+      {
+        name: 'idx_stakes_network',
+        fields: ['network']
+      },
+      {
+        name: 'idx_stakes_type',
+        fields: ['contract_type']
+      },
+      {
+        name: 'idx_stakes_active',
+        fields: ['is_active']
+      }
+    ],
+    hooks: {
+      beforeCreate: (stake) => {
+        if (stake.address) {
+          if (!/^0x[a-fA-F0-9]{40}$/.test(stake.address)) {
+            throw new Error('Endereço do contrato inválido');
+          }
+        }
+      },
+      beforeUpdate: (stake) => {
+        if (stake.address && stake.changed('address')) {
+          if (!/^0x[a-fA-F0-9]{40}$/.test(stake.address)) {
+            throw new Error('Endereço do contrato inválido');
+          }
+        }
+      }
+    }
   });
 
-  Stake.associate = (models) => {
-    // Associação com User se necessário
-    // Removida associação com address pois não existe no modelo User
-    // O userAddress será usado como identificador independente
+  // Método para ocultar campos sensíveis
+  Stake.prototype.toJSON = function() {
+    const values = Object.assign({}, this.get());
+    delete values.bytecode;
+    return values;
+  };
+
+  // Métodos estáticos
+  Stake.findByAddress = function(address) {
+    return this.findOne({
+      where: {
+        address: address,
+        isActive: true
+      }
+    });
+  };
+
+  Stake.findByAddressIncludeInactive = function(address) {
+    return this.findOne({
+      where: {
+        address: address
+      }
+    });
+  };
+
+  Stake.findByNetwork = function(network) {
+    return this.findAll({
+      where: {
+        network,
+        isActive: true
+      },
+      order: [['createdAt', 'DESC']]
+    });
+  };
+
+  Stake.findByType = function(contractType) {
+    return this.findAll({
+      where: {
+        contractType,
+        isActive: true
+      },
+      order: [['createdAt', 'DESC']]
+    });
+  };
+
+  Stake.createStake = function(stakeData) {
+    return this.create(stakeData);
+  };
+
+  Stake.updateStake = function(address, updateData) {
+    return this.update(updateData, {
+      where: {
+        address: address,
+        isActive: true
+      }
+    });
+  };
+
+  Stake.deactivateStake = function(address) {
+    return this.update(
+      { isActive: false },
+      {
+        where: {
+          address: address,
+          isActive: true
+        }
+      }
+    );
+  };
+
+  Stake.activateStake = function(address) {
+    return this.update(
+      { isActive: true },
+      {
+        where: {
+          address: address
+        }
+      }
+    );
+  };
+
+  // Método para validar ABI
+  Stake.validateABI = function(abi) {
+    if (!Array.isArray(abi)) {
+      throw new Error('ABI deve ser um array');
+    }
+
+    const requiredFields = ['type', 'name'];
+    const validTypes = ['function', 'constructor', 'fallback', 'receive', 'event', 'error'];
+
+    for (const item of abi) {
+      if (!item.type || !validTypes.includes(item.type)) {
+        throw new Error(`Tipo inválido no ABI: ${item.type}`);
+      }
+
+      if (item.type === 'function' && !item.name) {
+        throw new Error('Funções no ABI devem ter um nome');
+      }
+
+      if (item.type === 'event' && !item.name) {
+        throw new Error('Eventos no ABI devem ter um nome');
+      }
+    }
+
+    return true;
+  };
+
+  // Método para obter funções do ABI
+  Stake.prototype.getFunctions = function() {
+    if (!this.abi) return [];
+    return this.abi.filter(item => item.type === 'function');
+  };
+
+  // Método para obter eventos do ABI
+  Stake.prototype.getEvents = function() {
+    if (!this.abi) return [];
+    return this.abi.filter(item => item.type === 'event');
+  };
+
+  // Método para obter função específica por nome
+  Stake.prototype.getFunction = function(functionName) {
+    if (!this.abi) return null;
+    return this.abi.find(item => 
+      item.type === 'function' && item.name === functionName
+    );
+  };
+
+  // Método para obter evento específico por nome
+  Stake.prototype.getEvent = function(eventName) {
+    if (!this.abi) return null;
+    return this.abi.find(item => 
+      item.type === 'event' && item.name === eventName
+    );
   };
 
   return Stake;
