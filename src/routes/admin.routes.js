@@ -668,7 +668,7 @@ router.post('/users/:userId/remove-client-admin', authenticateApiKey, requireAny
 router.get('/dashboard/stats', authenticateApiKey, requireApiAdmin, async (req, res) => {
   try {
     // Obter modelos do banco
-    const { Client, User, Wallet, SmartContract, Transaction } = global.models;
+    const { Client, User, SmartContract, Transaction } = global.models;
     
     // Buscar estatísticas reais do banco
     const [
@@ -676,7 +676,6 @@ router.get('/dashboard/stats', authenticateApiKey, requireApiAdmin, async (req, 
       activeClients,
       totalUsers,
       activeUsers,
-      totalWallets,
       totalContracts,
       totalTransactions,
       totalApiAdminUsers,
@@ -686,7 +685,6 @@ router.get('/dashboard/stats', authenticateApiKey, requireApiAdmin, async (req, 
       Client.count({ where: { isActive: true } }),
       User.count(),
       User.count({ where: { isActive: true } }),
-      Wallet.count(),
       SmartContract.count(),
       Transaction.count(),
       User.count({ where: { isApiAdmin: true, isActive: true } }),
@@ -698,7 +696,6 @@ router.get('/dashboard/stats', authenticateApiKey, requireApiAdmin, async (req, 
       activeClients,
       totalUsers,
       activeUsers,
-      totalWallets,
       totalContracts,
       totalTransactions,
       totalApiAdminUsers,

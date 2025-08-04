@@ -197,7 +197,8 @@ class UserController {
    */
   async getUsersByClientId(req, res) {
     try {
-      const { clientId } = req.params;
+      // Suportar tanto :id (rota admin) quanto :clientId (rota normal)
+      const clientId = req.params.clientId || req.params.id;
       const { page, limit, isActive, search, includePrivateKey } = req.query;
       const options = {
         page: parseInt(page) || 1,
