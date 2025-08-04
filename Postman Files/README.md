@@ -17,9 +17,10 @@ Esta pasta contém **12 collections** do Postman organizadas por categoria, mais
 7. **`07_Admin_Routes.postman_collection.json`** - Rotas administrativas (15 endpoints)
 8. **`08_Blockchain_Test.postman_collection.json`** - Testes de blockchain (6 endpoints)
 9. **`09_Contract_Management.postman_collection.json`** - Gerenciamento de contratos (8 endpoints)
-10. **`10_Token_Management.postman_collection.json`** - Gerenciamento de tokens (12 endpoints)
-11. **`11_Stake_Management.postman_collection.json`** - Gerenciamento de stakes (28 endpoints)
+10. **`10_Token_Management.postman_collection.json`** - Gerenciamento de tokens (12 endpoints) ⚡ **Comunicação Direta**
+11. **`11_Stake_Management.postman_collection.json`** - Gerenciamento de stakes (28 endpoints) ⚡ **Comunicação Direta**
 12. **`12_Log_System.postman_collection.json`** - Sistema de logs (15 endpoints)
+13. **`13_Transaction_Management.postman_collection.json`** - Gerenciamento de transações (15 endpoints)
 
 ### 🔧 Environment:
 - **`Azore.postman_environment.json`** - Environment com todas as variáveis configuradas
@@ -53,6 +54,18 @@ Configure estas variáveis essenciais:
 
 ## 🎯 Como Usar
 
+### ⚡ Comunicação Direta vs Fila
+
+**Comunicação Direta** (sem fila):
+- 🧪 **Blockchain Test** - Testes de conexão e consultas
+- 🪙 **Token Management** - Operações de tokens
+- 🪙 **Stake Management** - Operações de stakes
+- 📄 **Contract Management** - Operações de contratos
+
+**Com Fila** (enfileiramento):
+- 🔄 **Queue Management** - Monitoramento de filas
+- 📊 **Log System** - Consultas de logs
+
 ### Ordem Recomendada de Testes:
 
 1. **🏥 Health Check** - Verificar se a API está funcionando
@@ -61,12 +74,13 @@ Configure estas variáveis essenciais:
 4. **👥 User Management** - Gerenciar usuários
 5. **🏢 Client Management** - Gerenciar clientes
 6. **🔄 Queue Management** - Monitorar filas
-7. **🪙 Token Management** - Gerenciar tokens
-8. **🪙 Stake Management** - Gerenciar stakes
-9. **📄 Contract Management** - Gerenciar contratos
-10. **🧪 Blockchain Test** - Testar conexão blockchain
+7. **🪙 Token Management** - Gerenciar tokens ⚡ **Comunicação Direta**
+8. **🪙 Stake Management** - Gerenciar stakes ⚡ **Comunicação Direta**
+9. **📄 Contract Management** - Gerenciar contratos ⚡ **Comunicação Direta**
+10. **🧪 Blockchain Test** - Testar conexão blockchain ⚡ **Comunicação Direta**
 11. **👑 Admin Routes** - Rotas administrativas
 12. **📊 Log System** - Consultar logs
+13. **💳 Transaction Management** - Gerenciar transações
 
 ### 🔐 Autenticação
 
@@ -96,7 +110,10 @@ Configure estas variáveis essenciais:
 - `contract_address` - Endereço do contrato
 - `token_address` - Endereço do token
 - `wallet_address` - Endereço da carteira
-- `amount` - Quantidade para transações
+- `amount` - Quantidade para transações (em ETH para stakes)
+- `stake_contract_address` - Endereço do contrato de stake
+- `user_address` - Endereço do usuário
+- `admin_public_key` - Chave pública do admin
 
 ### 📅 Datas e Paginação:
 - `start_date` - Data inicial para consultas
@@ -125,6 +142,17 @@ Cada collection inclui:
 2. Monitore as filas com **Queue Management**
 3. Consulte logs com **Log System**
 4. Gerencie stakes com **Stake Management**
+
+### ⚠️ Notas Importantes:
+
+#### 🪙 Stakes:
+- **Valores em ETH**: Todos os valores de `amount` estão em ETH (não wei)
+- **adminPublicKey**: Operações administrativas exigem `adminPublicKey` no body
+- **Permissões**: `getAvailableRewardBalance` requer permissões de admin
+
+#### 🧪 Testes:
+- **Comunicação Direta**: Rotas de teste não passam pela fila
+- **Resposta Imediata**: Consultas blockchain são processadas diretamente
 
 ## 🚨 Troubleshooting
 

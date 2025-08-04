@@ -57,6 +57,7 @@ const {
   errorLogger, 
   performanceLogger 
 } = require('./middleware/logging.middleware');
+const QueueMiddleware = require('./middleware/queue.middleware');
 
 // Removidas todas as referências a databaseConfig e modelos do app.js
 
@@ -123,7 +124,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
 
 // Removida inicialização assíncrona dos serviços do app.js
 
-// Rotas públicas (sem autenticação)
+// Rotas públicas (sem autenticação) - comunicação direta com blockchain
 app.use('/api/test', testRoutes);
 
 // Rotas de clientes (com autenticação e rate limiting)
@@ -138,11 +139,11 @@ app.use('/api/password-reset', passwordResetRoutes);
 // Rotas de usuários (com autenticação)
 app.use('/api/users', authenticateApiKey, apiRateLimiter, addUserInfo, logAuthenticatedRequest, userRoutes);
 
-// Middleware de autenticação para rotas protegidas
+// Middleware de autenticação para rotas protegidas (sem enfileiramento - comunicação direta com blockchain)
 app.use('/api/contracts', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, contractRoutes);
-// Middleware de autenticação para rotas protegidas
+// Middleware de autenticação para rotas protegidas - comunicação direta com blockchain
 app.use('/api/tokens', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, tokenRoutes);
-// Middleware de autenticação para rotas protegidas
+// Middleware de autenticação para rotas protegidas (sem enfileiramento - comunicação direta com blockchain)
 app.use('/api/stakes', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, stakeRoutes);
 
 // Rotas de transações (com autenticação)

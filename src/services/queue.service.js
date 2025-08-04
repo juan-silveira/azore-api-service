@@ -355,24 +355,182 @@ class QueueService {
    * Processa uma transação da blockchain
    */
   async processBlockchainTransaction(data) {
-    const { type, ...transactionData } = data;
+    const { type, data: operationData, ...transactionData } = data;
+    
+    // Se os dados estão aninhados, extrair corretamente
+    const actualData = operationData || transactionData;
+    
+    console.log(`🔍 Processando transação blockchain: type=${type}, data=`, JSON.stringify(actualData, null, 2));
     
     try {
-      switch (type) {
-        case 'mint':
-          return await this.processMintTransaction(transactionData);
-        case 'burn':
-          return await this.processBurnTransaction(transactionData);
-        case 'transfer':
-          return await this.processTransferTransaction(transactionData);
-        case 'send_transaction':
-          return await this.processSendTransaction(transactionData);
-        default:
-          throw new Error(`Tipo de transação não suportado: ${type}`);
+      console.log(`🔍 Iniciando processamento para tipo: ${type}`);
+      // Processamento genérico baseado no tipo de operação
+      if (type.startsWith('token_')) {
+        console.log(`🔄 Processando token operation: ${type}`);
+        return await this.processTokenOperation(type, actualData);
+      } else if (type.startsWith('contract_')) {
+        console.log(`🔄 Processando contract operation: ${type}`);
+        return await this.processContractOperation(type, actualData);
+      } else if (type.startsWith('stake_')) {
+        console.log(`🔄 Processando stake operation: ${type}`);
+        return await this.processStakeOperation(type, actualData);
+      } else if (type.startsWith('blockchain_')) {
+        console.log(`🔄 Processando blockchain operation: ${type}`);
+        return await this.processBlockchainOperation(type, actualData);
+      } else {
+        console.log(`⚠️ Tipo não reconhecido, usando fallback: ${type}`);
+        // Fallback para tipos específicos
+        switch (type) {
+          case 'mint':
+          case 'token_mint':
+            return await this.processMintTransaction(actualData);
+          case 'burn':
+          case 'token_burn':
+            return await this.processBurnTransaction(actualData);
+          case 'transfer':
+          case 'token_transfer_gasless':
+            return await this.processTransferTransaction(actualData);
+          case 'send_transaction':
+            return await this.processSendTransaction(actualData);
+          default:
+            throw new Error(`Tipo de transação não suportado: ${type}`);
+        }
       }
     } catch (error) {
-      console.error(`Erro ao processar transação ${type}:`, error);
+      console.error(`❌ Erro ao processar transação ${type}:`, error);
       throw error;
+    }
+  }
+
+  /**
+   * Processa operações de token de forma genérica
+   */
+  async processTokenOperation(type, data) {
+    const tokenService = require('./token.service');
+    
+    switch (type) {
+      case 'token_mint':
+        return await tokenService.mintToken(
+          data.contractAddress,
+          data.toAddress,
+          data.amount,
+          data.gasPayer,
+          data.network || 'testnet',
+          { description: 'Mint via fila', clientId: data.clientId, userId: data.userId }
+        );
+      case 'token_burn':
+        return await tokenService.burnFromToken(
+          data.contractAddress,
+          data.fromAddress,
+          data.amount,
+          data.gasPayer,
+          data.network || 'testnet',
+          { description: 'Burn via fila', clientId: data.clientId, userId: data.userId }
+        );
+      case 'token_transfer_gasless':
+        return await tokenService.transferFromGasless(
+          data.contractAddress,
+          data.fromAddress,
+          data.toAddress,
+          data.amount,
+          data.gasPayer,
+          data.network || 'testnet',
+          { description: 'Transfer via fila', clientId: data.clientId, userId: data.userId }
+        );
+      case 'token_register':
+        return await tokenService.registerToken(data);
+      default:
+        throw new Error(`Operação de token não suportada: ${type}`);
+    }
+  }
+
+  /**
+   * Processa operações de contrato de forma genérica
+   */
+  async processContractOperation(type, data) {
+    console.log(`🔍 processContractOperation chamado: type=${type}`);
+    console.log(`📦 Tentando carregar contractService...`);
+    try {
+      console.log(`📦 Current directory: ${process.cwd()}`);
+      console.log(`📦 Require path: ${require.resolve('./contract.service')}`);
+      const contractService = require('./contract.service');
+      console.log(`✅ contractService carregado com sucesso`);
+    
+      switch (type) {
+        case 'contract_deploy':
+          return await contractService.deployContract(data);
+        case 'contract_write':
+          return await contractService.executeWriteOperation(data);
+        case 'contract_grant_role':
+          const { contractAddress, role, targetAddress, adminPublicKey } = data;
+          console.log(`🔍 Processando contract_grant_role: ${contractAddress}, ${role}, ${targetAddress}, ${adminPublicKey}`);
+          const grantResult = await contractService.grantRole(contractAddress, role, targetAddress, adminPublicKey);
+          console.log(`✅ Resultado grantRole:`, JSON.stringify(grantResult, null, 2));
+          return grantResult;
+        case 'contract_has_role':
+          const { contractAddress: hasRoleContract, role: hasRoleRole, targetAddress: hasRoleTarget } = data;
+          return await contractService.hasRole(hasRoleContract, hasRoleRole, hasRoleTarget);
+        case 'contract_revoke_role':
+          const { contractAddress: revokeContract, role: revokeRole, targetAddress: revokeTarget, adminPublicKey: revokeAdmin } = data;
+          console.log(`🔍 Processando contract_revoke_role: ${revokeContract}, ${revokeRole}, ${revokeTarget}, ${revokeAdmin}`);
+          const revokeResult = await contractService.revokeRole(revokeContract, revokeRole, revokeTarget, revokeAdmin);
+          console.log(`✅ Resultado revokeRole:`, JSON.stringify(revokeResult, null, 2));
+          return revokeResult;
+        default:
+          throw new Error(`Operação de contrato não suportada: ${type}`);
+      }
+             } catch (error) {
+      console.error(`❌ Erro em processContractOperation:`, error);
+      console.error(`❌ Stack trace:`, error.stack);
+      console.error(`❌ Error name:`, error.name);
+      console.error(`❌ Error message:`, error.message);
+      throw error;
+    }
+   }
+
+  /**
+   * Processa operações de stake de forma genérica
+   */
+  async processStakeOperation(type, data) {
+    const stakeService = require('./stake.service');
+    
+    switch (type) {
+      case 'stake_register':
+        return await stakeService.registerStake(data);
+      case 'stake_invest':
+        return await stakeService.invest(data);
+      case 'stake_withdraw':
+        return await stakeService.withdraw(data);
+      case 'stake_claim_rewards':
+        return await stakeService.claimRewards(data);
+      case 'stake_compound':
+        return await stakeService.compound(data);
+      case 'stake_deposit_rewards':
+        return await stakeService.depositRewards(data);
+      case 'stake_distribute_rewards':
+        return await stakeService.distributeRewards(data);
+      default:
+        throw new Error(`Operação de stake não suportada: ${type}`);
+    }
+  }
+
+  /**
+   * Processa operações de blockchain de forma genérica
+   */
+  async processBlockchainOperation(type, data) {
+    const blockchainService = require('./blockchain.service');
+    
+    switch (type) {
+      case 'blockchain_connection_query':
+        return await blockchainService.testConnection();
+      case 'blockchain_network_query':
+        return await blockchainService.getNetworkInfo();
+      case 'blockchain_balance_query':
+        return await blockchainService.getBalance(data.address);
+      case 'blockchain_transaction_query':
+        return await blockchainService.getTransaction(data.txHash);
+      default:
+        throw new Error(`Operação de blockchain não suportada: ${type}`);
     }
   }
 
@@ -645,6 +803,55 @@ class QueueService {
   async processWalletOperation(data) {
     // Implementar lógica para operações de carteira
     return { success: true, operation: data.operation };
+  }
+
+  /**
+   * Processa deploy de contrato
+   */
+  async processContractDeploy(data) {
+    const contractService = require('./contract.service');
+    return await contractService.deployContract(data);
+  }
+
+  /**
+   * Processa operação de escrita em contrato
+   */
+  async processContractWrite(data) {
+    const contractService = require('./contract.service');
+    return await contractService.executeWriteOperation(data);
+  }
+
+  /**
+   * Processa grant de role em contrato
+   */
+  async processContractGrantRole(data) {
+    const contractService = require('./contract.service');
+    const { contractAddress, role, targetAddress, adminPublicKey } = data;
+    return await contractService.grantRole(contractAddress, role, targetAddress, adminPublicKey);
+  }
+
+  /**
+   * Processa investimento em stake
+   */
+  async processStakeInvest(data) {
+    const stakeService = require('./stake.service');
+    return await stakeService.invest(data);
+  }
+
+  /**
+   * Processa retirada de stake
+   */
+  async processStakeWithdraw(data) {
+    const stakeService = require('./stake.service');
+    return await stakeService.withdraw(data);
+  }
+
+  /**
+   * Processa claim de recompensas de stake
+   */
+  async processStakeClaimRewards(data) {
+    const stakeService = require('./stake.service');
+    return await stakeService.claimRewards(data);
   }
 
   /**

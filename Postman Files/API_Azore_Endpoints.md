@@ -44,6 +44,8 @@
 - **GET** `/api/queue/metrics` - Métricas de performance
 - **GET** `/api/queue/queues/{queueName}/logs` - Logs de fila específica
 
+> **Nota**: As rotas de teste (`/api/test/`) e tokens (`/api/tokens/`) agora fazem comunicação direta com a blockchain, sem passar pela fila.
+
 ---
 
 ## 👥 Gerenciamento de Usuários
@@ -192,6 +194,41 @@
 ### Teste
 - **GET** `/api/tokens/test/service` - Testar serviço de tokens
 
+> **Comunicação Direta**: Todas as operações de tokens fazem comunicação direta com a blockchain, sem passar pela fila.
+
+---
+
+## 🧪 Testes de Blockchain
+
+### Testes de Conexão
+- **GET** `/api/test/connection` - Testa conexão com a blockchain
+- **GET** `/api/test/network-info` - Informações da rede
+- **GET** `/api/test/network` - Detalhes da rede atual
+
+### Consultas de Blockchain
+- **GET** `/api/test/balance/{address}` - Saldo de endereço
+- **GET** `/api/test/block/{blockNumber}` - Informações do bloco
+- **GET** `/api/test/transaction/{txHash}` - Detalhes da transação
+- **GET** `/api/test/gas-price` - Preço do gás atual
+
+### Consultas Avançadas
+- **GET** `/api/test/blockchain/connection` - Teste de conexão blockchain
+- **GET** `/api/test/blockchain/network-info` - Info da rede blockchain
+- **GET** `/api/test/blockchain/latest-block` - Último bloco
+- **GET** `/api/test/blockchain/blocks/{blockNumber}` - Bloco específico
+- **GET** `/api/test/blockchain/transactions/{transactionHash}` - Transação específica
+- **GET** `/api/test/blockchain/wallets/{walletAddress}/balance` - Saldo da carteira
+
+### Consultas Alternativas
+- **GET** `/api/test/blocks/{blockNumber}` - Bloco (formato alternativo)
+- **GET** `/api/test/transactions/{transactionHash}` - Transação (formato alternativo)
+- **GET** `/api/test/wallets/{walletAddress}/balance` - Saldo (formato alternativo)
+- **GET** `/api/test/transactions/{transactionHash}/details` - Detalhes da transação
+- **GET** `/api/test/blocks/{blockNumber}/details` - Detalhes do bloco
+- **POST** `/api/test/wallets/balances` - Múltiplos saldos
+
+> **Comunicação Direta**: Todas as rotas de teste fazem comunicação direta com a blockchain, sem passar pela fila.
+
 ---
 
 ## 🪙 Gerenciamento de Stakes
@@ -206,6 +243,8 @@
 - **POST** `/api/stakes/{address}/withdraw` - Retirar investimento (unstake)
 - **POST** `/api/stakes/{address}/claim-rewards` - Resgatar recompensas
 - **POST** `/api/stakes/{address}/compound` - Reinvestir recompensas
+
+> **Nota**: Todos os valores de `amount` estão em **ETH** e são automaticamente convertidos para wei.
 
 ### Operações Administrativas (Admin do Stake)
 - **POST** `/api/stakes/{address}/deposit-rewards` - Depositar recompensas
@@ -222,8 +261,10 @@
 - **POST** `/api/stakes/{address}/remove-from-whitelist` - Remover da whitelist
 - **POST** `/api/stakes/{address}/set-whitelist-enabled` - Ativar/Desativar whitelist
 
+> **Nota**: As operações administrativas exigem o parâmetro `adminPublicKey` no body da requisição para verificação de permissões.
+
 ### Consultas de Stake
-- **GET** `/api/stakes/{address}/available-reward-balance` - Saldo do cofre
+- **GET** `/api/stakes/{address}/available-reward-balance` - Saldo do cofre (requer permissões de admin)
 - **GET** `/api/stakes/{address}/total-staked-supply` - Total investido
 - **GET** `/api/stakes/{address}/number-of-active-users` - Total de investidores
 - **GET** `/api/stakes/{address}/total-reward-distributed` - Total de recompensas

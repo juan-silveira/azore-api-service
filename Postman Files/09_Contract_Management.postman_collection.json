@@ -37,14 +37,19 @@
       "type": "string"
     },
     {
-      "key": "user_address",
-      "value": "{{user_address}}",
+      "key": "target_address",
+      "value": "{{target_address}}",
+      "type": "string"
+    },
+    {
+      "key": "admin_public_key",
+      "value": "{{admin_public_key}}",
       "type": "string"
     }
   ],
   "item": [
     {
-      "name": "Validate Contract",
+      "name": "Validate ABI",
       "request": {
         "method": "POST",
         "header": [
@@ -59,12 +64,12 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"contractAddress\": \"{{contract_address}}\",\n  \"abi\": {{contract_abi}}\n}"
+          "raw": "{\n  \"abi\": {{contract_abi}}\n}"
         },
         "url": {
-          "raw": "{{base_url}}/api/contracts/validate",
+          "raw": "{{base_url}}/api/contracts/validate-abi",
           "host": ["{{base_url}}"],
-          "path": ["api", "contracts", "validate"]
+          "path": ["api", "contracts", "validate-abi"]
         }
       },
       "response": []
@@ -85,7 +90,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"contractName\": \"TestContract\",\n  \"constructorArgs\": [],\n  \"gasLimit\": 5000000\n}"
+          "raw": "{\n  \"contractData\": {\n    \"name\": \"TestContract\",\n    \"abi\": {{contract_abi}},\n    \"bytecode\": \"0x...\",\n    \"network\": \"testnet\"\n  },\n  \"walletAddress\": \"{{admin_public_key}}\",\n  \"options\": {\n    \"gasLimit\": 5000000\n  }\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/contracts/deploy",
@@ -96,7 +101,43 @@
       "response": []
     },
     {
-      "name": "Call Contract Function",
+      "name": "Get Contract Functions",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/contracts/{{contract_address}}/functions",
+          "host": ["{{base_url}}"],
+          "path": ["api", "contracts", "{{contract_address}}", "functions"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Contract Events List",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/contracts/{{contract_address}}/events",
+          "host": ["{{base_url}}"],
+          "path": ["api", "contracts", "{{contract_address}}", "events"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Write Contract",
       "request": {
         "method": "POST",
         "header": [
@@ -111,12 +152,38 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"contractAddress\": \"{{contract_address}}\",\n  \"functionName\": \"{{function_name}}\",\n  \"args\": [],\n  \"gasLimit\": 100000\n}"
+          "raw": "{\n  \"functionName\": \"{{function_name}}\",\n  \"params\": [],\n  \"walletAddress\": \"{{admin_public_key}}\",\n  \"options\": {\n    \"gasLimit\": 100000\n  }\n}"
         },
         "url": {
-          "raw": "{{base_url}}/api/contracts/{{contract_address}}/call",
+          "raw": "{{base_url}}/api/contracts/{{contract_address}}/write",
           "host": ["{{base_url}}"],
-          "path": ["api", "contracts", "{{contract_address}}", "call"]
+          "path": ["api", "contracts", "{{contract_address}}", "write"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Query Contract Events",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"eventName\": \"Transfer\",\n  \"fromBlock\": 0,\n  \"toBlock\": \"latest\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/contracts/{{contract_address}}/events/query",
+          "host": ["{{base_url}}"],
+          "path": ["api", "contracts", "{{contract_address}}", "events", "query"]
         }
       },
       "response": []
@@ -137,12 +204,38 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"userAddress\": \"{{user_address}}\",\n  \"role\": \"{{role}}\"\n}"
+          "raw": "{\n  \"role\": \"{{role}}\",\n  \"targetAddress\": \"{{target_address}}\",\n  \"adminPublicKey\": \"{{admin_public_key}}\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/contracts/{{contract_address}}/grant-role",
           "host": ["{{base_url}}"],
           "path": ["api", "contracts", "{{contract_address}}", "grant-role"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Has Role",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"{{role}}\",\n  \"targetAddress\": \"{{target_address}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/contracts/{{contract_address}}/has-role",
+          "host": ["{{base_url}}"],
+          "path": ["api", "contracts", "{{contract_address}}", "has-role"]
         }
       },
       "response": []
@@ -163,58 +256,12 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"userAddress\": \"{{user_address}}\",\n  \"role\": \"{{role}}\"\n}"
+          "raw": "{\n  \"role\": \"{{role}}\",\n  \"targetAddress\": \"{{target_address}}\",\n  \"adminPublicKey\": \"{{admin_public_key}}\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/contracts/{{contract_address}}/revoke-role",
           "host": ["{{base_url}}"],
           "path": ["api", "contracts", "{{contract_address}}", "revoke-role"]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Check Role",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "X-API-Key",
-            "value": "{{api_key}}"
-          }
-        ],
-        "url": {
-          "raw": "{{base_url}}/api/contracts/{{contract_address}}/check-role/{{user_address}}/{{role}}",
-          "host": ["{{base_url}}"],
-          "path": ["api", "contracts", "{{contract_address}}", "check-role", "{{user_address}}", "{{role}}"]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Get Contract Events",
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "X-API-Key",
-            "value": "{{api_key}}"
-          }
-        ],
-        "url": {
-          "raw": "{{base_url}}/api/contracts/{{contract_address}}/events?fromBlock=0&toBlock=latest",
-          "host": ["{{base_url}}"],
-          "path": ["api", "contracts", "{{contract_address}}", "events"],
-          "query": [
-            {
-              "key": "fromBlock",
-              "value": "0"
-            },
-            {
-              "key": "toBlock",
-              "value": "latest"
-            }
-          ]
         }
       },
       "response": []

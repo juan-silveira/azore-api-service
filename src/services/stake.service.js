@@ -181,25 +181,31 @@ class StakeService {
         throw new Error(`Função '${functionName}' não é uma função de escrita`);
       }
 
-      // Buscar usuário
-      const user = await this.User.findOne({
-        where: {
-          publicKey: walletAddress
+      // Converter valores de ETH para wei se necessário
+      const convertedParams = params.map((param, index) => {
+        // Verificar se é um parâmetro de quantidade (amount, value, etc.)
+        const input = abiFunction.inputs[index];
+        if (input && input.type === 'uint256' && typeof param === 'string' && !param.startsWith('0x')) {
+          // Se o valor não parece ser um endereço (não começa com 0x), converter de ETH para wei
+          try {
+            return ethers.parseEther(param);
+          } catch (error) {
+            // Se não conseguir converter, manter o valor original
+            return param;
+          }
         }
+        return param;
       });
-      
-      if (!user) {
-        throw new Error('Usuário não encontrado');
-      }
 
-      const privateKey = user.privateKey;
-      if (!privateKey) {
-        throw new Error('Chave privada não encontrada para o usuário');
+      // Usar a chave privada do admin do .env
+      const adminPrivateKey = process.env.ADMIN_PRIVATE_KEY;
+      if (!adminPrivateKey) {
+        throw new Error('ADMIN_PRIVATE_KEY não encontrada no .env');
       }
 
       // Obter provider e signer
       const provider = blockchainService.config.getProvider(stake.network);
-      const signer = new ethers.Wallet(privateKey, provider);
+      const signer = new ethers.Wallet(adminPrivateKey, provider);
 
       // Forçar uso do ABI padrão do .env se for STAKE
       let abiToUse = stake.abi;
@@ -224,16 +230,11 @@ class StakeService {
         ...options
       };
 
-      // Executar função
-      const tx = await contractInstance[functionName](...params);
+      // Executar função com parâmetros convertidos
+      const tx = await contractInstance[functionName](...convertedParams);
       
       // Aguardar confirmação
       const receipt = await tx.wait();
-
-      // Atualizar lastActivityAt do usuário
-      if (user.updateLastActivity) {
-        await user.updateLastActivity();
-      }
 
       return {
         success: true,
@@ -241,11 +242,12 @@ class StakeService {
         data: {
           stakeAddress: stake.address,
           functionName,
-          params,
+          params: convertedParams.map(param => param.toString()),
+          originalParams: params,
           transactionHash: tx.hash,
           gasUsed: receipt.gasUsed.toString(),
           network: stake.network,
-          walletAddress,
+          walletAddress: signer.address,
           timestamp: new Date().toISOString(),
           receipt: {
             blockNumber: receipt.blockNumber,
@@ -284,12 +286,18 @@ class StakeService {
       // Obter provider
       const provider = blockchainService.config.getProvider(stake.network);
       
-      // Criar instância do contrato
-      const contractInstance = new ethers.Contract(
-        stake.address,
-        stake.abi,
-        provider
-      );
+      // Se a função requer permissões especiais, usar signer admin
+      let contractInstance;
+      if (options.useAdminSigner || functionName === 'getAvailableRewardBalance') {
+        const adminPrivateKey = process.env.ADMIN_PRIVATE_KEY;
+        if (!adminPrivateKey) {
+          throw new Error('ADMIN_PRIVATE_KEY não encontrada no .env');
+        }
+        const signer = new ethers.Wallet(adminPrivateKey, provider);
+        contractInstance = new ethers.Contract(stake.address, stake.abi, signer);
+      } else {
+        contractInstance = new ethers.Contract(stake.address, stake.abi, provider);
+      }
 
       // Executar função
       const result = await contractInstance[functionName](...params);

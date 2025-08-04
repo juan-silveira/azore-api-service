@@ -1,0 +1,344 @@
+{
+  "info": {
+    "name": "🔄 Gerenciamento de Transações Enfileiradas",
+    "description": "Endpoints para gerenciamento de transações enfileiradas no sistema RabbitMQ",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "{{base_url}}",
+      "type": "string"
+    },
+    {
+      "key": "api_key",
+      "value": "{{api_key}}",
+      "type": "string"
+    },
+    {
+      "key": "job_id",
+      "value": "{{job_id}}",
+      "type": "string"
+    },
+    {
+      "key": "contract_address",
+      "value": "{{contract_address}}",
+      "type": "string"
+    },
+    {
+      "key": "to_address",
+      "value": "{{to_address}}",
+      "type": "string"
+    },
+    {
+      "key": "from_address",
+      "value": "{{from_address}}",
+      "type": "string"
+    },
+    {
+      "key": "amount",
+      "value": "{{amount}}",
+      "type": "string"
+    },
+    {
+      "key": "gas_payer",
+      "value": "{{gas_payer}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Enfileirar Transação de Mint",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"token_mint\",\n  \"data\": {\n    \"contractAddress\": \"{{contract_address}}\",\n    \"toAddress\": \"{{to_address}}\",\n    \"amount\": \"{{amount}}\",\n    \"gasPayer\": \"{{gas_payer}}\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/transactions/enqueue",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions", "enqueue"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Enfileirar Transação de Burn",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"token_burn\",\n  \"data\": {\n    \"contractAddress\": \"{{contract_address}}\",\n    \"fromAddress\": \"{{from_address}}\",\n    \"amount\": \"{{amount}}\",\n    \"gasPayer\": \"{{gas_payer}}\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/transactions/enqueue",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions", "enqueue"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Enfileirar Transferência Gasless",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"token_transfer_gasless\",\n  \"data\": {\n    \"contractAddress\": \"{{contract_address}}\",\n    \"fromAddress\": \"{{from_address}}\",\n    \"toAddress\": \"{{to_address}}\",\n    \"amount\": \"{{amount}}\",\n    \"gasPayer\": \"{{gas_payer}}\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/transactions/enqueue",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions", "enqueue"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Enfileirar Deploy de Contrato",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"contract_deploy\",\n  \"data\": {\n    \"contractData\": {\n      \"name\": \"Test Contract\",\n      \"abi\": [],\n      \"bytecode\": \"0x...\",\n      \"network\": \"testnet\"\n    },\n    \"walletAddress\": \"{{gas_payer}}\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/transactions/enqueue",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions", "enqueue"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Enfileirar Grant Role",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"contract_grant_role\",\n  \"data\": {\n    \"contractAddress\": \"{{contract_address}}\",\n    \"role\": \"burner\",\n    \"targetAddress\": \"{{to_address}}\",\n    \"adminPublicKey\": \"{{gas_payer}}\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/transactions/enqueue",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions", "enqueue"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Verificar Status da Transação",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/transactions/queue/{{job_id}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions", "queue", "{{job_id}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Listar Transações do Cliente",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/transactions?page=1&limit=10",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Obter Transação por Hash",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/transactions/{{tx_hash}}",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions", "{{tx_hash}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Estatísticas de Transações",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/transactions/stats/overview",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions", "stats", "overview"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Estatísticas por Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/transactions/stats/status",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions", "stats", "status"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Estatísticas por Tipo",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/transactions/stats/type",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions", "stats", "type"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Status de Múltiplas Transações",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jobIds\": [\n    \"{{job_id}}\",\n    \"job_id_2\",\n    \"job_id_3\"\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/transactions/queue/batch",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions", "queue", "batch"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Testar Serviço de Transações",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/transactions/test",
+          "host": ["{{base_url}}"],
+          "path": ["api", "transactions", "test"]
+        }
+      },
+      "response": []
+    }
+  ]
+} 

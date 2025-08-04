@@ -738,39 +738,19 @@ const UserModel = require('../models/User');
       if (!contract) {
         throw new Error('Token não encontrado');
       }
-
-      // Obter usuário gasPayer
       const user = await this.User.findOne({ where: { publicKey: gasPayer } });
       if (!user) {
         throw new Error('GasPayer não encontrado');
       }
-
-      // Obter provider
       const provider = blockchainService.config.getProvider(contract.network);
-      
-      // Criar instância do contrato
-      const contractInstance = new ethers.Contract(
-        contractAddress,
-        contract.abi,
-        provider
-      );
-
-      // Obter hash da role
+      const contractInstance = new ethers.Contract(contractAddress, contract.abi, provider);
       const roleHash = this.getRoleHash(role);
-
-      // Criar signer com o gasPayer
       const signer = new ethers.Wallet(user.privateKey, provider);
       const contractWithSigner = contractInstance.connect(signer);
-
-      // Executar transação
       const tx = await contractWithSigner.grantRole(roleHash, targetAddress);
       const receipt = await tx.wait();
-
-      // Registrar transação na tabela
       try {
         await transactionService.recordGrantRoleTransaction({
-          clientId: options?.clientId,
-          userId: options?.userId,
           contractAddress,
           targetAddress,
           role,
@@ -783,12 +763,9 @@ const UserModel = require('../models/User');
           blockNumber: receipt.blockNumber,
           status: receipt.status === 1 ? 'confirmed' : 'failed'
         });
-        console.log('✅ Transação de grant role registrada na tabela com sucesso');
       } catch (error) {
-        console.error('❌ Erro ao registrar transação de grant role na tabela:', error.message);
         // Não falhar a operação se o registro da transação falhar
       }
-
       return {
         success: true,
         message: `Role ${role} concedida com sucesso`,
@@ -798,11 +775,27 @@ const UserModel = require('../models/User');
           role,
           roleHash,
           transactionHash: tx.hash,
+          blockNumber: receipt.blockNumber,
+          gasUsed: receipt.gasUsed.toString(),
+          gasPrice: tx.gasPrice.toString(),
+          status: receipt.status,
+          receipt: {
+            blockNumber: receipt.blockNumber,
+            confirmations: receipt.confirmations,
+            status: receipt.status,
+            gasUsed: receipt.gasUsed.toString(),
+            effectiveGasPrice: receipt.effectiveGasPrice?.toString(),
+            cumulativeGasUsed: receipt.cumulativeGasUsed?.toString()
+          },
           timestamp: new Date().toISOString()
         }
       };
     } catch (error) {
-      throw new Error(`Erro ao conceder role ${role}: ${error.message}`);
+      return {
+        success: false,
+        message: `Erro ao conceder role ${role}`,
+        error: error.message
+      };
     }
   }
 
@@ -849,48 +842,25 @@ const UserModel = require('../models/User');
     }
   }
 
-  /**
-   * Revoga uma role de um endereço
-   */
   async revokeRole(contractAddress, role, targetAddress, gasPayer) {
     try {
       const contract = await this.SmartContract.findByAddress(contractAddress);
       if (!contract) {
         throw new Error('Token não encontrado');
       }
-
-      // Obter usuário gasPayer
       const user = await this.User.findOne({ where: { publicKey: gasPayer } });
       if (!user) {
         throw new Error('GasPayer não encontrado');
       }
-
-      // Obter provider
       const provider = blockchainService.config.getProvider(contract.network);
-      
-      // Criar instância do contrato
-      const contractInstance = new ethers.Contract(
-        contractAddress,
-        contract.abi,
-        provider
-      );
-
-      // Obter hash da role
+      const contractInstance = new ethers.Contract(contractAddress, contract.abi, provider);
       const roleHash = this.getRoleHash(role);
-
-      // Criar signer com o gasPayer
       const signer = new ethers.Wallet(user.privateKey, provider);
       const contractWithSigner = contractInstance.connect(signer);
-
-      // Executar transação
       const tx = await contractWithSigner.revokeRole(roleHash, targetAddress);
       const receipt = await tx.wait();
-
-      // Registrar transação na tabela
       try {
         await transactionService.recordRevokeRoleTransaction({
-          clientId: options?.clientId,
-          userId: options?.userId,
           contractAddress,
           targetAddress,
           role,
@@ -903,12 +873,9 @@ const UserModel = require('../models/User');
           blockNumber: receipt.blockNumber,
           status: receipt.status === 1 ? 'confirmed' : 'failed'
         });
-        console.log('✅ Transação de revoke role registrada na tabela com sucesso');
       } catch (error) {
-        console.error('❌ Erro ao registrar transação de revoke role na tabela:', error.message);
         // Não falhar a operação se o registro da transação falhar
       }
-
       return {
         success: true,
         message: `Role ${role} revogada com sucesso`,
@@ -918,11 +885,27 @@ const UserModel = require('../models/User');
           role,
           roleHash,
           transactionHash: tx.hash,
+          blockNumber: receipt.blockNumber,
+          gasUsed: receipt.gasUsed.toString(),
+          gasPrice: tx.gasPrice.toString(),
+          status: receipt.status,
+          receipt: {
+            blockNumber: receipt.blockNumber,
+            confirmations: receipt.confirmations,
+            status: receipt.status,
+            gasUsed: receipt.gasUsed.toString(),
+            effectiveGasPrice: receipt.effectiveGasPrice?.toString(),
+            cumulativeGasUsed: receipt.cumulativeGasUsed?.toString()
+          },
           timestamp: new Date().toISOString()
         }
       };
     } catch (error) {
-      throw new Error(`Erro ao revogar role ${role}: ${error.message}`);
+      return {
+        success: false,
+        message: `Erro ao revogar role ${role}`,
+        error: error.message
+      };
     }
   }
 

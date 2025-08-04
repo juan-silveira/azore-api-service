@@ -10,7 +10,7 @@ class StakeController {
    */
   async registerStake(req, res) {
     try {
-      const { address, network } = req.body;
+      const { name, address, network } = req.body;
       
       if (!address) {
         return res.status(400).json({
@@ -26,7 +26,7 @@ class StakeController {
         });
       }
 
-      const result = await stakeService.registerStake({ address, network });
+      const result = await stakeService.registerStake({ name, address, network });
       res.status(201).json(result);
     } catch (error) {
       res.status(400).json({
@@ -77,7 +77,7 @@ class StakeController {
         });
       }
 
-      // Verificar se o stake existe e obter adminPublicKey
+      // Verificar se o stake existe
       const stake = await stakeService.getStakeByAddress(address);
       if (!stake.success) {
         return res.status(404).json(stake);
@@ -87,7 +87,7 @@ class StakeController {
         address, 
         'stake', 
         [user, amount, customTimestamp], 
-        stake.data.adminPublicKey
+        null // Não precisamos mais do adminPublicKey
       );
       
       res.status(200).json(result);
@@ -122,7 +122,7 @@ class StakeController {
         });
       }
 
-      // Verificar se o stake existe e obter adminPublicKey
+      // Verificar se o stake existe
       const stake = await stakeService.getStakeByAddress(address);
       if (!stake.success) {
         return res.status(404).json(stake);
@@ -132,7 +132,7 @@ class StakeController {
         address, 
         'unstake', 
         [user, amount], 
-        stake.data.adminPublicKey
+        null // Não precisamos mais do adminPublicKey
       );
       
       res.status(200).json(result);
@@ -170,7 +170,7 @@ class StakeController {
         address, 
         'claimReward', 
         [user], 
-        stake.data.adminPublicKey
+        null
       );
       
       res.status(200).json(result);
@@ -208,7 +208,7 @@ class StakeController {
         address, 
         'compound', 
         [user], 
-        stake.data.adminPublicKey
+        null
       );
       
       res.status(200).json(result);
@@ -229,7 +229,7 @@ class StakeController {
   async depositRewards(req, res) {
     try {
       const { address } = req.params;
-      const { amount, adminPublicKey } = req.body;
+      const { amount } = req.body;
       
       if (!amount) {
         return res.status(400).json({
@@ -238,27 +238,17 @@ class StakeController {
         });
       }
 
-      if (!adminPublicKey) {
-        return res.status(400).json({
-          success: false,
-          message: 'adminPublicKey é obrigatório'
-        });
-      }
-
-      // Verificar se o adminPublicKey tem permissão
-      const isAdmin = await stakeService.verifyStakeAdmin(address, adminPublicKey);
-      if (!isAdmin) {
-        return res.status(403).json({
-          success: false,
-          message: 'Acesso negado - requer ser admin do stake'
-        });
+      // Verificar se o stake existe
+      const stake = await stakeService.getStakeByAddress(address);
+      if (!stake.success) {
+        return res.status(404).json(stake);
       }
 
       const result = await stakeService.writeStakeContract(
         address, 
         'depositRewards', 
         [amount], 
-        adminPublicKey
+        null
       );
       
       res.status(200).json(result);
@@ -277,7 +267,7 @@ class StakeController {
   async distributeRewards(req, res) {
     try {
       const { address } = req.params;
-      const { percentageInBasisPoints, adminPublicKey } = req.body;
+      const { percentageInBasisPoints } = req.body;
       
       if (!percentageInBasisPoints) {
         return res.status(400).json({
@@ -286,27 +276,17 @@ class StakeController {
         });
       }
 
-      if (!adminPublicKey) {
-        return res.status(400).json({
-          success: false,
-          message: 'adminPublicKey é obrigatório'
-        });
-      }
-
-      // Verificar se o adminPublicKey tem permissão
-      const isAdmin = await stakeService.verifyStakeAdmin(address, adminPublicKey);
-      if (!isAdmin) {
-        return res.status(403).json({
-          success: false,
-          message: 'Acesso negado - requer ser admin do stake'
-        });
+      // Verificar se o stake existe
+      const stake = await stakeService.getStakeByAddress(address);
+      if (!stake.success) {
+        return res.status(404).json(stake);
       }
 
       const result = await stakeService.writeStakeContract(
         address, 
         'distributeReward', 
         [percentageInBasisPoints], 
-        adminPublicKey
+        null
       );
       
       res.status(200).json(result);
@@ -325,7 +305,7 @@ class StakeController {
   async withdrawRewardTokens(req, res) {
     try {
       const { address } = req.params;
-      const { amount, adminPublicKey } = req.body;
+      const { amount } = req.body;
       
       if (!amount) {
         return res.status(400).json({
@@ -334,27 +314,17 @@ class StakeController {
         });
       }
 
-      if (!adminPublicKey) {
-        return res.status(400).json({
-          success: false,
-          message: 'adminPublicKey é obrigatório'
-        });
-      }
-
-      // Verificar se o adminPublicKey tem permissão
-      const isAdmin = await stakeService.verifyStakeAdmin(address, adminPublicKey);
-      if (!isAdmin) {
-        return res.status(403).json({
-          success: false,
-          message: 'Acesso negado - requer ser admin do stake'
-        });
+      // Verificar se o stake existe
+      const stake = await stakeService.getStakeByAddress(address);
+      if (!stake.success) {
+        return res.status(404).json(stake);
       }
 
       const result = await stakeService.writeStakeContract(
         address, 
         'withdrawRewardTokens', 
         [amount], 
-        adminPublicKey
+        null
       );
       
       res.status(200).json(result);
@@ -373,7 +343,7 @@ class StakeController {
   async setCycleDuration(req, res) {
     try {
       const { address } = req.params;
-      const { newDurationInDays, adminPublicKey } = req.body;
+      const { newDurationInDays } = req.body;
       
       if (!newDurationInDays) {
         return res.status(400).json({
@@ -382,27 +352,17 @@ class StakeController {
         });
       }
 
-      if (!adminPublicKey) {
-        return res.status(400).json({
-          success: false,
-          message: 'adminPublicKey é obrigatório'
-        });
-      }
-
-      // Verificar se o adminPublicKey tem permissão
-      const isAdmin = await stakeService.verifyStakeAdmin(address, adminPublicKey);
-      if (!isAdmin) {
-        return res.status(403).json({
-          success: false,
-          message: 'Acesso negado - requer ser admin do stake'
-        });
+      // Verificar se o stake existe
+      const stake = await stakeService.getStakeByAddress(address);
+      if (!stake.success) {
+        return res.status(404).json(stake);
       }
 
       const result = await stakeService.writeStakeContract(
         address, 
         'setCycleDuration', 
         [newDurationInDays], 
-        adminPublicKey
+        null
       );
       
       res.status(200).json(result);
@@ -469,7 +429,7 @@ class StakeController {
   async removeFromBlacklist(req, res) {
     try {
       const { address } = req.params;
-      const { user, adminPublicKey } = req.body;
+      const { user } = req.body;
       
       if (!user) {
         return res.status(400).json({
@@ -478,27 +438,17 @@ class StakeController {
         });
       }
 
-      if (!adminPublicKey) {
-        return res.status(400).json({
-          success: false,
-          message: 'adminPublicKey é obrigatório'
-        });
-      }
-
-      // Verificar se o adminPublicKey tem permissão
-      const isAdmin = await stakeService.verifyStakeAdmin(address, adminPublicKey);
-      if (!isAdmin) {
-        return res.status(403).json({
-          success: false,
-          message: 'Acesso negado - requer ser admin do stake'
-        });
+      // Verificar se o stake existe
+      const stake = await stakeService.getStakeByAddress(address);
+      if (!stake.success) {
+        return res.status(404).json(stake);
       }
 
       const result = await stakeService.writeStakeContract(
         address, 
         'removeFromBlacklist', 
         [user], 
-        adminPublicKey
+        null
       );
       
       res.status(200).json(result);
@@ -517,7 +467,7 @@ class StakeController {
   async setStakingBlocked(req, res) {
     try {
       const { address } = req.params;
-      const { blocked, adminPublicKey } = req.body;
+      const { blocked } = req.body;
       
       if (typeof blocked !== 'boolean') {
         return res.status(400).json({
@@ -526,27 +476,17 @@ class StakeController {
         });
       }
 
-      if (!adminPublicKey) {
-        return res.status(400).json({
-          success: false,
-          message: 'adminPublicKey é obrigatório'
-        });
-      }
-
-      // Verificar se o adminPublicKey tem permissão
-      const isAdmin = await stakeService.verifyStakeAdmin(address, adminPublicKey);
-      if (!isAdmin) {
-        return res.status(403).json({
-          success: false,
-          message: 'Acesso negado - requer ser admin do stake'
-        });
+      // Verificar se o stake existe
+      const stake = await stakeService.getStakeByAddress(address);
+      if (!stake.success) {
+        return res.status(404).json(stake);
       }
 
       const result = await stakeService.writeStakeContract(
         address, 
         'setStakingBlocked', 
         [blocked], 
-        adminPublicKey
+        null
       );
       
       res.status(200).json(result);
