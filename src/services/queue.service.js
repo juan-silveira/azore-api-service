@@ -364,6 +364,7 @@ class QueueService {
     
     try {
       console.log(`🔍 Iniciando processamento para tipo: ${type}`);
+      
       // Processamento genérico baseado no tipo de operação
       if (type.startsWith('token_')) {
         console.log(`🔄 Processando token operation: ${type}`);
@@ -392,6 +393,36 @@ class QueueService {
             return await this.processTransferTransaction(actualData);
           case 'send_transaction':
             return await this.processSendTransaction(actualData);
+          case 'deploy':
+          case 'contract_deploy':
+            return await this.processContractDeploy(actualData);
+          case 'write':
+          case 'contract_write':
+            return await this.processContractWrite(actualData);
+          case 'grant_role':
+          case 'contract_grant_role':
+            return await this.processContractGrantRole(actualData);
+          case 'revoke_role':
+          case 'contract_revoke_role':
+            return await this.processContractRevokeRole(actualData);
+          case 'invest':
+          case 'stake_invest':
+            return await this.processStakeInvest(actualData);
+          case 'withdraw':
+          case 'stake_withdraw':
+            return await this.processStakeWithdraw(actualData);
+          case 'claim_rewards':
+          case 'stake_claim_rewards':
+            return await this.processStakeClaimRewards(actualData);
+          case 'compound':
+          case 'stake_compound':
+            return await this.processStakeCompound(actualData);
+          case 'deposit_rewards':
+          case 'stake_deposit_rewards':
+            return await this.processStakeDepositRewards(actualData);
+          case 'distribute_rewards':
+          case 'stake_distribute_rewards':
+            return await this.processStakeDistributeRewards(actualData);
           default:
             throw new Error(`Tipo de transação não suportado: ${type}`);
         }
@@ -406,41 +437,63 @@ class QueueService {
    * Processa operações de token de forma genérica
    */
   async processTokenOperation(type, data) {
-    const tokenService = require('./token.service');
+    console.log(`🔍 processTokenOperation chamado: type=${type}`);
+    console.log(`📦 Dados recebidos:`, JSON.stringify(data, null, 2));
     
-    switch (type) {
-      case 'token_mint':
-        return await tokenService.mintToken(
-          data.contractAddress,
-          data.toAddress,
-          data.amount,
-          data.gasPayer,
-          data.network || 'testnet',
-          { description: 'Mint via fila', clientId: data.clientId, userId: data.userId }
-        );
-      case 'token_burn':
-        return await tokenService.burnFromToken(
-          data.contractAddress,
-          data.fromAddress,
-          data.amount,
-          data.gasPayer,
-          data.network || 'testnet',
-          { description: 'Burn via fila', clientId: data.clientId, userId: data.userId }
-        );
-      case 'token_transfer_gasless':
-        return await tokenService.transferFromGasless(
-          data.contractAddress,
-          data.fromAddress,
-          data.toAddress,
-          data.amount,
-          data.gasPayer,
-          data.network || 'testnet',
-          { description: 'Transfer via fila', clientId: data.clientId, userId: data.userId }
-        );
-      case 'token_register':
-        return await tokenService.registerToken(data);
-      default:
-        throw new Error(`Operação de token não suportada: ${type}`);
+    try {
+      const tokenService = require('./token.service');
+      
+      switch (type) {
+        case 'token_mint':
+          return await tokenService.mintToken(
+            data.contractAddress,
+            data.toAddress,
+            data.amount,
+            data.gasPayer,
+            data.network || 'testnet',
+            { description: 'Mint via fila', clientId: data.clientId, userId: data.userId }
+          );
+        case 'token_burn':
+          return await tokenService.burnFromToken(
+            data.contractAddress,
+            data.fromAddress,
+            data.amount,
+            data.gasPayer,
+            data.network || 'testnet',
+            { description: 'Burn via fila', clientId: data.clientId, userId: data.userId }
+          );
+        case 'token_transfer_gasless':
+          return await tokenService.transferFromGasless(
+            data.contractAddress,
+            data.fromAddress,
+            data.toAddress,
+            data.amount,
+            data.gasPayer,
+            data.network || 'testnet',
+            { description: 'Transfer via fila', clientId: data.clientId, userId: data.userId }
+          );
+        case 'token_register':
+          return await tokenService.registerToken(data);
+        case 'token_get_balance':
+          return await tokenService.getTokenBalance(data.contractAddress, data.walletAddress, data.network);
+        case 'token_get_aze_balance':
+          return await tokenService.getAzeBalance(data.walletAddress, data.network);
+        case 'token_get_info':
+          return await tokenService.getTokenInfo(data.contractAddress, data.network);
+        case 'token_update_info':
+          return await tokenService.updateTokenInfo(data.contractAddress, data.updates);
+        case 'token_activate':
+          return await tokenService.activateToken(data.contractAddress);
+        case 'token_deactivate':
+          return await tokenService.deactivateToken(data.contractAddress);
+        case 'token_list':
+          return await tokenService.listTokens(data.page, data.limit, data.network, data.contractType, data.isActive);
+        default:
+          throw new Error(`Operação de token não suportada: ${type}`);
+      }
+    } catch (error) {
+      console.error(`❌ Erro em processTokenOperation:`, error);
+      throw error;
     }
   }
 
@@ -449,10 +502,11 @@ class QueueService {
    */
   async processContractOperation(type, data) {
     console.log(`🔍 processContractOperation chamado: type=${type}`);
-    console.log(`📦 Tentando carregar contractService...`);
+    console.log(`📦 Dados recebidos:`, JSON.stringify(data, null, 2));
+    
     try {
       console.log(`📦 Current directory: ${process.cwd()}`);
-      console.log(`📦 Require path: ${require.resolve('./contract.service')}`);
+      console.log(`📦 Tentando carregar contractService...`);
       const contractService = require('./contract.service');
       console.log(`✅ contractService carregado com sucesso`);
     
@@ -476,41 +530,99 @@ class QueueService {
           const revokeResult = await contractService.revokeRole(revokeContract, revokeRole, revokeTarget, revokeAdmin);
           console.log(`✅ Resultado revokeRole:`, JSON.stringify(revokeResult, null, 2));
           return revokeResult;
+        case 'contract_validate_abi':
+          return await contractService.validateABI(data.abi);
+        case 'contract_get_functions':
+          return await contractService.getContractFunctions(data.contractAddress);
+        case 'contract_get_events':
+          return await contractService.getContractEventsList(data.contractAddress);
+        case 'contract_query_events':
+          return await contractService.getContractEvents(data.contractAddress, data.eventName, data.fromBlock, data.toBlock);
         default:
           throw new Error(`Operação de contrato não suportada: ${type}`);
       }
-             } catch (error) {
+    } catch (error) {
       console.error(`❌ Erro em processContractOperation:`, error);
       console.error(`❌ Stack trace:`, error.stack);
       console.error(`❌ Error name:`, error.name);
       console.error(`❌ Error message:`, error.message);
       throw error;
     }
-   }
+  }
 
   /**
    * Processa operações de stake de forma genérica
    */
   async processStakeOperation(type, data) {
-    const stakeService = require('./stake.service');
+    console.log(`🔍 processStakeOperation chamado: type=${type}`);
+    console.log(`📦 Dados recebidos:`, JSON.stringify(data, null, 2));
     
-    switch (type) {
-      case 'stake_register':
-        return await stakeService.registerStake(data);
-      case 'stake_invest':
-        return await stakeService.invest(data);
-      case 'stake_withdraw':
-        return await stakeService.withdraw(data);
-      case 'stake_claim_rewards':
-        return await stakeService.claimRewards(data);
-      case 'stake_compound':
-        return await stakeService.compound(data);
-      case 'stake_deposit_rewards':
-        return await stakeService.depositRewards(data);
-      case 'stake_distribute_rewards':
-        return await stakeService.distributeRewards(data);
-      default:
-        throw new Error(`Operação de stake não suportada: ${type}`);
+    try {
+      const stakeService = require('./stake.service');
+      switch (type) {
+        case 'stake_register':
+          return await stakeService.registerStake(data);
+        case 'stake_invest':
+          // Usar stakeService diretamente para investir
+          console.log(`🔄 Processando stake invest: ${data.amount} tokens para ${data.user} no contrato ${data.stakeAddress}`);
+          console.log(`📋 Dados da transação: clientId=${data.clientId}, userId=${data.userId}`);
+
+          try {
+            console.log(`🔍 Dados completos recebidos:`, JSON.stringify(data, null, 2));
+            console.log(`🔍 Chamando stakeService.writeStakeContract com:`);
+            console.log(`  - stakeAddress: ${data.stakeAddress || data.address}`);
+            console.log(`  - functionName: stake`);
+            console.log(`  - params: [${data.user}, ${data.amount}, ${data.customTimestamp || 0}]`);
+            console.log(`  - walletAddress: null`);
+            
+            const result = await stakeService.writeStakeContract(
+              data.stakeAddress || data.address,
+              'stake',
+              [data.user, data.amount, data.customTimestamp || 0],
+              null // Não precisamos do adminPublicKey, igual ao controller original
+            );
+            
+            console.log(`✅ Stake invest processado com sucesso: ${result.data?.transactionHash || 'sem hash'}`);
+            
+            return {
+              success: true,
+              type: 'stake_invest',
+              txHash: result.data?.transactionHash,
+              data: {
+                stakeAddress: data.stakeAddress,
+                user: data.user,
+                amount: data.amount,
+                gasPayer: data.gasPayer,
+                network: data.network || 'testnet',
+                description: 'Stake invest via fila'
+              },
+              result
+            };
+          } catch (error) {
+            console.error(`❌ Erro ao processar stake invest:`, error);
+            throw new Error(`Falha no stake invest: ${error.message}`);
+          }
+        case 'stake_withdraw':
+          // Implementar withdraw usando blockchainService
+          return await this.processStakeWithdraw(data);
+        case 'stake_claim_rewards':
+          // Implementar claim rewards usando blockchainService
+          return await this.processStakeClaimRewards(data);
+        case 'stake_compound':
+          // Implementar compound usando blockchainService
+          return await this.processStakeCompound(data);
+        case 'stake_deposit_rewards':
+          // Implementar deposit rewards usando blockchainService
+          return await this.processStakeDepositRewards(data);
+        case 'stake_distribute_rewards':
+          // Implementar distribute rewards usando blockchainService
+          return await this.processStakeDistributeRewards(data);
+        default:
+          throw new Error(`Operação de stake não suportada: ${type}`);
+      }
+    } catch (error) {
+      console.error(`❌ Erro em processStakeOperation:`, error);
+      throw error;
     }
   }
 
@@ -831,27 +943,464 @@ class QueueService {
   }
 
   /**
+   * Processa revoke de role em contrato
+   */
+  async processContractRevokeRole(data) {
+    const contractService = require('./contract.service');
+    const { contractAddress, role, targetAddress, adminPublicKey } = data;
+    return await contractService.revokeRole(contractAddress, role, targetAddress, adminPublicKey);
+  }
+
+  /**
    * Processa investimento em stake
    */
   async processStakeInvest(data) {
-    const stakeService = require('./stake.service');
-    return await stakeService.invest(data);
+    const {
+      stakeAddress,
+      user,
+      amount,
+      customTimestamp = 0,
+      gasPayer,
+      network = 'testnet',
+      description = 'Stake invest via fila',
+      clientId,
+      userId
+    } = data;
+
+    console.log(`🔄 Processando stake invest: ${amount} tokens para ${user} no contrato ${stakeAddress}`);
+    console.log(`📋 Dados da transação: clientId=${clientId}, userId=${userId}`);
+
+    try {
+      // Executar o stake usando o blockchainService diretamente
+      const blockchainService = require('./blockchain.service');
+      const { ethers } = require('ethers');
+      
+      // Obter o STAKE_ABI do .env
+      const stakeABI = process.env.STAKE_ABI;
+      if (!stakeABI) {
+        throw new Error('STAKE_ABI não configurado no .env');
+      }
+      
+      console.log(`🔍 Endereço do contrato: ${stakeAddress}`);
+      console.log(`🔍 Usando STAKE_ABI do .env para instanciar o contrato`);
+      
+      // Instanciar o contrato
+      const provider = blockchainService.config.getProvider(network);
+      const contractInstance = new ethers.Contract(stakeAddress, JSON.parse(stakeABI), provider);
+      
+      // Preparar parâmetros
+      const params = [user, amount, customTimestamp];
+      console.log(`🔍 Executando função: stake com parâmetros:`, params);
+      
+      // Preparar opções da transação
+      const txOptions = {
+        gasLimit: 100000,
+        network,
+        description,
+        clientId,
+        userId
+      };
+      console.log(`🔍 Opções da transação:`, txOptions);
+      
+      // Executar a transação
+      const result = await blockchainService.executeWriteFunction(
+        contractInstance,
+        'stake',
+        params,
+        gasPayer,
+        txOptions
+      );
+      
+      console.log(`✅ Stake invest processado com sucesso: ${result.data?.transactionHash || 'sem hash'}`);
+      
+      // Registrar a transação no banco de dados
+      if (result.data?.transactionHash && clientId) {
+        try {
+          const transactionService = require('./transaction.service');
+          
+          console.log(`📝 Tentando registrar transação no banco com clientId: ${clientId}`);
+          
+          await transactionService.recordStakeTransaction({
+            clientId,
+            userId,
+            contractAddress: stakeAddress,
+            fromAddress: gasPayer,
+            toAddress: stakeAddress,
+            amount,
+            gasPayer,
+            network,
+            txHash: result.data.transactionHash,
+            gasUsed: result.data.gasUsed,
+            gasPrice: result.data.gasPrice,
+            blockNumber: result.data.receipt?.blockNumber,
+            functionName: 'stake',
+            functionParams: params,
+            status: 'confirmed'
+          });
+          
+          console.log(`📝 Transação registrada no banco: ${result.data.transactionHash}`);
+        } catch (dbError) {
+          console.error(`⚠️ Erro ao registrar transação no banco:`, dbError.message);
+          console.error(`📋 Dados que causaram erro:`, { clientId, userId, txHash: result.data?.transactionHash });
+          // Não falhar o processo se o registro no banco falhar
+        }
+      } else {
+        console.log(`⚠️ Não foi possível registrar no banco: clientId=${clientId}, txHash=${result.data?.transactionHash}`);
+      }
+      
+      return {
+        success: true,
+        type: 'stake_invest',
+        txHash: result.data?.transactionHash,
+        data: {
+          stakeAddress,
+          user,
+          amount,
+          gasPayer,
+          network,
+          description
+        },
+        result
+      };
+    } catch (error) {
+      console.error(`❌ Erro ao processar stake invest:`, error);
+      throw new Error(`Falha no stake invest: ${error.message}`);
+    }
   }
 
   /**
    * Processa retirada de stake
    */
   async processStakeWithdraw(data) {
-    const stakeService = require('./stake.service');
-    return await stakeService.withdraw(data);
+    try {
+      const stakeService = require('./stake.service');
+      
+      console.log(`🔄 Processando stake withdraw: ${data.amount} tokens de ${data.user} no contrato ${data.stakeAddress}`);
+      console.log(`📋 Dados da transação: clientId=${data.clientId}, userId=${data.userId}`);
+
+      const result = await stakeService.writeStakeContract(
+        data.stakeAddress || data.address,
+        'unstake',
+        [data.user, data.amount],
+        null // Não precisamos do adminPublicKey, igual ao controller original
+      );
+
+      console.log(`✅ Stake withdraw processado com sucesso: ${result.data?.transactionHash || 'sem hash'}`);
+
+      if (result.data?.transactionHash && data.clientId) {
+        try {
+          const transactionService = require('./transaction.service');
+
+          console.log(`📝 Tentando registrar transação no banco com clientId: ${data.clientId}`);
+
+          await transactionService.recordStakeTransaction({
+            clientId: data.clientId,
+            userId: data.userId,
+            contractAddress: data.stakeAddress || data.address,
+            fromAddress: data.user,
+            toAddress: data.stakeAddress || data.address,
+            amount: data.amount,
+            gasPayer: data.user,
+            network: data.network || 'testnet',
+            txHash: result.data.transactionHash,
+            gasUsed: result.data.gasUsed,
+            gasPrice: result.data.gasPrice,
+            blockNumber: result.data.receipt?.blockNumber,
+            functionName: 'unstake',
+            functionParams: [data.user, data.amount],
+            status: 'confirmed'
+          });
+
+          console.log(`📝 Transação registrada no banco: ${result.data.transactionHash}`);
+        } catch (dbError) {
+          console.error(`⚠️ Erro ao registrar transação no banco:`, dbError.message);
+        }
+      }
+
+      return {
+        success: true,
+        type: 'stake_withdraw',
+        txHash: result.data?.transactionHash,
+        data: {
+          stakeAddress: data.stakeAddress || data.address,
+          user: data.user,
+          amount: data.amount,
+          network: data.network || 'testnet',
+          description: 'Stake withdraw via fila'
+        },
+        result
+      };
+    } catch (error) {
+      console.error(`❌ Erro ao processar stake withdraw:`, error);
+      throw new Error(`Falha no stake withdraw: ${error.message}`);
+    }
   }
 
   /**
    * Processa claim de recompensas de stake
    */
   async processStakeClaimRewards(data) {
-    const stakeService = require('./stake.service');
-    return await stakeService.claimRewards(data);
+    try {
+      const stakeService = require('./stake.service');
+      
+      console.log(`🔄 Processando stake claim rewards para ${data.user} no contrato ${data.stakeAddress}`);
+      console.log(`📋 Dados da transação: clientId=${data.clientId}, userId=${data.userId}`);
+
+      const result = await stakeService.writeStakeContract(
+        data.stakeAddress || data.address,
+        'claimReward',
+        [data.user],
+        null // Não precisamos do adminPublicKey, igual ao controller original
+      );
+
+      console.log(`✅ Stake claim rewards processado com sucesso: ${result.data?.transactionHash || 'sem hash'}`);
+
+      if (result.data?.transactionHash && data.clientId) {
+        try {
+          const transactionService = require('./transaction.service');
+
+          console.log(`📝 Tentando registrar transação no banco com clientId: ${data.clientId}`);
+
+          await transactionService.recordStakeTransaction({
+            clientId: data.clientId,
+            userId: data.userId,
+            contractAddress: data.stakeAddress || data.address,
+            fromAddress: data.user,
+            toAddress: data.stakeAddress || data.address,
+            amount: '0', // Claim não tem amount específico
+            gasPayer: data.user,
+            network: data.network || 'testnet',
+            txHash: result.data.transactionHash,
+            gasUsed: result.data.gasUsed,
+            gasPrice: result.data.gasPrice,
+            blockNumber: result.data.receipt?.blockNumber,
+            functionName: 'claimReward',
+            functionParams: [data.user],
+            status: 'confirmed'
+          });
+
+          console.log(`📝 Transação registrada no banco: ${result.data.transactionHash}`);
+        } catch (dbError) {
+          console.error(`⚠️ Erro ao registrar transação no banco:`, dbError.message);
+        }
+      }
+
+      return {
+        success: true,
+        type: 'stake_claim_rewards',
+        txHash: result.data?.transactionHash,
+        data: {
+          stakeAddress: data.stakeAddress || data.address,
+          user: data.user,
+          network: data.network || 'testnet',
+          description: 'Stake claim rewards via fila'
+        },
+        result
+      };
+    } catch (error) {
+      console.error(`❌ Erro ao processar stake claim rewards:`, error);
+      throw new Error(`Falha no stake claim rewards: ${error.message}`);
+    }
+  }
+
+  /**
+   * Processa compound de stake
+   */
+  async processStakeCompound(data) {
+    try {
+      const stakeService = require('./stake.service');
+      
+      console.log(`🔄 Processando stake compound para ${data.user} no contrato ${data.stakeAddress}`);
+      console.log(`📋 Dados da transação: clientId=${data.clientId}, userId=${data.userId}`);
+
+      const result = await stakeService.writeStakeContract(
+        data.stakeAddress || data.address,
+        'compound',
+        [data.user],
+        null // Não precisamos do adminPublicKey, igual ao controller original
+      );
+
+      console.log(`✅ Stake compound processado com sucesso: ${result.data?.transactionHash || 'sem hash'}`);
+
+      if (result.data?.transactionHash && data.clientId) {
+        try {
+          const transactionService = require('./transaction.service');
+
+          console.log(`📝 Tentando registrar transação no banco com clientId: ${data.clientId}`);
+
+          await transactionService.recordStakeTransaction({
+            clientId: data.clientId,
+            userId: data.userId,
+            contractAddress: data.stakeAddress || data.address,
+            fromAddress: data.user,
+            toAddress: data.stakeAddress || data.address,
+            amount: '0', // Compound não tem amount específico
+            gasPayer: data.user,
+            network: data.network || 'testnet',
+            txHash: result.data.transactionHash,
+            gasUsed: result.data.gasUsed,
+            gasPrice: result.data.gasPrice,
+            blockNumber: result.data.receipt?.blockNumber,
+            functionName: 'compound',
+            functionParams: [data.user],
+            status: 'confirmed'
+          });
+
+          console.log(`📝 Transação registrada no banco: ${result.data.transactionHash}`);
+        } catch (dbError) {
+          console.error(`⚠️ Erro ao registrar transação no banco:`, dbError.message);
+        }
+      }
+
+      return {
+        success: true,
+        type: 'stake_compound',
+        txHash: result.data?.transactionHash,
+        data: {
+          stakeAddress: data.stakeAddress || data.address,
+          user: data.user,
+          network: data.network || 'testnet',
+          description: 'Stake compound via fila'
+        },
+        result
+      };
+    } catch (error) {
+      console.error(`❌ Erro ao processar stake compound:`, error);
+      throw new Error(`Falha no stake compound: ${error.message}`);
+    }
+  }
+
+  /**
+   * Processa deposit de recompensas de stake
+   */
+  async processStakeDepositRewards(data) {
+    try {
+      const stakeService = require('./stake.service');
+      
+      console.log(`🔄 Processando stake deposit rewards: ${data.amount} tokens no contrato ${data.stakeAddress}`);
+      console.log(`📋 Dados da transação: clientId=${data.clientId}, userId=${data.userId}`);
+
+      const result = await stakeService.writeStakeContract(
+        data.stakeAddress || data.address,
+        'depositRewards',
+        [data.amount],
+        null // Não precisamos do adminPublicKey, igual ao controller original
+      );
+
+      console.log(`✅ Stake deposit rewards processado com sucesso: ${result.data?.transactionHash || 'sem hash'}`);
+
+      if (result.data?.transactionHash && data.clientId) {
+        try {
+          const transactionService = require('./transaction.service');
+
+          console.log(`📝 Tentando registrar transação no banco com clientId: ${data.clientId}`);
+
+          await transactionService.recordStakeTransaction({
+            clientId: data.clientId,
+            userId: data.userId,
+            contractAddress: data.stakeAddress || data.address,
+            fromAddress: data.user || 'admin',
+            toAddress: data.stakeAddress || data.address,
+            amount: data.amount,
+            gasPayer: data.user || 'admin',
+            network: data.network || 'testnet',
+            txHash: result.data.transactionHash,
+            gasUsed: result.data.gasUsed,
+            gasPrice: result.data.gasPrice,
+            blockNumber: result.data.receipt?.blockNumber,
+            functionName: 'depositRewards',
+            functionParams: [data.amount],
+            status: 'confirmed'
+          });
+
+          console.log(`📝 Transação registrada no banco: ${result.data.transactionHash}`);
+        } catch (dbError) {
+          console.error(`⚠️ Erro ao registrar transação no banco:`, dbError.message);
+        }
+      }
+
+      return {
+        success: true,
+        type: 'stake_deposit_rewards',
+        txHash: result.data?.transactionHash,
+        data: {
+          stakeAddress: data.stakeAddress || data.address,
+          amount: data.amount,
+          network: data.network || 'testnet',
+          description: 'Stake deposit rewards via fila'
+        },
+        result
+      };
+    } catch (error) {
+      console.error(`❌ Erro ao processar stake deposit rewards:`, error);
+      throw new Error(`Falha no stake deposit rewards: ${error.message}`);
+    }
+  }
+
+  /**
+   * Processa distribute de recompensas de stake
+   */
+  async processStakeDistributeRewards(data) {
+    try {
+      const stakeService = require('./stake.service');
+      
+      console.log(`🔄 Processando stake distribute rewards no contrato ${data.stakeAddress}`);
+      console.log(`📋 Dados da transação: clientId=${data.clientId}, userId=${data.userId}`);
+
+      const result = await stakeService.writeStakeContract(
+        data.stakeAddress || data.address,
+        'distributeReward',
+        [data.percentageInBasisPoints || 10000], // Default 100% em basis points
+        null // Não precisamos do adminPublicKey, igual ao controller original
+      );
+
+      console.log(`✅ Stake distribute rewards processado com sucesso: ${result.data?.transactionHash || 'sem hash'}`);
+
+      if (result.data?.transactionHash && data.clientId) {
+        try {
+          const transactionService = require('./transaction.service');
+
+          console.log(`📝 Tentando registrar transação no banco com clientId: ${data.clientId}`);
+
+          await transactionService.recordStakeTransaction({
+            clientId: data.clientId,
+            userId: data.userId,
+            contractAddress: data.stakeAddress || data.address,
+            fromAddress: data.user || 'admin',
+            toAddress: data.stakeAddress || data.address,
+            amount: '0', // Distribute não tem amount específico
+            gasPayer: data.user || 'admin',
+            network: data.network || 'testnet',
+            txHash: result.data.transactionHash,
+            gasUsed: result.data.gasUsed,
+            gasPrice: result.data.gasPrice,
+            blockNumber: result.data.receipt?.blockNumber,
+            functionName: 'distributeReward',
+            functionParams: [data.percentageInBasisPoints || 10000],
+            status: 'confirmed'
+          });
+
+          console.log(`📝 Transação registrada no banco: ${result.data.transactionHash}`);
+        } catch (dbError) {
+          console.error(`⚠️ Erro ao registrar transação no banco:`, dbError.message);
+        }
+      }
+
+      return {
+        success: true,
+        type: 'stake_distribute_rewards',
+        txHash: result.data?.transactionHash,
+        data: {
+          stakeAddress: data.stakeAddress || data.address,
+          network: data.network || 'testnet',
+          description: 'Stake distribute rewards via fila'
+        },
+        result
+      };
+    } catch (error) {
+      console.error(`❌ Erro ao processar stake distribute rewards:`, error);
+      throw new Error(`Falha no stake distribute rewards: ${error.message}`);
+    }
   }
 
   /**

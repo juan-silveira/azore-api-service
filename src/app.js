@@ -139,12 +139,14 @@ app.use('/api/password-reset', passwordResetRoutes);
 // Rotas de usuários (com autenticação)
 app.use('/api/users', authenticateApiKey, apiRateLimiter, addUserInfo, logAuthenticatedRequest, userRoutes);
 
-// Middleware de autenticação para rotas protegidas (sem enfileiramento - comunicação direta com blockchain)
-app.use('/api/contracts', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, contractRoutes);
-// Middleware de autenticação para rotas protegidas - comunicação direta com blockchain
-app.use('/api/tokens', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, tokenRoutes);
-// Middleware de autenticação para rotas protegidas (sem enfileiramento - comunicação direta com blockchain)
-app.use('/api/stakes', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, stakeRoutes);
+// Rotas de contratos (com autenticação e sistema de fila)
+app.use('/api/contracts', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, QueueMiddleware.enqueueExternalOperations, contractRoutes);
+
+// Rotas de tokens (com autenticação e sistema de fila)
+app.use('/api/tokens', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, QueueMiddleware.enqueueExternalOperations, tokenRoutes);
+
+// Rotas de stakes (com autenticação e sistema de fila)
+app.use('/api/stakes', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, QueueMiddleware.enqueueExternalOperations, stakeRoutes);
 
 // Rotas de transações (com autenticação)
 app.use('/api/transactions', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionRoutes);
