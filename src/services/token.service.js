@@ -5,6 +5,14 @@ const contractService = require('./contract.service');
 const transactionService = require('./transaction.service');
 const databaseConfig = require('../config/database');
 
+// Função para obter o serviço de webhook
+const getWebhookService = () => {
+  if (!global.webhookService) {
+    global.webhookService = require('./webhook.service');
+  }
+  return global.webhookService;
+};
+
 class TokenService {
   constructor() {
     this.SmartContract = null;
@@ -22,6 +30,29 @@ class TokenService {
       console.error('❌ Erro ao inicializar serviço de tokens:', error.message);
       // Não lançar erro para evitar quebrar a aplicação
       console.log('⚠️ Serviço de tokens inicializado com limitações');
+    }
+  }
+
+  /**
+   * Dispara webhooks para eventos de token
+   */
+  async triggerTokenWebhooks(event, tokenData, clientId, additionalData = {}) {
+    try {
+      const webhookService = getWebhookService();
+      await webhookService.triggerWebhooks(event, {
+        contractAddress: tokenData.contractAddress,
+        operation: tokenData.operation,
+        amount: tokenData.amount,
+        fromAddress: tokenData.fromAddress,
+        toAddress: tokenData.toAddress,
+        network: tokenData.network,
+        transactionHash: tokenData.transactionHash,
+        timestamp: new Date().toISOString(),
+        ...additionalData
+      }, clientId);
+    } catch (error) {
+      console.error('Erro ao disparar webhooks de token:', error.message);
+      // Não falhar a operação principal por erro de webhook
     }
   }
 
@@ -168,6 +199,22 @@ class TokenService {
       } catch (error) {
         console.error('❌ Erro ao registrar transação na tabela:', error.message);
         // Não falhar a operação se o registro da transação falhar
+      }
+
+      // Disparar webhook de token mintado
+      if (options.clientId) {
+        await this.triggerTokenWebhooks('token.minted', {
+          contractAddress,
+          operation: 'mint',
+          amount,
+          toAddress,
+          network,
+          transactionHash: result.data.transactionHash
+        }, options.clientId, {
+          amountWei: amountWei.toString(),
+          gasUsed: result.data.gasUsed,
+          blockNumber: result.data.receipt.blockNumber
+        });
       }
 
       return {

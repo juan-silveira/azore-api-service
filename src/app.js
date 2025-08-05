@@ -22,6 +22,8 @@ const authRoutes = require('./routes/auth.routes');
 const passwordResetRoutes = require('./routes/passwordReset.routes');
 const transactionRoutes = require('./routes/transaction.routes');
 const queueRoutes = require('./routes/queue.routes');
+const documentRoutes = require('./routes/document.routes');
+const webhookRoutes = require('./routes/webhook.routes');
 
 // Importar serviços
 const contractService = require('./services/contract.service');
@@ -37,6 +39,7 @@ const {
   addUserInfo,
   logAuthenticatedRequest 
 } = require('./middleware/auth.middleware');
+const { authenticateJWT } = require('./middleware/jwt.middleware');
 const { 
   requireApiAdmin, 
   requireClientAdmin, 
@@ -127,8 +130,8 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs, {
 // Rotas públicas (sem autenticação) - comunicação direta com blockchain
 app.use('/api/test', testRoutes);
 
-// Rotas de clientes (com autenticação e rate limiting)
-app.use('/api/clients', authenticateApiKey, apiRateLimiter, addUserInfo, logAuthenticatedRequest, clientRoutes);
+// Rotas de clientes (com autenticação JWT e rate limiting)
+app.use('/api/clients', authenticateJWT, apiRateLimiter, addUserInfo, logAuthenticatedRequest, clientRoutes);
 
 // Rotas de autenticação (públicas)
 app.use('/api/auth', authRoutes);
@@ -136,8 +139,8 @@ app.use('/api/auth', authRoutes);
 // Rotas de recuperação de senha (públicas)
 app.use('/api/password-reset', passwordResetRoutes);
 
-// Rotas de usuários (com autenticação)
-app.use('/api/users', authenticateApiKey, apiRateLimiter, addUserInfo, logAuthenticatedRequest, userRoutes);
+// Rotas de usuários (com autenticação JWT)
+app.use('/api/users', authenticateJWT, apiRateLimiter, addUserInfo, logAuthenticatedRequest, userRoutes);
 
 // Rotas de contratos (com autenticação e sistema de fila)
 app.use('/api/contracts', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, QueueMiddleware.enqueueExternalOperations, contractRoutes);
@@ -148,11 +151,17 @@ app.use('/api/tokens', authenticateApiKey, transactionRateLimiter, addUserInfo, 
 // Rotas de stakes (com autenticação e sistema de fila)
 app.use('/api/stakes', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionLogger, QueueMiddleware.enqueueExternalOperations, stakeRoutes);
 
-// Rotas de transações (com autenticação)
-app.use('/api/transactions', authenticateApiKey, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionRoutes);
+// Rotas de transações (com autenticação JWT)
+app.use('/api/transactions', authenticateJWT, transactionRateLimiter, addUserInfo, logAuthenticatedRequest, transactionRoutes);
 
-// Rotas de logs (com autenticação)
-app.use('/api/logs', authenticateApiKey, apiRateLimiter, addUserInfo, logAuthenticatedRequest, logRoutes);
+// Rotas de logs (com autenticação JWT)
+app.use('/api/logs', authenticateJWT, apiRateLimiter, addUserInfo, logAuthenticatedRequest, logRoutes);
+
+// Rotas de documentos (com autenticação JWT)
+app.use('/api/documents', authenticateJWT, apiRateLimiter, addUserInfo, logAuthenticatedRequest, documentRoutes);
+
+// Rotas de webhooks (com autenticação JWT)
+app.use('/api/webhooks', authenticateJWT, apiRateLimiter, addUserInfo, logAuthenticatedRequest, webhookRoutes);
 
 // Rotas de fila (com autenticação admin)
 app.use('/api/queue', queueRoutes);

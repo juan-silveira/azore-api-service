@@ -360,7 +360,51 @@ class TestController {
     }
   }
 
+  /**
+   * Teste simples de webhook
+   */
+  async testWebhook(req, res) {
+    try {
+      const { url } = req.body;
 
+      if (!url) {
+        return res.status(400).json({
+          success: false,
+          message: 'URL é obrigatória'
+        });
+      }
+
+      // Dados de teste
+      const webhookData = {
+        event: 'test.event',
+        timestamp: new Date().toISOString(),
+        message: 'Teste de webhook da API Azore',
+        testId: Date.now()
+      };
+
+      console.log(`🌐 Testando webhook para: ${url}`);
+      console.log(`📦 Dados:`, JSON.stringify(webhookData, null, 2));
+
+      res.json({
+        success: true,
+        message: 'Teste de webhook configurado',
+        data: {
+          url,
+          webhookData,
+          note: 'Este é um teste simulado. Em produção, o webhook seria enviado para a URL.'
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Erro no teste de webhook:', error.message);
+      
+      res.status(500).json({
+        success: false,
+        message: 'Erro no teste de webhook',
+        error: error.message
+      });
+    }
+  }
 }
 
 module.exports = new TestController(); 

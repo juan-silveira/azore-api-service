@@ -1,6 +1,8 @@
 const ApiKey = require('./ApiKey');
 const Client = require('./Client');
 const User = require('./User');
+const Document = require('./Document');
+const Webhook = require('./Webhook');
 
 const SmartContract = require('./SmartContract');
 const Transaction = require('./Transaction');
@@ -12,6 +14,8 @@ module.exports = {
   ApiKey,
   Client,
   User,
+  Document,
+  Webhook,
 
   SmartContract,
   Transaction,

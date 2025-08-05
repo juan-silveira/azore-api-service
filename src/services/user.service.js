@@ -4,6 +4,7 @@ const { ethers } = require('ethers');
 const axios = require('axios');
 const blockchainService = require('./blockchain.service');
 const tokenService = require('./token.service');
+const webhookService = require('./webhook.service');
 
 /**
  * Serviço para gerenciamento de usuários
@@ -99,6 +100,34 @@ class UserService {
       if (userData.roles && Array.isArray(userData.roles) && userData.roles.length > 0) {
         await user.setRoles(userData.roles);
       }
+
+      // Disparar evento de usuário criado
+      const eventPayload = {
+        event: 'user.created',
+        userId: user.id,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          cpf: user.cpf,
+          publicKey: user.publicKey,
+          roles: user.roles,
+          isActive: user.isActive,
+          clientId: user.clientId,
+          createdAt: user.createdAt
+        },
+        clientId: clientId,
+        timestamp: new Date().toISOString()
+      };
+
+      // Disparar webhook em background (não bloquear a resposta)
+      webhookService.triggerWebhooks('user.created', eventPayload, clientId)
+        .then(result => {
+          console.log(`📡 Webhook user.created disparado:`, result);
+        })
+        .catch(error => {
+          console.error(`❌ Erro ao disparar webhook user.created:`, error);
+        });
 
       return {
         success: true,
@@ -326,6 +355,16 @@ class UserService {
         }
       }
 
+      // Salvar dados antigos para o evento
+      const oldUserData = {
+        name: user.name,
+        email: user.email,
+        cpf: user.cpf,
+        phone: user.phone,
+        isActive: user.isActive,
+        roles: user.roles
+      };
+
       await this.User.updateUser(id, updateData);
       
       const updatedUser = await this.User.findByPk(id, {
@@ -335,6 +374,45 @@ class UserService {
           attributes: ['id', 'name', 'isActive']
         }]
       });
+
+      // Disparar evento de usuário atualizado
+      const eventPayload = {
+        event: 'user.updated',
+        userId: updatedUser.id,
+        user: {
+          id: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          cpf: updatedUser.cpf,
+          publicKey: updatedUser.publicKey,
+          roles: updatedUser.roles,
+          isActive: updatedUser.isActive,
+          clientId: updatedUser.clientId,
+          updatedAt: updatedUser.updatedAt
+        },
+        changes: {
+          old: oldUserData,
+          new: {
+            name: updatedUser.name,
+            email: updatedUser.email,
+            cpf: updatedUser.cpf,
+            phone: updatedUser.phone,
+            isActive: updatedUser.isActive,
+            roles: updatedUser.roles
+          }
+        },
+        clientId: updatedUser.clientId,
+        timestamp: new Date().toISOString()
+      };
+
+      // Disparar webhook em background
+      webhookService.triggerWebhooks('user.updated', eventPayload, updatedUser.clientId)
+        .then(result => {
+          console.log(`📡 Webhook user.updated disparado:`, result);
+        })
+        .catch(error => {
+          console.error(`❌ Erro ao disparar webhook user.updated:`, error);
+        });
 
       return {
         success: true,
@@ -360,6 +438,34 @@ class UserService {
 
       await this.User.deactivateUser(id);
       
+      // Disparar evento de usuário desativado
+      const eventPayload = {
+        event: 'user.deactivated',
+        userId: user.id,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          cpf: user.cpf,
+          publicKey: user.publicKey,
+          roles: user.roles,
+          isActive: false,
+          clientId: user.clientId,
+          deactivatedAt: new Date().toISOString()
+        },
+        clientId: user.clientId,
+        timestamp: new Date().toISOString()
+      };
+
+      // Disparar webhook em background
+      webhookService.triggerWebhooks('user.deactivated', eventPayload, user.clientId)
+        .then(result => {
+          console.log(`📡 Webhook user.deactivated disparado:`, result);
+        })
+        .catch(error => {
+          console.error(`❌ Erro ao disparar webhook user.deactivated:`, error);
+        });
+      
       return {
         success: true,
         message: 'Usuário desativado com sucesso'
@@ -382,6 +488,34 @@ class UserService {
       }
 
       await this.User.activateUser(id);
+      
+      // Disparar evento de usuário reativado
+      const eventPayload = {
+        event: 'user.activated',
+        userId: user.id,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          cpf: user.cpf,
+          publicKey: user.publicKey,
+          roles: user.roles,
+          isActive: true,
+          clientId: user.clientId,
+          activatedAt: new Date().toISOString()
+        },
+        clientId: user.clientId,
+        timestamp: new Date().toISOString()
+      };
+
+      // Disparar webhook em background
+      webhookService.triggerWebhooks('user.activated', eventPayload, user.clientId)
+        .then(result => {
+          console.log(`📡 Webhook user.activated disparado:`, result);
+        })
+        .catch(error => {
+          console.error(`❌ Erro ao disparar webhook user.activated:`, error);
+        });
       
       return {
         success: true,
@@ -425,6 +559,41 @@ class UserService {
         roles.push('API_ADMIN');
         await targetUser.update({ roles });
       }
+
+      // Recarregar usuário para obter dados atualizados
+      await targetUser.reload();
+
+      // Disparar evento de API Admin adicionado
+      const eventPayload = {
+        event: 'user.api_admin_added',
+        userId: targetUser.id,
+        user: {
+          id: targetUser.id,
+          name: targetUser.name,
+          email: targetUser.email,
+          cpf: targetUser.cpf,
+          publicKey: targetUser.publicKey,
+          roles: targetUser.roles,
+          isApiAdmin: true,
+          clientId: targetUser.clientId
+        },
+        adminUser: {
+          id: adminUser.id,
+          name: adminUser.name,
+          email: adminUser.email
+        },
+        clientId: targetUser.clientId,
+        timestamp: new Date().toISOString()
+      };
+
+      // Disparar webhook em background
+      webhookService.triggerWebhooks('user.api_admin_added', eventPayload, targetUser.clientId)
+        .then(result => {
+          console.log(`📡 Webhook user.api_admin_added disparado:`, result);
+        })
+        .catch(error => {
+          console.error(`❌ Erro ao disparar webhook user.api_admin_added:`, error);
+        });
 
       return {
         success: true,
@@ -475,6 +644,41 @@ class UserService {
         roles = roles.filter(role => role !== 'API_ADMIN');
         await targetUser.update({ roles });
       }
+
+      // Recarregar usuário para obter dados atualizados
+      await targetUser.reload();
+
+      // Disparar evento de API Admin removido
+      const eventPayload = {
+        event: 'user.api_admin_removed',
+        userId: targetUser.id,
+        user: {
+          id: targetUser.id,
+          name: targetUser.name,
+          email: targetUser.email,
+          cpf: targetUser.cpf,
+          publicKey: targetUser.publicKey,
+          roles: targetUser.roles,
+          isApiAdmin: false,
+          clientId: targetUser.clientId
+        },
+        adminUser: {
+          id: adminUser.id,
+          name: adminUser.name,
+          email: adminUser.email
+        },
+        clientId: targetUser.clientId,
+        timestamp: new Date().toISOString()
+      };
+
+      // Disparar webhook em background
+      webhookService.triggerWebhooks('user.api_admin_removed', eventPayload, targetUser.clientId)
+        .then(result => {
+          console.log(`📡 Webhook user.api_admin_removed disparado:`, result);
+        })
+        .catch(error => {
+          console.error(`❌ Erro ao disparar webhook user.api_admin_removed:`, error);
+        });
 
       return {
         success: true,
@@ -540,6 +744,41 @@ class UserService {
         await targetUser.update({ roles });
       }
 
+      // Recarregar usuário para obter dados atualizados
+      await targetUser.reload();
+
+      // Disparar evento de Client Admin adicionado
+      const eventPayload = {
+        event: 'user.client_admin_added',
+        userId: targetUser.id,
+        user: {
+          id: targetUser.id,
+          name: targetUser.name,
+          email: targetUser.email,
+          cpf: targetUser.cpf,
+          publicKey: targetUser.publicKey,
+          roles: targetUser.roles,
+          isClientAdmin: true,
+          clientId: targetUser.clientId
+        },
+        adminUser: {
+          id: adminUser.id,
+          name: adminUser.name,
+          email: adminUser.email
+        },
+        clientId: targetUser.clientId,
+        timestamp: new Date().toISOString()
+      };
+
+      // Disparar webhook em background
+      webhookService.triggerWebhooks('user.client_admin_added', eventPayload, targetUser.clientId)
+        .then(result => {
+          console.log(`📡 Webhook user.client_admin_added disparado:`, result);
+        })
+        .catch(error => {
+          console.error(`❌ Erro ao disparar webhook user.client_admin_added:`, error);
+        });
+
       return {
         success: true,
         message: 'Flag isClientAdmin concedida com sucesso',
@@ -603,6 +842,41 @@ class UserService {
         roles = roles.filter(role => role !== 'CLIENT_ADMIN');
         await targetUser.update({ roles });
       }
+
+      // Recarregar usuário para obter dados atualizados
+      await targetUser.reload();
+
+      // Disparar evento de Client Admin removido
+      const eventPayload = {
+        event: 'user.client_admin_removed',
+        userId: targetUser.id,
+        user: {
+          id: targetUser.id,
+          name: targetUser.name,
+          email: targetUser.email,
+          cpf: targetUser.cpf,
+          publicKey: targetUser.publicKey,
+          roles: targetUser.roles,
+          isClientAdmin: false,
+          clientId: targetUser.clientId
+        },
+        adminUser: {
+          id: adminUser.id,
+          name: adminUser.name,
+          email: adminUser.email
+        },
+        clientId: targetUser.clientId,
+        timestamp: new Date().toISOString()
+      };
+
+      // Disparar webhook em background
+      webhookService.triggerWebhooks('user.client_admin_removed', eventPayload, targetUser.clientId)
+        .then(result => {
+          console.log(`📡 Webhook user.client_admin_removed disparado:`, result);
+        })
+        .catch(error => {
+          console.error(`❌ Erro ao disparar webhook user.client_admin_removed:`, error);
+        });
 
       return {
         success: true,

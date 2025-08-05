@@ -523,5 +523,32 @@ router.get('/blocks/:blockNumber/details', testController.getBlockDetails);
  */
 router.post('/wallets/balances', testController.getMultipleBalances);
 
+/**
+ * @swagger
+ * /api/test/webhook:
+ *   post:
+ *     summary: Teste de webhook
+ *     description: Testa configuração de webhook (simulado)
+ *     tags: [Test]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - url
+ *             properties:
+ *               url:
+ *                 type: string
+ *                 format: uri
+ *                 description: URL para onde enviar o webhook
+ *     responses:
+ *       200:
+ *         description: Teste de webhook configurado
+ *       400:
+ *         description: URL inválida
+ */
+router.post('/webhook', testController.testWebhook);
 
 module.exports = router; 

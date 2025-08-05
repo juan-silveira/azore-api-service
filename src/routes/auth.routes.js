@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth.controller');
-const { authenticateSession, requirePasswordChange } = require('../middleware/session.middleware');
+const { authenticateJWT } = require('../middleware/jwt.middleware');
 
 /**
  * @swagger
@@ -74,16 +74,18 @@ const { authenticateSession, requirePasswordChange } = require('../middleware/se
  *         data:
  *           type: object
  *           properties:
- *             sessionToken:
+ *             accessToken:
  *               type: string
- *               description: Token da sessão (não retornado no primeiro acesso)
- *             expiresAt:
+ *               description: Access token JWT
+ *             refreshToken:
  *               type: string
- *               format: date-time
- *               description: Data de expiração da sessão
- *             timeout:
+ *               description: Refresh token JWT
+ *             expiresIn:
  *               type: integer
- *               description: Timeout da sessão em segundos
+ *               description: Tempo de expiração do access token em segundos
+ *             refreshExpiresIn:
+ *               type: integer
+ *               description: Tempo de expiração do refresh token em segundos
  *             isFirstAccess:
  *               type: boolean
  *               description: Indica se é o primeiro acesso
@@ -179,7 +181,7 @@ router.post('/login', authController.login);
  *       401:
  *         description: Token de sessão inválido
  */
-router.post('/logout', authenticateSession, authController.logout);
+router.post('/logout', authenticateJWT, authController.logout);
 
 /**
  * @swagger
@@ -204,7 +206,7 @@ router.post('/logout', authenticateSession, authController.logout);
  *       401:
  *         description: Senha atual inválida
  */
-router.post('/change-password', authenticateSession, authController.changePassword);
+router.post('/change-password', authenticateJWT, authController.changePassword);
 
 /**
  * @swagger
@@ -214,7 +216,7 @@ router.post('/change-password', authenticateSession, authController.changePasswo
  *     description: Gera uma nova API Key para o client autenticado
  *     tags: [API Keys]
  *     security:
- *       - sessionAuth: []
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -256,7 +258,7 @@ router.post('/change-password', authenticateSession, authController.changePasswo
  *       403:
  *         description: Primeiro acesso detectado
  */
-router.post('/generate-api-key', authenticateSession, requirePasswordChange, authController.generateApiKey);
+router.post('/generate-api-key', authenticateJWT, authController.generateApiKey);
 
 /**
  * @swagger
@@ -308,7 +310,7 @@ router.post('/generate-api-key', authenticateSession, requirePasswordChange, aut
  *       401:
  *         description: Token de sessão inválido
  */
-router.get('/api-keys', authenticateSession, authController.listApiKeys);
+router.get('/api-keys', authenticateJWT, authController.listApiKeys);
 
 /**
  * @swagger
@@ -337,7 +339,7 @@ router.get('/api-keys', authenticateSession, authController.listApiKeys);
  *       404:
  *         description: API Key não encontrada
  */
-router.post('/api-keys/:apiKeyId/revoke', authenticateSession, requirePasswordChange, authController.revokeApiKey);
+router.post('/api-keys/:apiKeyId/revoke', authenticateJWT, authController.revokeApiKey);
 
 /**
  * @swagger
@@ -372,52 +374,115 @@ router.post('/api-keys/:apiKeyId/revoke', authenticateSession, requirePasswordCh
  *       404:
  *         description: API Key não encontrada
  */
-router.put('/api-keys/:apiKeyId/edit', authenticateSession, requirePasswordChange, authController.editApiKey);
+router.put('/api-keys/:apiKeyId/edit', authenticateJWT, authController.editApiKey);
 
 /**
  * @swagger
- * /api/auth/session-timeout:
+ * /api/auth/refresh:
  *   post:
- *     summary: Configurar timeout da sessão
- *     description: Define o timeout da sessão em segundos
+ *     summary: Renovar access token
+ *     description: Renova o access token usando um refresh token válido
  *     tags: [Autenticação]
- *     security:
- *       - sessionAuth: []
  *     requestBody:
  *       required: true
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/SessionTimeoutRequest'
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: Refresh token válido
  *     responses:
  *       200:
- *         description: Timeout configurado com sucesso
+ *         description: Token renovado com sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     accessToken:
+ *                       type: string
+ *                       description: Novo access token
+ *                     expiresIn:
+ *                       type: integer
+ *                       description: Tempo de expiração em segundos
  *       400:
- *         description: Timeout inválido
+ *         description: Refresh token é obrigatório
  *       401:
- *         description: Token de sessão inválido
+ *         description: Refresh token inválido ou expirado
  */
-router.post('/session-timeout', authenticateSession, requirePasswordChange, authController.setSessionTimeout);
+router.post('/refresh', authController.refreshToken);
 
 /**
  * @swagger
- * /api/auth/session-info:
+ * /api/auth/me:
  *   get:
- *     summary: Informações da sessão
- *     description: Obtém informações da sessão atual
+ *     summary: Informações do usuário atual
+ *     description: Obtém informações do usuário autenticado
  *     tags: [Autenticação]
  *     security:
- *       - sessionAuth: []
+ *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Informações obtidas com sucesso
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/LoginResponse'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *                       properties:
+ *                         id:
+ *                           type: string
+ *                           format: uuid
+ *                         name:
+ *                           type: string
+ *                         email:
+ *                           type: string
+ *                         permissions:
+ *                           type: object
+ *                         roles:
+ *                           type: array
+ *                           items:
+ *                             type: string
+ *                         isApiAdmin:
+ *                           type: boolean
+ *                         isClientAdmin:
+ *                           type: boolean
  *       401:
- *         description: Token de sessão inválido
+ *         description: Token inválido
  */
-router.get('/session-info', authenticateSession, authController.getSessionInfo);
+router.get('/me', authenticateJWT, authController.getCurrentUser);
+
+/**
+ * @swagger
+ * /api/auth/test-blacklist:
+ *   get:
+ *     summary: Testa a blacklist do Redis
+ *     description: Testa a funcionalidade da blacklist de tokens JWT
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Teste realizado com sucesso
+ *       500:
+ *         description: Erro no teste
+ */
+router.get('/test-blacklist', authenticateJWT, authController.testBlacklist);
 
 module.exports = router; 

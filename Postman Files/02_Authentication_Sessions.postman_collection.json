@@ -1,9 +1,9 @@
 {
   "info": {
-    "name": "🔐 Autenticação e Sessões",
-    "description": "Endpoints de autenticação, login, logout e gerenciamento de sessões da API Azore Blockchain",
+    "name": "🔐 Autenticação JWT",
+    "description": "Endpoints de autenticação, login, logout e gerenciamento de tokens JWT da API Azore Blockchain",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "variable": [
     {
@@ -22,8 +22,13 @@
       "type": "string"
     },
     {
-      "key": "session_token",
-      "value": "{{session_token}}",
+      "key": "access_token",
+      "value": "{{access_token}}",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "{{refresh_token}}",
       "type": "string"
     },
     {
@@ -41,6 +46,10 @@
           {
             "key": "Content-Type",
             "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
           }
         ],
         "body": {
@@ -65,9 +74,10 @@
               "",
               "if (pm.response.code === 200) {",
               "    const response = pm.response.json();",
-              "    if (response.data && response.data.sessionToken) {",
-              "        pm.environment.set(\"session_token\", response.data.sessionToken);",
-              "        console.log(\"Session token saved to environment\");",
+              "    if (response.data && response.data.accessToken) {",
+              "        pm.environment.set(\"access_token\", response.data.accessToken);",
+              "        pm.environment.set(\"refresh_token\", response.data.refreshToken);",
+              "        console.log(\"JWT tokens saved to environment\");",
               "    }",
               "}"
             ],
@@ -82,8 +92,8 @@
         "method": "POST",
         "header": [
           {
-            "key": "X-Session-Token",
-            "value": "{{session_token}}"
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
           }
         ],
         "url": {
@@ -95,22 +105,65 @@
       "response": []
     },
     {
-      "name": "Session Info",
+      "name": "Get Current User",
       "request": {
         "method": "GET",
         "header": [
           {
-            "key": "X-Session-Token",
-            "value": "{{session_token}}"
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
           }
         ],
         "url": {
-          "raw": "{{base_url}}/api/auth/session-info",
+          "raw": "{{base_url}}/api/auth/me",
           "host": ["{{base_url}}"],
-          "path": ["api", "auth", "session-info"]
+          "path": ["api", "auth", "me"]
         }
       },
       "response": []
+    },
+    {
+      "name": "Refresh Token",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/auth/refresh",
+          "host": ["{{base_url}}"],
+          "path": ["api", "auth", "refresh"]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "if (pm.response.code === 200) {",
+              "    const response = pm.response.json();",
+              "    if (response.data && response.data.accessToken) {",
+              "        pm.environment.set(\"access_token\", response.data.accessToken);",
+              "        console.log(\"New access token saved to environment\");",
+              "    }",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
     },
     {
       "name": "Change Password",
@@ -122,8 +175,8 @@
             "value": "application/json"
           },
           {
-            "key": "X-Session-Token",
-            "value": "{{session_token}}"
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
           }
         ],
         "body": {
@@ -148,8 +201,8 @@
             "value": "application/json"
           },
           {
-            "key": "X-Session-Token",
-            "value": "{{session_token}}"
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
           }
         ],
         "body": {
@@ -191,8 +244,8 @@
         "method": "GET",
         "header": [
           {
-            "key": "X-Session-Token",
-            "value": "{{session_token}}"
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
           }
         ],
         "url": {
@@ -209,8 +262,8 @@
         "method": "POST",
         "header": [
           {
-            "key": "X-Session-Token",
-            "value": "{{session_token}}"
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
           }
         ],
         "url": {
@@ -231,8 +284,8 @@
             "value": "application/json"
           },
           {
-            "key": "X-Session-Token",
-            "value": "{{session_token}}"
+            "key": "Authorization",
+            "value": "Bearer {{access_token}}"
           }
         ],
         "body": {
@@ -243,32 +296,6 @@
           "raw": "{{base_url}}/api/auth/api-keys/{{api_key_id}}/edit",
           "host": ["{{base_url}}"],
           "path": ["api", "auth", "api-keys", "{{api_key_id}}", "edit"]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "Set Session Timeout",
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Content-Type",
-            "value": "application/json"
-          },
-          {
-            "key": "X-Session-Token",
-            "value": "{{session_token}}"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n  \"timeout\": 3600\n}"
-        },
-        "url": {
-          "raw": "{{base_url}}/api/auth/session-timeout",
-          "host": ["{{base_url}}"],
-          "path": ["api", "auth", "session-timeout"]
         }
       },
       "response": []

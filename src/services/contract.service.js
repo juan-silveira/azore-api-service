@@ -3,6 +3,14 @@ const blockchainService = require('./blockchain.service');
 const transactionService = require('./transaction.service');
 const databaseConfig = require('../config/database');
 
+// Função para obter o serviço de webhook
+const getWebhookService = () => {
+  if (!global.webhookService) {
+    global.webhookService = require('./webhook.service');
+  }
+  return global.webhookService;
+};
+
 class ContractService {
   constructor() {
     this.SmartContract = null;
@@ -21,6 +29,29 @@ const UserModel = require('../models/User');
     } catch (error) {
       console.error('❌ Erro ao inicializar serviço de contratos:', error.message);
       throw error;
+    }
+  }
+
+  /**
+   * Dispara webhooks para eventos de contrato
+   */
+  async triggerContractWebhooks(event, contract, clientId, additionalData = {}) {
+    try {
+      const webhookService = getWebhookService();
+      await webhookService.triggerWebhooks(event, {
+        contractId: contract.id,
+        contractAddress: contract.address,
+        contractName: contract.name,
+        network: contract.network,
+        abi: contract.abi,
+        metadata: contract.metadata,
+        status: contract.status,
+        timestamp: contract.createdAt || new Date().toISOString(),
+        ...additionalData
+      }, clientId);
+    } catch (error) {
+      console.error('Erro ao disparar webhooks de contrato:', error.message);
+      // Não falhar a operação principal por erro de webhook
     }
   }
 
@@ -279,6 +310,15 @@ const UserModel = require('../models/User');
 
       // Atualizar lastActivityAt do usuário
       await user.updateLastActivity();
+
+      // Disparar webhook de contrato implantado
+      if (user.clientId) {
+        await this.triggerContractWebhooks('contract.deployed', contractRecord.data, user.clientId, {
+          deployedBy: walletAddress,
+          deployedAt: new Date().toISOString(),
+          gasLimit: deployOptions.gasLimit
+        });
+      }
 
       return {
         success: true,
@@ -1080,6 +1120,19 @@ const UserModel = require('../models/User');
         },
         isActive: true
       });
+
+      // Disparar webhook de contrato registrado
+      // Nota: clientId seria obtido do contexto da requisição
+      // Por enquanto, vamos disparar sem clientId específico
+      try {
+        await this.triggerContractWebhooks('contract.registered', contract, null, {
+          contractType,
+          tokenInfo,
+          registeredAt: new Date().toISOString()
+        });
+      } catch (error) {
+        console.warn('Erro ao disparar webhook de contrato registrado:', error.message);
+      }
 
       return {
         success: true,

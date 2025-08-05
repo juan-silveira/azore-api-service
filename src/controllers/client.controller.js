@@ -21,6 +21,51 @@ class ClientController {
         });
       }
 
+      // Validar tamanho do nome
+      if (clientData.name.length < 2 || clientData.name.length > 255) {
+        return res.status(400).json({
+          success: false,
+          message: 'Nome deve ter entre 2 e 255 caracteres'
+        });
+      }
+
+      // Validar formato do nome (apenas letras, números, espaços e caracteres especiais comuns)
+      const nameRegex = /^[a-zA-ZÀ-ÿ0-9\s\-_.,&()]+$/;
+      if (!nameRegex.test(clientData.name)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Nome contém caracteres inválidos'
+        });
+      }
+
+      // Validar rate limits se fornecidos
+      if (clientData.rateLimit) {
+        const requiredLimits = ['requestsPerMinute', 'requestsPerHour', 'requestsPerDay'];
+        for (const limit of requiredLimits) {
+          if (typeof clientData.rateLimit[limit] !== 'number' || clientData.rateLimit[limit] < 1) {
+            return res.status(400).json({
+              success: false,
+              message: `Rate limit '${limit}' deve ser um número maior que 0`
+            });
+          }
+        }
+
+        // Validar hierarquia dos limites
+        if (clientData.rateLimit.requestsPerMinute > clientData.rateLimit.requestsPerHour) {
+          return res.status(400).json({
+            success: false,
+            message: 'requestsPerMinute não pode ser maior que requestsPerHour'
+          });
+        }
+
+        if (clientData.rateLimit.requestsPerHour > clientData.rateLimit.requestsPerDay) {
+          return res.status(400).json({
+            success: false,
+            message: 'requestsPerHour não pode ser maior que requestsPerDay'
+          });
+        }
+      }
+
       const result = await clientService.createClient(clientData);
       
       res.status(201).json(result);

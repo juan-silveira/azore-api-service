@@ -339,19 +339,34 @@ const checkUsageLimits = async (req, res, next) => {
  */
 const addUserInfo = (req, res, next) => {
   if (req.user) {
+    // Verificar se é autenticação por API Key ou JWT
+    const isApiKeyAuth = req.apiKey && req.client;
+    const isJwtAuth = req.user.isApiAdmin !== undefined;
+    
     // Adicionar headers com informações do usuário
-    res.set({
+    const headers = {
       'X-User-ID': req.user.id,
       'X-User-Name': req.user.name,
       'X-User-Email': req.user.email,
-      'X-Client-ID': req.user.clientId,
-      'X-User-Roles': req.user.roles.join(','),
-      'X-User-Is-Api-Admin': req.user.isApiAdminUser(),
-      'X-User-Is-Client-Admin': req.user.isClientAdminUser(),
-      'X-Rate-Limit-Minute': req.client.rateLimit.requestsPerMinute,
-      'X-Rate-Limit-Hour': req.client.rateLimit.requestsPerHour,
-      'X-Rate-Limit-Day': req.client.rateLimit.requestsPerDay
-    });
+      'X-User-Roles': Array.isArray(req.user.roles) ? req.user.roles.join(',') : req.user.roles
+    };
+
+    if (isApiKeyAuth) {
+      // Autenticação por API Key
+      headers['X-Client-ID'] = req.user.clientId;
+      headers['X-User-Is-Api-Admin'] = req.user.isApiAdminUser ? req.user.isApiAdminUser() : req.user.isApiAdmin;
+      headers['X-User-Is-Client-Admin'] = req.user.isClientAdminUser ? req.user.isClientAdminUser() : req.user.isClientAdmin;
+      headers['X-Rate-Limit-Minute'] = req.client.rateLimit.requestsPerMinute;
+      headers['X-Rate-Limit-Hour'] = req.client.rateLimit.requestsPerHour;
+      headers['X-Rate-Limit-Day'] = req.client.rateLimit.requestsPerDay;
+    } else if (isJwtAuth) {
+      // Autenticação por JWT
+      headers['X-Client-ID'] = req.user.clientId;
+      headers['X-User-Is-Api-Admin'] = req.user.isApiAdmin;
+      headers['X-User-Is-Client-Admin'] = req.user.isClientAdmin;
+    }
+
+    res.set(headers);
   }
   next();
 };

@@ -1,6 +1,14 @@
 const { ethers } = require('ethers');
 const databaseConfig = require('../config/database');
 
+// Função para obter o serviço de webhook
+const getWebhookService = () => {
+  if (!global.webhookService) {
+    global.webhookService = require('./webhook.service');
+  }
+  return global.webhookService;
+};
+
 class TransactionService {
   constructor() {
     this.Transaction = null;
@@ -14,6 +22,30 @@ class TransactionService {
   }
 
   /**
+   * Dispara webhooks para eventos de transação
+   */
+  async triggerTransactionWebhooks(event, transaction, clientId) {
+    try {
+      const webhookService = getWebhookService();
+      await webhookService.triggerWebhooks(event, {
+        transactionId: transaction.id,
+        txHash: transaction.txHash,
+        type: transaction.type,
+        status: transaction.status,
+        fromAddress: transaction.fromAddress,
+        toAddress: transaction.toAddress,
+        amount: transaction.amount,
+        network: transaction.network,
+        blockNumber: transaction.blockNumber,
+        timestamp: transaction.createdAt
+      }, clientId);
+    } catch (error) {
+      console.error('Erro ao disparar webhooks de transação:', error.message);
+      // Não falhar a operação principal por erro de webhook
+    }
+  }
+
+  /**
    * Cria um registro de transação
    */
   async createTransaction(transactionData) {
@@ -23,6 +55,12 @@ class TransactionService {
       }
 
       const transaction = await this.Transaction.create(transactionData);
+      
+      // Disparar webhook de transação criada
+      if (transaction.clientId) {
+        await this.triggerTransactionWebhooks('transaction.created', transaction, transaction.clientId);
+      }
+      
       return transaction;
     } catch (error) {
       console.error('Erro ao criar transação:', error.message);
@@ -44,7 +82,14 @@ class TransactionService {
         throw new Error('Transação não encontrada');
       }
 
+      const oldStatus = transaction.status;
       await transaction.update(updateData);
+      
+      // Disparar webhook se o status mudou
+      if (updateData.status && updateData.status !== oldStatus) {
+        await this.triggerTransactionWebhooks('transaction.status_updated', transaction, transaction.clientId);
+      }
+      
       return transaction;
     } catch (error) {
       console.error('Erro ao atualizar transação:', error.message);
@@ -123,7 +168,14 @@ class TransactionService {
       }
     };
 
-    return await this.createTransaction(transactionData);
+    const transaction = await this.createTransaction(transactionData);
+    
+    // Disparar webhook específico de mint
+    if (clientId) {
+      await this.triggerTransactionWebhooks('transaction.mint', transaction, clientId);
+    }
+    
+    return transaction;
   }
 
   /**
@@ -172,7 +224,14 @@ class TransactionService {
       }
     };
 
-    return await this.createTransaction(transactionData);
+    const transaction = await this.createTransaction(transactionData);
+    
+    // Disparar webhook específico de burn
+    if (clientId) {
+      await this.triggerTransactionWebhooks('transaction.burn', transaction, clientId);
+    }
+    
+    return transaction;
   }
 
   /**
@@ -224,7 +283,14 @@ class TransactionService {
       }
     };
 
-    return await this.createTransaction(transactionData);
+    const transaction = await this.createTransaction(transactionData);
+    
+    // Disparar webhook específico de transfer
+    if (clientId) {
+      await this.triggerTransactionWebhooks('transaction.transfer', transaction, clientId);
+    }
+    
+    return transaction;
   }
 
   /**

@@ -1,6 +1,7 @@
 const app = require('./app');
 
 const databaseConfig = require('./config/database');
+const redisService = require('./services/redis.service');
 const ClientModel = require('./models/Client');
 const UserModel = require('./models/User');
 
@@ -10,6 +11,8 @@ const TransactionModel = require('./models/Transaction');
 const PasswordResetModel = require('./models/PasswordReset');
 const ApiKeyModel = require('./models/ApiKey');
 const StakeModel = require('./models/Stake');
+const DocumentModel = require('./models/Document');
+const WebhookModel = require('./models/Webhook');
 
 // Importar serviços
 
@@ -71,6 +74,8 @@ const startServer = () => {
     models.PasswordReset = PasswordResetModel(sequelize);
     models.ApiKey = ApiKeyModel(sequelize);
     models.Stake = StakeModel(sequelize);
+    models.Document = DocumentModel(sequelize);
+    models.Webhook = WebhookModel(sequelize);
     // Chamar associate
     Object.values(models).forEach(model => {
       if (model.associate) model.associate(models);
@@ -94,6 +99,11 @@ const startServer = () => {
     await passwordResetService.initialize();
     await tokenService.initialize();
     await stakeService.initialize();
+    
+    // Inicializar Redis
+    console.log('🔍 Inicializando Redis...');
+    await redisService.initialize();
+    console.log('✅ Redis inicializado');
     await queueService.initialize();
     console.log('✅ Serviços inicializados com sucesso');
     

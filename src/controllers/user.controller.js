@@ -19,6 +19,43 @@ class UserController {
         });
       }
 
+      // Validar formato do email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(userData.email)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Formato de email inválido'
+        });
+      }
+
+      // Validar tamanho do nome
+      if (userData.name.length < 2 || userData.name.length > 100) {
+        return res.status(400).json({
+          success: false,
+          message: 'Nome deve ter entre 2 e 100 caracteres'
+        });
+      }
+
+      // Validar formato do CPF (apenas números)
+      const cpfRegex = /^\d{11}$/;
+      if (!cpfRegex.test(userData.cpf.replace(/\D/g, ''))) {
+        return res.status(400).json({
+          success: false,
+          message: 'CPF deve conter 11 dígitos numéricos'
+        });
+      }
+
+      // Validar telefone se fornecido
+      if (userData.phone) {
+        const phoneRegex = /^\d{10,11}$/;
+        if (!phoneRegex.test(userData.phone.replace(/\D/g, ''))) {
+          return res.status(400).json({
+            success: false,
+            message: 'Telefone deve conter 10 ou 11 dígitos numéricos'
+          });
+        }
+      }
+
       // Validar campo admin (opcional, padrão false)
       if (userData.isAdmin !== undefined && typeof userData.isAdmin !== 'boolean') {
         return res.status(400).json({
